@@ -10,12 +10,19 @@ import {BoldOutlined, ItalicOutlined, MinusCircleOutlined, PlusOutlined, Underli
 import {ApplicationSection} from "./Sponsorships.styles";
 import sponsorshipActions from "../../redux/sponsorships/actions";
 import sponsorshipsReducer from "../../redux/sponsorships/reducer";
-import Draft, {Editor, EditorState, RichUtils, ContentState, convertFromHTML, convertToRaw, getSafeBodyFromHTML} from 'draft-js';
-import Immutable from 'immutable';
-import 'draft-js/dist/Draft.css';
 import * as firebase from "firebase";
 
+import Draft, {
+    Editor, EditorState, RichUtils, ContentState, convertFromHTML,
+    convertToRaw, KeyBindingUtil, CompositeDecorator} from 'draft-js';
+import Immutable from 'immutable';
+import 'draft-js/dist/Draft.css';
+
+
 export default function (props) {
+    const editor = useRef(null);
+    const urlRef = useRef(null);
+
     // if an email was sent, just get out of here.
     if(props.emailSent) {
         //return <Redirect to={props.redirectPath} />;
@@ -29,6 +36,8 @@ export default function (props) {
     const [formItems, setFormItems] = useState(null);
     const [editorState, setEditorState] = useState(null);
     const [emailPreview, setEmailPreview] = useState(null);
+    const [showURLInput, setShowUrl  ] = useState(false);
+    const [urlValue, setUrlValue  ] = useState("");
     let email = "";
     let applicantEmailPreview = null;
     const submissionInfo = currentApp.submission;
@@ -212,7 +221,7 @@ export default function (props) {
         for(let idx in blocksArray) {
             let contentBlock = blocksArray[idx];
             emailArray.push(contentBlock.getText());
-            //console.log("emailApplicant key:", contentBlock.getKey(), ", Type:", contentBlock.getType(), ", Depth:", contentBlock.getDepth());
+            console.log("emailApplicant key:", contentBlock.getKey(), ", Type:", contentBlock.getType(), ", Depth:", contentBlock.getDepth(), ", BLOCK:", contentBlock.getText());
         }
 
         sendApplicantEmail(currentApp, emailArray);
@@ -328,67 +337,6 @@ export default function (props) {
         )
     }
 
-    // Preview the email being sent
-    const previewEmail = (passedApp) => {
-        if(appType === "Monetary") {
-            if(passedApp.admin.approvalStatus === "approved") {
-                // applicantEmailPreview = (
-                //     <div className={'applicant-email-preview'}>
-                //         <h3>Dear {submissionInfo.primaryName}</h3>
-                //         <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your sponsorship request has been approved for ${}. We will send your check to the address provided in the form. Please allow for 1-2 weeks for the check to arrive. If you have any questions or need additional information, please contact Nicole Senner at <a href="tel:4066877387">406-687-7387</a> or<a href="mailto:nicole.senner@midrivers.coop">nicole.senner@midrivers.coop</a></p>
-                //     </div>
-                // )
-
-            } else if(passedApp.admin.approvalStatus === "denied") {
-
-            }
-        } else {
-            if(passedApp.admin.approvalStatus === "approved") {
-                // create the items string for the editor preview
-                let itemsTextArray = [];
-
-                if(existingItems.length) {
-                    for (let idx in existingItems) {
-                        if(parseInt(idx) === existingItems.length - 1) {
-                            itemsTextArray.push("and " + existingItems[idx].itemQty + "x" + existingItems[idx].itemName);
-                        } else {
-                            itemsTextArray.push(existingItems[idx].itemQty + "x" + existingItems[idx].itemName);
-                        }
-                    }
-                }
-
-                // set the default email to show in the editor
-                applicantEmailPreview = (
-                    <>
-                        <p>Dear {submissionInfo.primaryName},</p>
-                        <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you
-                            that your sponsorship request has been approved for the following items:</p>
-                        <p>{itemsTextArray.join(', ')}.</p>
-                        <p>Please contact Nicole Senner at <a href="tel:4066877387">406-687-7387</a> or <a href="mailto:nicole.sennern@midrivers.coop">nicole.sennern@midrivers.coop</a> to coordinate the delivery of the items or if you have any questions.</p>
-                    </>
-                );
-            } else if(passedApp.admin.approvalStatus === "denied") {
-            }
-        }
-
-        const blocksFromHTML = convertFromHTML(ReactDomServer.renderToString(applicantEmailPreview));
-        //const blocksFromHTML = convertFromHTML(ReactDomServer.renderToString(applicantEmailPreview), getSafeBodyFromHTML);
-        // console.log("applicantEmailPreview", applicantEmailPreview);
-        // console.log("applicantEmailPreview renderToString", ReactDomServer.renderToString(applicantEmailPreview));
-        // console.log("blocksFromHTML", blocksFromHTML);
-
-
-        const initialContent = ContentState.createFromBlockArray(
-            blocksFromHTML.contentBlocks,
-            blocksFromHTML.entityMap,
-        );
-
-        setEmailPreview(ReactDomServer.renderToString(applicantEmailPreview));
-        setEditorState(EditorState.createWithContent(initialContent));
-
-
-    };
-
     // triggers when admin saves changes on the application
     const submitApplication = (formValues, appType) => {
         const approvalTime = formValues.statusSelect !== "pending" ? firebase.firestore.Timestamp.fromDate(new Date()) : "";
@@ -446,16 +394,8 @@ export default function (props) {
         updateApp(updatedApp);
     };
 
-    // draftjs handler for setting key handlers
-    const handleKeyCommand = useCallback((command, editorState) => {
-        const newState = RichUtils.handleKeyCommand(editorState, command)
-        if (newState) {
-            setEditorState(newState)
 
-            return "handled"
-        }
-        return "not-handled"
-    });
+    /** ***************************************************************************************** */
 
 
 
@@ -465,7 +405,204 @@ export default function (props) {
     });
 
     // draftjs this sets the custom blocks in the editors backend html output
-    const extendedBlockRenderMap = Draft.DefaultDraftBlockRenderMap.merge(blockRenderMap);
+    //const extendedBlockRenderMap = Draft.DefaultDraftBlockRenderMap.merge(blockRenderMap);
+
+    // draftjs handler for setting key handlers
+    const handleKeyCommand = useCallback((command, editorState) => {
+        const newState = RichUtils.handleKeyCommand(editorState, command)
+        if (newState) {
+            setEditorState(newState)
+            return "handled"
+        }
+
+        return "not-handled"
+    });
+
+    // button functions for the editor
+    const onUnderlineClick = () => {
+        setEditorState(RichUtils.toggleInlineStyle(editorState, 'UNDERLINE'));
+    }
+
+    const onBoldClick = () => {
+        setEditorState(RichUtils.toggleInlineStyle(editorState, 'BOLD'))
+    }
+
+    const onItalicClick = () => {
+        setEditorState(RichUtils.toggleInlineStyle(editorState, 'ITALIC'))
+    }
+
+    // creates the draftjs editor when preview is clicked
+    const createEditor = (applicantEmailPreview) => {
+        const decorator = new CompositeDecorator([
+            {
+                strategy: findLinkEntities,
+                component: Link,
+            },
+        ]);
+
+        const blocksFromHTML = convertFromHTML(ReactDomServer.renderToString(applicantEmailPreview));
+
+        const initialContent = ContentState.createFromBlockArray(
+            blocksFromHTML.contentBlocks,
+            blocksFromHTML.entityMap,
+        );
+
+        setEmailPreview(ReactDomServer.renderToString(applicantEmailPreview));
+        setEditorState(EditorState.createWithContent(initialContent, decorator));
+
+
+    };
+
+    function findLinkEntities(contentBlock, callback, contentState) {
+        contentBlock.findEntityRanges(
+            (character) => {
+                const entityKey = character.getEntity();
+                return (
+                    entityKey !== null &&
+                    contentState.getEntity(entityKey).getType() === 'LINK'
+                );
+            },
+            callback
+        );
+    }
+
+    const Link = (props) => {
+        const {url} = props.contentState.getEntity(props.entityKey).getData();
+        return (
+            <a href={url} style={{color: '#3b5998', textDecoration: 'underline'}} target="_blank">
+                {props.children}
+            </a>
+        );
+    };
+
+    const promptForLink = (e) => {
+        e.preventDefault();
+        console.log("promptForLink");
+
+        const selection = editorState.getSelection();
+        if (!selection.isCollapsed()) {
+            const contentState = editorState.getCurrentContent();
+            const startKey = editorState.getSelection().getStartKey();
+            const startOffset = editorState.getSelection().getStartOffset();
+            const blockWithLinkAtBeginning = contentState.getBlockForKey(startKey);
+            const linkKey = blockWithLinkAtBeginning.getEntityAt(startOffset);
+
+            let url = '';
+            if (linkKey) {
+                const linkInstance = contentState.getEntity(linkKey);
+                url = linkInstance.getData().url;
+            }
+
+            setShowUrl(true);
+            setUrlValue(url);
+            setTimeout(() => urlRef.current.focus(), 10);
+
+        }
+    }
+
+    const confirmLink = (e) => {
+        e.preventDefault();
+        const contentState = editorState.getCurrentContent();
+        const contentStateWithEntity = contentState.createEntity(
+            'LINK',
+            'MUTABLE',
+            {url: urlValue}
+        );
+        const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+        const newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
+        setEditorState(RichUtils.toggleLink(newEditorState, newEditorState.getSelection(), entityKey));
+        setTimeout(() => editor.current.focus(), 10);
+    }
+
+    const onLinkInputKeyDown = (e) => {
+        if (e.which === 13) {
+            confirmLink(e);
+        }
+    }
+
+    const removeLink = (e) => {
+        e.preventDefault();
+        const {editorState} = editorState;
+        const selection = editorState.getSelection();
+        if (!selection.isCollapsed()) {
+            setEditorState(RichUtils.toggleLink(editorState, selection, null));
+        }
+    }
+
+    const onURLChange = (e) => {
+        setUrlValue(e.target.value);
+    };
+
+    const focus = () => editor.focus();
+
+    /** ***************************************************************************************** */
+
+
+
+
+    // Preview the email being sent
+    const previewEmail = (passedApp) => {
+        if(appType === "Monetary") {
+            if(passedApp.admin.approvalStatus === "approved") {
+                // applicantEmailPreview = (
+                //     <div className={'applicant-email-preview'}>
+                //         <h3>Dear {submissionInfo.primaryName}</h3>
+                //         <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your sponsorship request has been approved for ${}. We will send your check to the address provided in the form. Please allow for 1-2 weeks for the check to arrive. If you have any questions or need additional information, please contact Nicole Senner at <a href="tel:4066877387">406-687-7387</a> or<a href="mailto:nicole.senner@midrivers.coop">nicole.senner@midrivers.coop</a></p>
+                //     </div>
+                // )
+
+            } else if(passedApp.admin.approvalStatus === "denied") {
+
+            }
+        } else {
+            if(passedApp.admin.approvalStatus === "approved") {
+                // create the items string for the editor preview
+                let itemsTextArray = [];
+
+                if(existingItems.length) {
+                    for (let idx in existingItems) {
+                        if(parseInt(idx) === existingItems.length - 1) {
+                            itemsTextArray.push("and " + existingItems[idx].itemQty + "x" + existingItems[idx].itemName);
+                        } else {
+                            itemsTextArray.push(existingItems[idx].itemQty + "x" + existingItems[idx].itemName);
+                        }
+                    }
+                }
+
+                // set the default email to show in the editor
+                applicantEmailPreview = (
+                    <>
+                        <p>Dear {submissionInfo.primaryName},</p>
+                        <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you
+                            that your sponsorship request has been approved for the following items:</p>
+                        <p>{itemsTextArray.join(', ')}.</p>
+                        <p>Please contact Nicole Senner at <a href="tel:4066877387">406-687-7387</a> or <a href="mailto:nicole.sennern@midrivers.coop">nicole.sennern@midrivers.coop</a> to coordinate the delivery of the items or if you have any questions.</p>
+                    </>
+                );
+            } else if(passedApp.admin.approvalStatus === "denied") {
+            }
+        }
+
+        createEditor(applicantEmailPreview);
+    };
+
+    let urlInput;
+    if (showURLInput) {
+        urlInput =
+            <div style={{ marginBottom: 10,}}>
+                <input
+                    onChange={onURLChange}
+                    ref={urlRef}
+                    style={{fontFamily: '\'Georgia\', serif', marginRight: 10, padding: 3,}}
+                    type="text"
+                    value={urlValue}
+                    onKeyDown={onLinkInputKeyDown}
+                />
+                <button onMouseDown={confirmLink}>
+                    Confirm
+                </button>
+            </div>;
+    }
 
     return (
         <LayoutWrapper>
@@ -476,14 +613,27 @@ export default function (props) {
                         <ApplicationSection>
                             <div className="editor-wrapper">
                                 <div className="editor-buttons">
-                                    <p>You can edit the text below.</p>
+                                    <div className="buttons">
+                                        <button onClick={onUnderlineClick}>Underline</button>
+                                        <button onClick={onBoldClick}><b>Bold</b></button>
+                                        <button onClick={onItalicClick}><em>Italic</em></button>
+                                        <button
+                                            onClick={promptForLink}
+                                            style={{marginRight: 10}}>
+                                            Add Link
+                                        </button>
+                                        <button onClick={removeLink}>
+                                            Remove Link
+                                        </button>
+                                    </div>
+                                    {urlInput}
                                 </div>
                                 <Editor
                                     editorState={editorState}
                                     onChange={setEditorState}
                                     handleKeyCommand={handleKeyCommand}
                                     spellCheck={true}
-                                    blockRenderMap={extendedBlockRenderMap}
+                                    ref={editor}
                                 />
                             </div>
                             <Row gutter={[0, 0]}>

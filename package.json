@@ -9,6 +9,8 @@
     "classnames": "^2.2.6",
     "clone": "^2.1.2",
     "draft-js": "^0.11.7",
+    "draft-js-anchor-plugin": "^2.0.3",
+    "draft-js-plugins-editor": "^3.0.0",
     "history": "^5.0.0",
     "immutable": "3.7.6",
     "jwt-decode": "^2.2.0",
