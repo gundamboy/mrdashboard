@@ -3,6 +3,19 @@ import styled from 'styled-components';
 export const ApplicationSection = styled.div`
     .ant-table-wrapper {
         margin-bottom: 3rem;
+        
+        .address {
+            display: block;
+        }
+        
+        tr {
+            td:nth-child(even) {
+                p {
+                    max-width: 397px;
+                    white-space: normal;
+                }
+            }
+        }
     }
     
     .application-section-title {
@@ -14,7 +27,7 @@ export const ApplicationSection = styled.div`
         
         .email-instructions {
             margin-bottom: 0.5rem;
-        }
+        }       
     }
     
     .editor-wrapper {
@@ -26,6 +39,16 @@ export const ApplicationSection = styled.div`
             padding: 10px;
             background: #efefef;
             border-bottom: 1px solid #dddddd;
+            
+            .instructions {
+                p {
+                    margin-bottom: 0.25rem;
+                    
+                    .syntax {
+                        font-weight: bold;
+                    }
+                }
+            }
             
             button {
                 margin-right: 5px;
@@ -52,6 +75,19 @@ export const ApplicationSection = styled.div`
             } 
         }
     }
+    
+    .editor-controls {
+        .send-email-button-wrapper {
+            display: flex;
+            justify-content: space-between;
+        
+            .cancel-email-btn {
+                margin-right: 10px;
+            }
+        }
+    }
+    
+    
     
     .admin-section {
         margin-bottom: 2rem;

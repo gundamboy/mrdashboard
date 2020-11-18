@@ -21,7 +21,6 @@ import 'draft-js/dist/Draft.css';
 
 export default function (props) {
     const editor = useRef(null);
-    const urlRef = useRef(null);
 
     // if an email was sent, just get out of here.
     if(props.emailSent) {
@@ -36,12 +35,12 @@ export default function (props) {
     const [formItems, setFormItems] = useState(null);
     const [editorState, setEditorState] = useState(null);
     const [emailPreview, setEmailPreview] = useState(null);
-    const [showURLInput, setShowUrl  ] = useState(false);
-    const [urlValue, setUrlValue  ] = useState("");
+    const [showPreview, setShowPreview] = useState(false);
     let email = "";
     let applicantEmailPreview = null;
     const submissionInfo = currentApp.submission;
     const appType = submissionInfo.sponsorshipSelect;
+    const appStatus = currentApp.admin.approvalStatus;
     const dispatch = useDispatch();
     const { Option } = Select;
     const { Title } = Typography;
@@ -51,8 +50,18 @@ export default function (props) {
     let existingItems = null;
 
     const orgAddress = (
-        <span>{submissionInfo.orgAddress + <br /> + submissionInfo.orgCity + ", " + submissionInfo.orgZip}</span>
+        <>
+            <span className="address">{submissionInfo.orgAddress}</span>
+            <span className="address">{submissionInfo.orgCity + ", " + submissionInfo.orgZip}</span>
+        </>
     );
+
+    const primaryAddress = (
+        <>
+            <span className="address">{submissionInfo.primaryAddress}</span>
+            <span className="address">{submissionInfo.primaryCity + ", " + submissionInfo.primaryZip}</span>
+        </>
+    )
 
     const orgInfo = [
         {
@@ -76,13 +85,13 @@ export default function (props) {
         {
             key: "orgWebsite",
             question: "Organization's Website URL",
-            answer: <a href={`$[submissionInfo.orgWebsite]`} target="_blank">{submissionInfo.orgWebsite}</a>,
+            answer: <a href={`${submissionInfo.orgWebsite}`} target="_blank">{submissionInfo.orgWebsite}</a>,
             dataIndex: "orgWebsite"
         },
         {
             key: "orgFacebook",
             question: "Organization's Facebook Page",
-            answer: <a href={`$[submissionInfo.orgFacebook]`} target="_blank">{submissionInfo.orgFacebook}</a>,
+            answer: <a href={`${submissionInfo.orgFacebook}`} target="_blank">{submissionInfo.orgFacebook}</a>,
             dataIndex: "orgFacebook"
         },
         {
@@ -120,7 +129,7 @@ export default function (props) {
         {
             key: "primaryAddress",
             question: "Primary Contact Address",
-            answer: submissionInfo.primaryAddress  + <br /> + submissionInfo.primaryCity + ", " + submissionInfo.primaryZip,
+            answer: primaryAddress,
             dataIndex: "primaryAddress"
         },
         {
@@ -207,21 +216,19 @@ export default function (props) {
 
     // fires the sendEmail action and saga
     const sendApplicantEmail = useCallback(
-        (currentApp, emailArray) => dispatch(sponsorshipActions.sendEmail(currentApp, emailArray)), [dispatch]
+        (currentApp, emailArray) => dispatch(sponsorshipActions.sendEmail(currentApp, emailArray, appType)), [dispatch]
     );
 
     // gets the editor contents and triggers the sendApplication function
     const emailApplicant = (currentApp) => {
         const contentState = editorState.getCurrentContent();
         const blocksArray = contentState.getBlocksAsArray();
-        let emailArray = [];
 
-        console.log("convertToRaw", convertToRaw(contentState));
+        let emailArray = [];
 
         for(let idx in blocksArray) {
             let contentBlock = blocksArray[idx];
             emailArray.push(contentBlock.getText());
-            console.log("emailApplicant key:", contentBlock.getKey(), ", Type:", contentBlock.getType(), ", Depth:", contentBlock.getDepth(), ", BLOCK:", contentBlock.getText());
         }
 
         sendApplicantEmail(currentApp, emailArray);
@@ -321,14 +328,14 @@ export default function (props) {
     }
 
     // set approval status and date
-    if(currentApp.admin.approvalStatus === "approved") {
+    if(appStatus === "approved") {
         approvalDate = (
             <p className={'approvalDate approved'}>Approved on: <span className={'date'}>{
                 currentApp.admin.approvalDate.toDate().getMonth()+1 + "/" +
                 currentApp.admin.approvalDate.toDate().getDate() + "/" +
                 currentApp.admin.approvalDate.toDate().getFullYear()}</span></p>
         )
-    } else if(currentApp.admin.approvalStatus === 'denied') {
+    } else if(appStatus === 'denied') {
         approvalDate = (
             <p className={'approvalDate denied'}>Denied on: <span className={'date'}>{
                 currentApp.admin.approvalDate.toDate().getMonth()+1 + "/" +
@@ -390,23 +397,10 @@ export default function (props) {
             }
         }
 
-        console.log("sending to updateApp: ", updatedApp);
         updateApp(updatedApp);
     };
 
-
     /** ***************************************************************************************** */
-
-
-
-    // draftjs custom block rendering tags for when you enter to make a new line
-    const blockRenderMap = Immutable.Map({
-
-    });
-
-    // draftjs this sets the custom blocks in the editors backend html output
-    //const extendedBlockRenderMap = Draft.DefaultDraftBlockRenderMap.merge(blockRenderMap);
-
     // draftjs handler for setting key handlers
     const handleKeyCommand = useCallback((command, editorState) => {
         const newState = RichUtils.handleKeyCommand(editorState, command)
@@ -432,139 +426,58 @@ export default function (props) {
     }
 
     // creates the draftjs editor when preview is clicked
-    const createEditor = (applicantEmailPreview) => {
-        const decorator = new CompositeDecorator([
-            {
-                strategy: findLinkEntities,
-                component: Link,
-            },
-        ]);
+    const createEditor = (emailBody) => {
+        console.log("createEditor emailBody:", emailBody);
 
-        const blocksFromHTML = convertFromHTML(ReactDomServer.renderToString(applicantEmailPreview));
-
+        const blocksFromHTML = convertFromHTML(ReactDomServer.renderToString(emailBody));
         const initialContent = ContentState.createFromBlockArray(
             blocksFromHTML.contentBlocks,
             blocksFromHTML.entityMap,
         );
 
-        setEmailPreview(ReactDomServer.renderToString(applicantEmailPreview));
-        setEditorState(EditorState.createWithContent(initialContent, decorator));
-
-
+        setShowPreview(true);
+        setEmailPreview(ReactDomServer.renderToString(emailBody));
+        setEditorState(EditorState.createWithContent(initialContent));
     };
-
-    function findLinkEntities(contentBlock, callback, contentState) {
-        contentBlock.findEntityRanges(
-            (character) => {
-                const entityKey = character.getEntity();
-                return (
-                    entityKey !== null &&
-                    contentState.getEntity(entityKey).getType() === 'LINK'
-                );
-            },
-            callback
-        );
-    }
-
-    const Link = (props) => {
-        const {url} = props.contentState.getEntity(props.entityKey).getData();
-        return (
-            <a href={url} style={{color: '#3b5998', textDecoration: 'underline'}} target="_blank">
-                {props.children}
-            </a>
-        );
-    };
-
-    const promptForLink = (e) => {
-        e.preventDefault();
-        console.log("promptForLink");
-
-        const selection = editorState.getSelection();
-        if (!selection.isCollapsed()) {
-            const contentState = editorState.getCurrentContent();
-            const startKey = editorState.getSelection().getStartKey();
-            const startOffset = editorState.getSelection().getStartOffset();
-            const blockWithLinkAtBeginning = contentState.getBlockForKey(startKey);
-            const linkKey = blockWithLinkAtBeginning.getEntityAt(startOffset);
-
-            let url = '';
-            if (linkKey) {
-                const linkInstance = contentState.getEntity(linkKey);
-                url = linkInstance.getData().url;
-            }
-
-            setShowUrl(true);
-            setUrlValue(url);
-            setTimeout(() => urlRef.current.focus(), 10);
-
-        }
-    }
-
-    const confirmLink = (e) => {
-        e.preventDefault();
-        const contentState = editorState.getCurrentContent();
-        const contentStateWithEntity = contentState.createEntity(
-            'LINK',
-            'MUTABLE',
-            {url: urlValue}
-        );
-        const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
-        const newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
-        setEditorState(RichUtils.toggleLink(newEditorState, newEditorState.getSelection(), entityKey));
-        setTimeout(() => editor.current.focus(), 10);
-    }
-
-    const onLinkInputKeyDown = (e) => {
-        if (e.which === 13) {
-            confirmLink(e);
-        }
-    }
-
-    const removeLink = (e) => {
-        e.preventDefault();
-        const {editorState} = editorState;
-        const selection = editorState.getSelection();
-        if (!selection.isCollapsed()) {
-            setEditorState(RichUtils.toggleLink(editorState, selection, null));
-        }
-    }
-
-    const onURLChange = (e) => {
-        setUrlValue(e.target.value);
-    };
-
-    const focus = () => editor.focus();
 
     /** ***************************************************************************************** */
 
 
+    const cancelEmailPreview = () => {
+        setShowPreview(null);
+    };
 
+    const resetDefaultEmail = () => {
+        console.log("resetDefaultEmail applicantEmailPreview:", applicantEmailPreview);
+        const emailBody = buildEmailPreview();
+        createEditor(emailBody);
+    }
 
-    // Preview the email being sent
-    const previewEmail = (passedApp) => {
+    const buildEmailPreview = (passedApp) => {
         if(appType === "Monetary") {
-            if(passedApp.admin.approvalStatus === "approved") {
-                // applicantEmailPreview = (
-                //     <div className={'applicant-email-preview'}>
-                //         <h3>Dear {submissionInfo.primaryName}</h3>
-                //         <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your sponsorship request has been approved for ${}. We will send your check to the address provided in the form. Please allow for 1-2 weeks for the check to arrive. If you have any questions or need additional information, please contact Nicole Senner at <a href="tel:4066877387">406-687-7387</a> or<a href="mailto:nicole.senner@midrivers.coop">nicole.senner@midrivers.coop</a></p>
-                //     </div>
-                // )
-
-            } else if(passedApp.admin.approvalStatus === "denied") {
+            if(currentApp.admin.approvalStatus === "approved") {
+                applicantEmailPreview = (
+                    <>
+                        <p>Dear {submissionInfo.primaryName},</p>
+                        <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your
+                            sponsorship request has been approved for ${currentApp.admin.amountApproved}.</p>
+                        <p>We will send your check to the address provided in the form. Please allow for 1-2 weeks for the check to arrive. If you have any questions or need additional information, please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop to coordinate the delivery of the check.</p>
+                    </>
+                );
+            } else if(currentApp.admin.approvalStatus === "denied") {
 
             }
         } else {
-            if(passedApp.admin.approvalStatus === "approved") {
+            if(currentApp.admin.approvalStatus === "approved") {
                 // create the items string for the editor preview
                 let itemsTextArray = [];
 
                 if(existingItems.length) {
                     for (let idx in existingItems) {
                         if(parseInt(idx) === existingItems.length - 1) {
-                            itemsTextArray.push("and " + existingItems[idx].itemQty + "x" + existingItems[idx].itemName);
+                            itemsTextArray.push("and " + existingItems[idx].itemQty + " " + existingItems[idx].itemName);
                         } else {
-                            itemsTextArray.push(existingItems[idx].itemQty + "x" + existingItems[idx].itemName);
+                            itemsTextArray.push(existingItems[idx].itemQty + " " + existingItems[idx].itemName);
                         }
                     }
                 }
@@ -573,60 +486,53 @@ export default function (props) {
                 applicantEmailPreview = (
                     <>
                         <p>Dear {submissionInfo.primaryName},</p>
-                        <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you
-                            that your sponsorship request has been approved for the following items:</p>
+                        <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your sponsorship request has been approved for the following items:</p>
                         <p>{itemsTextArray.join(', ')}.</p>
-                        <p>Please contact Nicole Senner at <a href="tel:4066877387">406-687-7387</a> or <a href="mailto:nicole.sennern@midrivers.coop">nicole.sennern@midrivers.coop</a> to coordinate the delivery of the items or if you have any questions.</p>
+                        <p>Please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop to coordinate the delivery of the items or if you have any questions.</p>
                     </>
                 );
-            } else if(passedApp.admin.approvalStatus === "denied") {
+            } else if(currentApp.admin.approvalStatus === "denied") {
+                applicantEmailPreview = (
+                    <>
+                        <p>Dear {submissionInfo.primaryName},</p>
+                        <p>Thank you for submitting the Community Sponsorship Request form. We regret to inform you that we are unable to fulfill your request at this time.</p>
+                        <p>If you have any questions, please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop.</p>
+                    </>
+                );
             }
         }
 
-        createEditor(applicantEmailPreview);
+        return applicantEmailPreview;
     };
 
-    let urlInput;
-    if (showURLInput) {
-        urlInput =
-            <div style={{ marginBottom: 10,}}>
-                <input
-                    onChange={onURLChange}
-                    ref={urlRef}
-                    style={{fontFamily: '\'Georgia\', serif', marginRight: 10, padding: 3,}}
-                    type="text"
-                    value={urlValue}
-                    onKeyDown={onLinkInputKeyDown}
-                />
-                <button onMouseDown={confirmLink}>
-                    Confirm
-                </button>
-            </div>;
-    }
+    // Preview the email being sent
+    const previewEmail = () => {
+        if (editorState) {
+            setShowPreview(true);
+        } else {
+            const emailBody = buildEmailPreview();
+            createEditor(emailBody);
+        }
+
+    };
 
     return (
         <LayoutWrapper>
             <Row gutter={[16,16]} style={{"width": "100%"}}>
                 <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 16}} lg={{span: 16}}>
-                    {editorState !== null &&
+                    {showPreview &&
                     <Box style={{padding: 20, height: 'auto'}} className={"email-preview"}>
                         <ApplicationSection>
                             <div className="editor-wrapper">
                                 <div className="editor-buttons">
-                                    <div className="buttons">
-                                        <button onClick={onUnderlineClick}>Underline</button>
-                                        <button onClick={onBoldClick}><b>Bold</b></button>
-                                        <button onClick={onItalicClick}><em>Italic</em></button>
-                                        <button
-                                            onClick={promptForLink}
-                                            style={{marginRight: 10}}>
-                                            Add Link
-                                        </button>
-                                        <button onClick={removeLink}>
-                                            Remove Link
-                                        </button>
+                                    <div className="buttons instructions">
+                                        {/*<button onClick={onUnderlineClick}>Underline</button>*/}
+                                        {/*<button onClick={onBoldClick}><b>Bold</b></button>*/}
+                                        {/*<button onClick={onItalicClick}><em>Italic</em></button>*/}
+                                        <p>You can edit the text below. Click 'Send Email' to send the applicant their approval/denial email.</p>
+                                        {/*<p>To make a telephone number link, use the format: <span className="syntax">{"{tel:555-555-5555}"}</span></p>*/}
+                                        {/*<p>To make an email link, use the format: <span className="syntax">{"{email:email@email.com}"}</span></p>*/}
                                     </div>
-                                    {urlInput}
                                 </div>
                                 <Editor
                                     editorState={editorState}
@@ -636,19 +542,37 @@ export default function (props) {
                                     ref={editor}
                                 />
                             </div>
-                            <Row gutter={[0, 0]}>
+                            <div className="editor-controls">
+                                <Row gutter={[0, 0]}>
                                 <Col xs={{span: 24}}>
                                     <div className="send-email-button-wrapper">
-                                        <Button className={"btn send-email-to-email-applicant"} loading={loading}
-                                                type="primary" size={"large"}
-                                                disabled={currentApp.admin.approvalStatus === 'pending'}
+                                        <Button className={"btn cancel-email-btn"}
+                                                type="third" size={"large"}
                                                 onClick={(e) => {
-                                                    emailApplicant(currentApp)
+                                                    resetDefaultEmail()
                                                 }}
-                                        >Send Email</Button>
+                                        >Reset to default</Button>
+
+                                        <div className="right">
+                                            <Button className={"btn cancel-email-btn"}
+                                                    type="secondary" size={"large"}
+                                                    onClick={(e) => {
+                                                        cancelEmailPreview()
+                                                    }}
+                                            >Cancel</Button>
+
+                                            <Button className={"btn send-email-to-email-applicant"} loading={loading}
+                                                    type="primary" size={"large"}
+                                                    disabled={currentApp.admin.approvalStatus === 'pending'}
+                                                    onClick={(e) => {
+                                                        emailApplicant(currentApp)
+                                                    }}
+                                            >Send Email</Button>
+                                        </div>
                                     </div>
                                 </Col>
                             </Row>
+                            </div>
 
                         </ApplicationSection>
                     </Box>
@@ -741,7 +665,7 @@ export default function (props) {
                                                 <Button className={"btn preview-email-applicant"} loading={loading}
                                                         type="default" size={"large"}
                                                         disabled={currentApp.admin.approvalStatus === 'pending'}
-                                                        onClick={(e) => {previewEmail(currentApp)}}
+                                                        onClick={(e) => {previewEmail()}}
                                                 >Preview Email</Button>
                                                 :
                                                 <p>Applicant has been emailed of decision. No further changes can be made.</p>
@@ -767,8 +691,8 @@ function socialLink(service, text) {
         username = text.replace("@", "");
     }
     if (service === 'twitter') {
-        return <a href={"https://twitter.com/" + username}>{text}</a>
+        return <a href={"https://twitter.com/" + username} target="_blank">{text}</a>
     } else if (service === 'instagram') {
-        return <a href={"https://instagram.com/" + username}>{text}</a>
+        return <a href={"https://instagram.com/" + username} target="_blank">{text}</a>
     }
 }

@@ -100,8 +100,9 @@ function* updateApplication(application) {
 }
 
 function email(application, email) {
-    const API_PATH = "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php";
-    
+    //const API_PATH = "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php";
+    const API_PATH = "/php/sponsorship-emails.php";
+
     return axios({
         method: 'post',
         url: `${API_PATH}`,
@@ -121,6 +122,7 @@ function* sendEmail(application) {
 
 
         const { data } = yield call(email, application.payload, application.emailArray);
+        console.log("data:", data);
         console.log("data:", data);
 
         const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
