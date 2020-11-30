@@ -15,15 +15,18 @@ $applicationAdmin = $application['admin'];
 $applicationStatus = $applicationAdmin['approvalStatus'];
 $applicationSubmissionInfo = $application['submission'];
 $applicationType = $applicationSubmissionInfo['sponsorshipSelect'];
+$applicantEmail = $applicationSubmissionInfo['primaryEmail'];
 $emailTableRows = '';
 $emailSent = false;
+
+returnData(["status" => true]);
 
 foreach ($emailArray as &$value) {
     $emailTableRows .= '<tr><td>' . $value . '</td></tr>';
 }
 
 if(strlen($emailTableRows) > 0) {
-    sendEmail($emailTableRows, $emailArray);
+    //sendEmail($emailTableRows, $emailArray, $applicantEmail);
 }
 
 function buildEmailMessage($emailTableRows) {
@@ -42,11 +45,12 @@ function buildEmailMessage($emailTableRows) {
     return $message;
 }
 
-function sendEmail($emailTableRows, $emailArray) {
-    $to = "Charles.Rowland@midrivers.coop";
+function sendEmail($emailTableRows, $emailArray, $applicantEmail) {
+    //$to = $applicantEmail;
+    $to = "rowland.charles@gmail.com";
     $subject = "Mid-Rivers Community Sponsorship Request";
     $headers = "From: sponsorship_request@midrivers.com\r\n";
-    $headers = "Cc: nichole.senner@midrivers.coop\r\n";
+    //$headers .= "Cc: nichole.senner@midrivers.coop\r\n";
     $headers .= "Reply-To: noreply@midrivers.com\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";

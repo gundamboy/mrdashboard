@@ -1,4 +1,4 @@
-import React, {Component, useCallback, useEffect} from 'react';
+import React, {Component, useCallback, useEffect, useRef} from 'react';
 import LayoutContentWrapper from '@iso/components/utility/layoutWrapper';
 import LayoutContent from '@iso/components/utility/layoutContent';
 import {useDispatch, useSelector} from "react-redux";
@@ -16,11 +16,12 @@ import Button from "@iso/components/uielements/button";
 export default function Sponsorships() {
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
-    const { results, loading, error } = useSelector(state => state.sponsorshipsReducer);
+    const { results, loading, error, appDeleted, emailSent } = useSelector(state => state.sponsorshipsReducer);
     const dispatch = useDispatch();
     const match = useRouteMatch();
+    const target = useRef(null);
 
-    //console.log("Sponsorships DASHBOARD: ", useSelector(state => state.sponsorshipsReducer));
+    console.log("Sponsorships DASHBOARD: ", useSelector(state => state.sponsorshipsReducer));
 
     // calls state from redux
     const getSponsorshipApplications = useCallback(
@@ -32,6 +33,13 @@ export default function Sponsorships() {
     useEffect(() => {
         getSponsorshipApplications();
     }, [getSponsorshipApplications]);
+
+    setTimeout(() => {
+        if(target.current && appDeleted || target.current && emailSent) {
+            // scroll up
+            target.current.scrollIntoView(0,0);
+        }
+    }, 2)
 
 
     // build the data sets needed for the table in each tab
@@ -67,7 +75,7 @@ export default function Sponsorships() {
 
         return (
             <LayoutContentWrapper style={{height: '100vh'}}>
-                <LayoutContent>
+                <LayoutContent ref={target}>
                     <Tabs className="isoTableDisplayTab">
                         {sponsorshipTabs.map(tab => {
                             if (tab.value === 'pending') {
@@ -142,7 +150,6 @@ export default function Sponsorships() {
                             }
                         })}
                     </Tabs>
-
                 </LayoutContent>
             </LayoutContentWrapper>
         );

@@ -34,6 +34,11 @@ export const ApplicationSection = styled.div`
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         border: 1px solid #dddddd;
         margin-bottom: 10px;
+        
+        &.disabled {
+            .DraftEditor-root {
+            }
+        }
          
         .editor-buttons {
             padding: 10px;
@@ -82,7 +87,7 @@ export const ApplicationSection = styled.div`
             justify-content: space-between;
         
             .cancel-email-btn {
-                margin-right: 10px;
+                
             }
         }
     }
@@ -125,6 +130,20 @@ export const ApplicationSection = styled.div`
         .applicantNotified {
             margin-top: 1rem;
             color: #F75D81;
+        }
+        
+        .show-advanced-chkbox {}
+        
+        .ant-btn-delete.delete-record-btn {
+            margin-top: 1rem;
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            
+            &:hover, &:active, &:focus {
+                background-color: #ffd7d0;
+                border: 1px solid #fd8175;
+                color: rgba(0,0,0,0.85);
+            }
         }
     }
     

@@ -7,6 +7,9 @@ const sponsorshipActions = {
     SINGLE_APPLICATION: 'SINGLE_APPLICATION',
     FETCH_SINGLE_APPLICATION_START: 'FETCH_SINGLE_APPLICATION_START',
     FETCH_SINGLE_APPLICATION: 'FETCH_SINGLE_APPLICATION',
+    FETCH_SINGLE_APPLICATION_SUCCESS: 'FETCH_SINGLE_APPLICATION_SUCCESS',
+    FETCH_SINGLE_APPLICATION_ERROR: 'FETCH_SINGLE_APPLICATION_ERROR',
+
     UPDATE_APPLICATION: "UPDATE_APPLICATION",
     UPDATE_APPLICATION_SUCCESS: "UPDATE_APPLICATION_SUCCESS",
 
@@ -14,6 +17,11 @@ const sponsorshipActions = {
     SEND_EMAIL_START: "SEND_EMAIL_START",
     SEND_EMAIL_SUCCESS: "SEND_EMAIL_SUCCESS",
     SEND_EMAIL_ERROR: "SEND_EMAIL_ERROR",
+
+    DELETE_APPLICATION_START: "DELETE_APPLICATION_START",
+    DELETE_APPLICATION: "DELETE_APPLICATION",
+    DELETE_APPLICATION_SUCCESS: "DELETE_APPLICATION_SUCCESS",
+    DELETE_APPLICATION_ERROR: "DELETE_APPLICATION_ERROR",
 
     fetchApplicationsStart: () => ({
         type: sponsorshipActions.FETCH_APPLICATIONS_START,
@@ -26,21 +34,14 @@ const sponsorshipActions = {
         type: sponsorshipActions.FETCH_APPLICATIONS_FAILURE,
         payload: error
     }),
+    fetchSingleApplication: sponsorshipId => ({
+        type: sponsorshipActions.FETCH_SINGLE_APPLICATION,
+        payload: sponsorshipId,
+    }),
 
     loadFromFireStoreSuccess: data => ({
         type: sponsorshipActions.FETCH_APPLICATIONS_SUCCESS,
         payload: { data },
-    }),
-
-    fetchSingleApplicationStart: applicationId => ({
-        type: sponsorshipActions.FETCH_SINGLE_APPLICATION_START,
-        payload: applicationId
-    }),
-
-    fetchSingleApplication: application => ({
-        type: sponsorshipActions.FETCH_SINGLE_APPLICATION,
-        payload: application,
-        currentApp: application
     }),
 
     updateApplication: application => ({
@@ -55,8 +56,23 @@ const sponsorshipActions = {
     sendEmail: (application, emailArray) => ({
         type: sponsorshipActions.SEND_EMAIL,
         payload: application,
-        emailArray: emailArray
+        emailArray: emailArray,
     }),
+    emailError: (error, fbError) => ({
+        type: sponsorshipActions.SEND_EMAIL_ERROR,
+        error: error,
+        fbError: fbError
+    }),
+
+    deleteSponsorship: (id) => ({
+        type:sponsorshipActions.DELETE_APPLICATION,
+        id: id,
+    }),
+    deleteSponsorshipError: (error) => ({
+        type: sponsorshipActions.DELETE_APPLICATION_ERROR,
+        error: error
+    })
+
 
 };
 export default sponsorshipActions;

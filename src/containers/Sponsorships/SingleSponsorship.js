@@ -6,11 +6,10 @@ import sponsorshipActions from "../../redux/sponsorships/actions";
 import LayoutContent from "@iso/components/utility/layoutContent";
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import LayoutContentWrapper from '@iso/components/utility/layoutWrapper';
-
-
+import {Redirect} from "react-router";
 
 export default function SingleSponsorship() {
-    const {currentApp, loading, emailSent} = useSelector(state => state.sponsorshipsReducer);
+    const {currentApp, emailLoading, saveLoading, loading, emailSent, emailError, fbError, appDeleted} = useSelector(state => state.sponsorshipsReducer);
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const urlArray = match.url.split("/");
@@ -26,12 +25,28 @@ export default function SingleSponsorship() {
         getCurrentSponsorship();
     }, [getCurrentSponsorship]);
 
+
+    // if an email was sent, just get out of here.
+    if(emailSent) {
+        return <Redirect to={redirectPath} />;
+    }
+
+    // if the app was deleted, get outta here
+    if(appDeleted) {
+        return <Redirect to={redirectPath} />;
+    }
+
     if (typeof currentApp === 'object') {
         return (
             <ViewSponsorship
                 currentSponsorship={currentApp}
                 loading={loading}
                 emailSent={emailSent}
+                emailError={emailError}
+                saveLoading={saveLoading}
+                emailLoading={emailLoading}
+                fbError={fbError}
+                appDeleted={appDeleted}
                 redirectPath={redirectPath}
             />
         )

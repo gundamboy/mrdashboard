@@ -1,42 +1,31 @@
-import React, {useState, useCallback, useEffect, useRef} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
+import {Redirect} from "react-router";
 import ReactDomServer from 'react-dom/server';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Box from '@iso/components/utility/box';
 import LayoutWrapper from '@iso/components/utility/layoutWrapper';
 import {sponsorshipSingleViewColumns} from "../Tables/AntTables/configs";
 import TableWrapper from "@iso/containers/Tables/AntTables/AntTables.styles";
-import {Row, Col, Button, Form, Select, Input, Space, Typography} from 'antd';
-import {BoldOutlined, ItalicOutlined, MinusCircleOutlined, PlusOutlined, UnderlineOutlined} from '@ant-design/icons';
+import {Alert, Row, Col, Button, Form, Select, Input, Space, Typography, Divider, Checkbox, Modal} from 'antd';
+import {MinusCircleOutlined, PlusOutlined, UnderlineOutlined} from '@ant-design/icons';
 import {ApplicationSection} from "./Sponsorships.styles";
 import sponsorshipActions from "../../redux/sponsorships/actions";
 import sponsorshipsReducer from "../../redux/sponsorships/reducer";
 import * as firebase from "firebase";
-
-import Draft, {
-    Editor, EditorState, RichUtils, ContentState, convertFromHTML,
-    convertToRaw, KeyBindingUtil, CompositeDecorator} from 'draft-js';
-import Immutable from 'immutable';
+import {Editor, EditorState, RichUtils, ContentState, convertFromHTML} from 'draft-js';
 import 'draft-js/dist/Draft.css';
 
 
 export default function (props) {
     const editor = useRef(null);
 
-    // if an email was sent, just get out of here.
-    if(props.emailSent) {
-        //return <Redirect to={props.redirectPath} />;
-    } else {
-        // console.log("VIEW SPONSORSHIP currentApp:", currentApp);
-        // console.log("VIEW SPONSORSHIP emailSent:", props.emailSent);
-    }
+    console.log("VIEW SPONSORSHIP props:", props);
 
     const [currentApp, setCurrentApp] = useState(props.currentSponsorship);
-    const [loading, setLoading] = useState(props.loading);
-    const [formItems, setFormItems] = useState(null);
     const [editorState, setEditorState] = useState(null);
-    const [emailPreview, setEmailPreview] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
-    let email = "";
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     let applicantEmailPreview = null;
     const submissionInfo = currentApp.submission;
     const appType = submissionInfo.sponsorshipSelect;
@@ -44,7 +33,6 @@ export default function (props) {
     const dispatch = useDispatch();
     const { Option } = Select;
     const { Title } = Typography;
-    const editorButtonSize = "default";
     let appTypeFieldsToShow = "";
     let approvalDate = "";
     let existingItems = null;
@@ -219,6 +207,11 @@ export default function (props) {
         (currentApp, emailArray) => dispatch(sponsorshipActions.sendEmail(currentApp, emailArray, appType)), [dispatch]
     );
 
+    // fires the deleteSponsorship action and saga
+    const deleteApplication = useCallback(
+        () => dispatch(sponsorshipActions.deleteSponsorship(currentApp.id)), [dispatch]
+    )
+
     // gets the editor contents and triggers the sendApplication function
     const emailApplicant = (currentApp) => {
         const contentState = editorState.getCurrentContent();
@@ -284,7 +277,7 @@ export default function (props) {
                                                 fieldKey={[field.fieldKey, 'itemName']}
                                                 rules={[{ required: true, message: 'Missing Item Name' }]}
                                             >
-                                                <Input placeholder="Item Name" disabled={currentApp.admin.notificationEmailed}/>
+                                                <Input placeholder="Item Name" disabled={props.currentSponsorship.admin.notificationEmailed}/>
                                             </Form.Item>
                                             <Form.Item
                                                 {...field}
@@ -293,10 +286,10 @@ export default function (props) {
                                                 fieldKey={[field.fieldKey, 'itemQty']}
                                                 rules={[{ required: true, message: 'Missing Item Quantity' }]}
                                             >
-                                                <Input placeholder="Qty" disabled={currentApp.admin.notificationEmailed}/>
+                                                <Input placeholder="Qty" disabled={props.currentSponsorship.admin.notificationEmailed}/>
                                             </Form.Item>
 
-                                            {!currentApp.admin.notificationEmailed &&
+                                            {!props.currentSponsorship.admin.notificationEmailed &&
                                             <MinusCircleOutlined
                                                 onClick={() => {
                                                     remove(field.name);
@@ -309,7 +302,7 @@ export default function (props) {
 
                                 <Form.Item>
                                     <Button
-                                        disabled={currentApp.admin.notificationEmailed}
+                                        disabled={props.currentSponsorship.admin.notificationEmailed}
                                         type="dashed"
                                         onClick={() => {
                                             add();
@@ -372,7 +365,6 @@ export default function (props) {
                 }
             }
 
-            setFormItems(formValues.items);
         } else {
             setCurrentApp({
                 ...currentApp,
@@ -400,7 +392,6 @@ export default function (props) {
         updateApp(updatedApp);
     };
 
-    /** ***************************************************************************************** */
     // draftjs handler for setting key handlers
     const handleKeyCommand = useCallback((command, editorState) => {
         const newState = RichUtils.handleKeyCommand(editorState, command)
@@ -412,48 +403,31 @@ export default function (props) {
         return "not-handled"
     });
 
-    // button functions for the editor
-    const onUnderlineClick = () => {
-        setEditorState(RichUtils.toggleInlineStyle(editorState, 'UNDERLINE'));
-    }
-
-    const onBoldClick = () => {
-        setEditorState(RichUtils.toggleInlineStyle(editorState, 'BOLD'))
-    }
-
-    const onItalicClick = () => {
-        setEditorState(RichUtils.toggleInlineStyle(editorState, 'ITALIC'))
-    }
-
     // creates the draftjs editor when preview is clicked
     const createEditor = (emailBody) => {
-        console.log("createEditor emailBody:", emailBody);
-
         const blocksFromHTML = convertFromHTML(ReactDomServer.renderToString(emailBody));
         const initialContent = ContentState.createFromBlockArray(
             blocksFromHTML.contentBlocks,
             blocksFromHTML.entityMap,
         );
 
-        setShowPreview(true);
-        setEmailPreview(ReactDomServer.renderToString(emailBody));
         setEditorState(EditorState.createWithContent(initialContent));
+        setShowPreview(true);
     };
 
-    /** ***************************************************************************************** */
-
-
+    // closes the email preview box
     const cancelEmailPreview = () => {
         setShowPreview(null);
     };
 
+    // resets the email text to the default
     const resetDefaultEmail = () => {
-        console.log("resetDefaultEmail applicantEmailPreview:", applicantEmailPreview);
         const emailBody = buildEmailPreview();
         createEditor(emailBody);
     }
 
-    const buildEmailPreview = (passedApp) => {
+    // generates the default email text
+    const buildEmailPreview = () => {
         if(appType === "Monetary") {
             if(currentApp.admin.approvalStatus === "approved") {
                 applicantEmailPreview = (
@@ -465,7 +439,13 @@ export default function (props) {
                     </>
                 );
             } else if(currentApp.admin.approvalStatus === "denied") {
-
+                applicantEmailPreview = (
+                    <>
+                        <p>Dear {submissionInfo.primaryName},</p>
+                        <p>Thank you for submitting the Community Sponsorship Request form. We regret to inform you that we are unable to fulfill your request at this time.</p>
+                        <p>If you have any questions, please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop.</p>
+                    </>
+                );
             }
         } else {
             if(currentApp.admin.approvalStatus === "approved") {
@@ -516,22 +496,64 @@ export default function (props) {
 
     };
 
+    // shows/hides the delete application button
+    const showAdvancedOptions = () => {
+        setShowAdvanced(!showAdvanced);
+    }
+
+    // calls the popup to confirm deletion of the app
+    const showDeleteConfirmation = () => {
+        setShowDeleteModal(true);
+    }
+
+    // closes the delete confirm popup without deleting the app
+    const hideDeleteConfirmation = () => {
+        setShowDeleteModal(false);
+    }
+
     return (
         <LayoutWrapper>
             <Row gutter={[16,16]} style={{"width": "100%"}}>
                 <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 16}} lg={{span: 16}}>
                     {showPreview &&
-                    <Box style={{padding: 20, height: 'auto'}} className={"email-preview"}>
+                    <Box style={{padding: 20, height: 'auto'}} className={"email-preview"} >
                         <ApplicationSection>
-                            <div className="editor-wrapper">
+                            {props.emailError &&
+                            <Alert
+                                className={props.emailError ? "email-alert php-error show" : "email-alert php-error"}
+                                message="Error"
+                                description="There was an error sending the applicant email."
+                                type="error"
+                                showIcon
+                            />
+                            }
+                            {props.fbError &&
+                            <Alert
+                                className={props.fbError ? "email-alert fb-error show" : "email-alert fb-error"}
+                                message="Error"
+                                description="There was an error updating the applicant data in firebase."
+                                type="error"
+                                showIcon
+                            />
+                            }
+                            {props.emailSent &&
+                            <Alert
+                                className={"email-alert email-sent show" }
+                                message="Success"
+                                description="The email has been sent to the applicant"
+                                type="success"
+                                showIcon
+                            />
+                            }
+                            <div className={"editor-wrapper"}>
                                 <div className="editor-buttons">
                                     <div className="buttons instructions">
-                                        {/*<button onClick={onUnderlineClick}>Underline</button>*/}
-                                        {/*<button onClick={onBoldClick}><b>Bold</b></button>*/}
-                                        {/*<button onClick={onItalicClick}><em>Italic</em></button>*/}
-                                        <p>You can edit the text below. Click 'Send Email' to send the applicant their approval/denial email.</p>
-                                        {/*<p>To make a telephone number link, use the format: <span className="syntax">{"{tel:555-555-5555}"}</span></p>*/}
-                                        {/*<p>To make an email link, use the format: <span className="syntax">{"{email:email@email.com}"}</span></p>*/}
+                                        {!props.emailSent
+                                            ?
+                                            <p>You can edit the text below. Click 'Send Email' to send the applicant their approval/denial email.</p>
+                                            :
+                                            <p>The applicant has already been emailed. You can edit the text below and/or resend the email or cancel.</p>
+                                        }
                                     </div>
                                 </div>
                                 <Editor
@@ -540,6 +562,7 @@ export default function (props) {
                                     handleKeyCommand={handleKeyCommand}
                                     spellCheck={true}
                                     ref={editor}
+                                    readOnly={!props.emailSent}
                                 />
                             </div>
                             <div className="editor-controls">
@@ -554,20 +577,23 @@ export default function (props) {
                                         >Reset to default</Button>
 
                                         <div className="right">
-                                            <Button className={"btn cancel-email-btn"}
-                                                    type="secondary" size={"large"}
-                                                    onClick={(e) => {
-                                                        cancelEmailPreview()
-                                                    }}
-                                            >Cancel</Button>
+                                            <Space>
+                                                <Button className={"btn cancel-email-btn"}
+                                                        type="secondary" size={"large"}
+                                                        onClick={(e) => {
+                                                            cancelEmailPreview()
+                                                        }}
+                                                >Cancel</Button>
 
-                                            <Button className={"btn send-email-to-email-applicant"} loading={loading}
-                                                    type="primary" size={"large"}
-                                                    disabled={currentApp.admin.approvalStatus === 'pending'}
-                                                    onClick={(e) => {
-                                                        emailApplicant(currentApp)
-                                                    }}
-                                            >Send Email</Button>
+                                                <Button className={"btn send-email-to-email-applicant"}
+                                                        loading={props.emailLoading}
+                                                        type="primary" size={"large"}
+                                                        disabled={currentApp.admin.approvalStatus === 'pending'}
+                                                        onClick={(e) => {
+                                                            emailApplicant(currentApp)
+                                                        }}
+                                                >{!props.emailSent ? "Send Email" : "Resend Email" }</Button>
+                                            </Space>
                                         </div>
                                     </div>
                                 </Col>
@@ -642,13 +668,18 @@ export default function (props) {
                                             name="notes"
                                             label={"Application Notes"}
                                             rows={5}
+                                            disabled={props.currentSponsorship.admin.notificationEmailed}
                                         />
                                     </Form.Item>
 
                                     <Form.Item
                                         name="statusSelect"
                                         label={<h3 className="group-title">Set Application Status</h3>}>
-                                        <Select placeholder={"Status"} name="statusSelect" disabled={currentApp.admin.notificationEmailed}>
+                                        <Select
+                                            placeholder={"Status"}
+                                            name="statusSelect"
+                                            disabled={props.currentSponsorship.admin.notificationEmailed}
+                                        >
                                             <Option value="pending">Pending</Option>
                                             <Option value="approved">Approved</Option>
                                             <Option value="denied">Denied</Option>
@@ -657,12 +688,15 @@ export default function (props) {
 
                                     <Row className={"btn-row"}>
                                         <Col span={12}>
-                                            <Button htmlType="submit" className={"btn submit"} loading={loading} type="primary" size={"large"} disabled={currentApp.admin.notificationEmailed}>Save</Button>
+                                            <Button htmlType="submit"
+                                                    className={"btn submit"} loading={props.saveLoading}
+                                                    type="primary" size={"large"}
+                                                    disabled={props.currentSponsorship.admin.notificationEmailed}>Save</Button>
                                         </Col>
 
                                         <Col span={12}>
-                                            {!currentApp.admin.notificationEmailed ?
-                                                <Button className={"btn preview-email-applicant"} loading={loading}
+                                            {!props.currentSponsorship.admin.notificationEmailed ?
+                                                <Button className={"btn preview-email-applicant"}
                                                         type="default" size={"large"}
                                                         disabled={currentApp.admin.approvalStatus === 'pending'}
                                                         onClick={(e) => {previewEmail()}}
@@ -672,7 +706,26 @@ export default function (props) {
                                             }
                                         </Col>
 
-                                        {currentApp.admin.notificationEmailed && <Col span={24}><p className={"applicantNotified"}>This applicant has been notified and the application cannot be changed.</p></Col>}
+
+                                        {props.currentSponsorship.admin.notificationEmailed && <Col span={24}><p className={"applicantNotified"}>This applicant has been notified and the application cannot be changed.</p></Col>}
+                                    </Row>
+
+                                    <Divider />
+
+                                    <Row>
+                                        <Col span={24}>
+                                            <Checkbox className="show-advanced-chkbox" onChange={showAdvancedOptions}>Show Advanced Options</Checkbox>
+                                        </Col>
+                                        {showAdvanced &&
+                                        <Col span={24}>
+                                            <Button className={"delete-record-btn"}
+                                                    type="delete"
+                                                    size={"large"}
+                                                    disabled={!showAdvanced}
+                                                    onClick={showDeleteConfirmation}
+                                            >Delete Application</Button>
+                                        </Col>
+                                        }
                                     </Row>
                                 </Form>
                             </section>
@@ -680,6 +733,15 @@ export default function (props) {
                     </Box>
                 </Col>
             </Row>
+            <Modal
+                visible={showDeleteModal}
+                title="Confirm Delete"
+                onOk={deleteApplication}
+                centered={true}
+                onCancel={hideDeleteConfirmation}
+            >
+                <p>This action cannot be undone. Do you wish to proceed?</p>
+            </Modal>
         </LayoutWrapper>
     )
 }

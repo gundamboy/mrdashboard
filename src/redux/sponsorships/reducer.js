@@ -2,10 +2,15 @@ import sponsorshipActions from './actions';
 
 const INITIAL_DATA = {
     results: [],
-    loading: true,
-    error: null,
+    loading: false,
+    saveLoading: false,
+    emailLoading: false,
+    error: false,
     applicationUpdated: false,
-    emailSent: false
+    emailSent: false,
+    emailError: false,
+    fbError: false,
+    appDeleted: false
 };
 
 export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
@@ -15,8 +20,8 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
                 ...state,
                 results: action.payload,
                 loading: false,
-                error: null,
-                emailSent: false
+                error: false,
+                appDeleted: false
             };
         case sponsorshipActions.FETCH_APPLICATIONS_FAILURE:
             return {
@@ -24,36 +29,75 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
                 loading: false,
                 error: action.payload
             };
+
         case sponsorshipActions.FETCH_SINGLE_APPLICATION:
             return {
                 ...state,
                 currentApp: action.currentApp,
                 loading: false,
-                error: null
+                error: false
             };
-        case sponsorshipActions.UPDATE_APPLICATION:
-            console.log("REDUCER! UPDATE_APPLICATION payload:", action);
+        case sponsorshipActions.FETCH_SINGLE_APPLICATION_SUCCESS:
             return {
                 ...state,
+                currentApp: action.currentApp,
                 loading: false,
+                error: false
+            };
+        case sponsorshipActions.UPDATE_APPLICATION:
+            return {
+                ...state,
+                saveLoading: true,
                 applicationUpdated: action.applicationUpdated,
                 submitting: 0,
                 updatedApp: action.updatedApp
             };
-        case sponsorshipActions.SEND_EMAIL_SUCCESS:
-            console.log("REDUCER! SEND_EMAIL payload:", action.emailSent);
+        case sponsorshipActions.UPDATE_APPLICATION_SUCCESS:
             return {
                 ...state,
-                loading: false,
-                emailSent: action.emailSent
+                saveLoading: false,
+                applicationUpdated: action.applicationUpdated,
+                updatedApp: action.updatedApp,
+                currentApp: action.currentApp,
+            };
+        case sponsorshipActions.SEND_EMAIL_SUCCESS:
+            return {
+                ...state,
+                emailLoading: false,
+                emailSent: action.emailSent,
+                error: false,
+                currentApp: action.currentApp,
+            };
+        case sponsorshipActions.SEND_EMAIL_ERROR:
+            return {
+                ...state,
+                emailLoading: false,
+                saveLoading: false,
+                emailError: action.error,
+                fbError: action.fbError
             };
         case sponsorshipActions.SEND_EMAIL:
-            console.log("REDUCER! SEND_EMAIL payload:", action);
             return {
                 ...state,
-                loading: false,
-                emailSent: false
+                emailSent: false,
+                emailLoading: true
             };
+        case sponsorshipActions.DELETE_APPLICATION:
+            return {
+                ...state,
+                id: action.id
+            };
+        case sponsorshipActions.DELETE_APPLICATION_SUCCESS:
+            return {
+                ...state,
+                appDeleted: action.appDeleted,
+                currentApp: null,
+                id: null,
+                emailSent: false,
+                loading: false,
+                error: false
+            };
+
         default:
             return state
     }
