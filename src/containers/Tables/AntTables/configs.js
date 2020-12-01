@@ -55,11 +55,9 @@ const sponsorshipColumns = [
         key: "appLink",
         dataIndex: "appLink",
         width: "6%",
-        render: (url) => (
+        render: url => (
             <div className="">
-              <Link to={{
-                pathname: url,
-              }}>
+              <Link to={url}>
                 <Button className="applicationButton" color="primary">View</Button>
               </Link>
             </div>

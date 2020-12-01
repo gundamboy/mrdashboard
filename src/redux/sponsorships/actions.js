@@ -2,6 +2,8 @@ const sponsorshipActions = {
     INSERT_DUMMY_DATA: 'INSERT_DUMMY_DATA',
     INSERT_DUMMY_DATA_SUCCESS: 'INSERT_DUMMY_DATA_SUCCESS',
 
+    ACTIVE_TAB: 'ACTIVE_TAB',
+
     APPLICATIONS: 'APPLICATIONS',
     FETCH_APPLICATIONS_START: 'FETCH_APPLICATIONS_START',
     FETCH_APPLICATIONS_SUCCESS: 'FETCH_APPLICATIONS_SUCCESS',
@@ -29,6 +31,11 @@ const sponsorshipActions = {
     addDummyData: dataType => ({
         type: sponsorshipActions.INSERT_DUMMY_DATA,
         dataType: dataType
+    }),
+
+    setActiveTab: currentTab => ({
+        type: sponsorshipActions.ACTIVE_TAB,
+        activeTab: currentTab
     }),
 
     fetchApplicationsStart: () => ({

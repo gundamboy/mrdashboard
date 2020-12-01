@@ -13,7 +13,7 @@ import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
 
 
-export default function Sponsorships() {
+export default function Sponsorships(props) {
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
     const { results, loading, error, appDeleted,
@@ -21,13 +21,15 @@ export default function Sponsorships() {
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const target = useRef(null);
-    const [currentTab, setCurrentTab] = useState(activeTab);
-
-    console.log("Sponsorships DASHBOARD: ", useSelector(state => state.sponsorshipsReducer));
 
     // calls state from redux
     const getSponsorshipApplications = useCallback(
         () => dispatch(sponsorshipActions.fetchApplicationsStart()),
+        [dispatch]
+    );
+
+    const setTab = useCallback(
+        (currentTab) => dispatch(sponsorshipActions.setActiveTab(currentTab)),
         [dispatch]
     );
 
@@ -50,7 +52,7 @@ export default function Sponsorships() {
     );
 
     const onTabChange = (key) => {
-        setCurrentTab(key);
+        setTab(key)
     };
 
 
@@ -68,13 +70,10 @@ export default function Sponsorships() {
         };
 
         if(result.admin.approvalStatus === "pending") {
-            app["activeTab"] = "pending";
             pendingApplications.push(app);
         } else if(result.admin.approvalStatus === "approved") {
-            app["activeTab"] = "approved";
             approvedApplications.push(app);
         } if(result.admin.approvalStatus === "denied") {
-            app["activeTab"] = "denied";
             deniedApplications.push(app);
         }
 

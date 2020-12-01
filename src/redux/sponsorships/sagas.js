@@ -34,7 +34,6 @@ function* getSingleApplication(documentId) {
 
         if (documentId) {
             const getApplication = dbSponsorships.collection("sponsorships").doc(documentId.payload);
-            console.log("getApplication: ", getApplication);
 
             const fetchApplication = yield call(() => {
                 return new Promise((resolve, reject) => {

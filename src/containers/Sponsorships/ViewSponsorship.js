@@ -19,8 +19,6 @@ import 'draft-js/dist/Draft.css';
 export default function (props) {
     const editor = useRef(null);
 
-    console.log("VIEW SPONSORSHIP props:", props);
-
     const [currentApp, setCurrentApp] = useState(props.currentSponsorship);
     const [editorState, setEditorState] = useState(null);
     const [showPreview, setShowPreview] = useState(false);

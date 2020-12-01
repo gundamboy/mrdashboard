@@ -20,6 +20,11 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
             return {
                 ...state,
             };
+        case sponsorshipActions.ACTIVE_TAB:
+            return {
+                ...state,
+                activeTab: action.activeTab
+            };
         case sponsorshipActions.INSERT_DUMMY_DATA_SUCCESS:
             return {
                 ...state,
