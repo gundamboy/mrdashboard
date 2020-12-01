@@ -14,6 +14,8 @@ import Button from "@iso/components/uielements/button";
 
 
 export default function Sponsorships(props) {
+    const production = true;
+
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
     const { results, loading, error, appDeleted,
@@ -90,12 +92,14 @@ export default function Sponsorships(props) {
         return (
             <LayoutContentWrapper style={{height: '100vh'}}>
                 <LayoutContent ref={target}>
+                    {!production &&
                     <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
                         <Space>
                             <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Dummy Monetary</Button>
                             <Button onClick={(e) => {insertDummyData("Material")}}>Dummy Material</Button>
                         </Space>
                     </div>
+                    }
                     <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeTab}>
                         {sponsorshipTabs.map(tab => {
                             if (tab.value === 'pending') {

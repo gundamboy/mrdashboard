@@ -26,7 +26,7 @@ foreach ($emailArray as &$value) {
 }
 
 if(strlen($emailTableRows) > 0) {
-    //sendEmail($emailTableRows, $emailArray, $applicantEmail);
+    sendEmail($emailTableRows, $emailArray, $applicantEmail);
 }
 
 function buildEmailMessage($emailTableRows) {
@@ -50,7 +50,7 @@ function sendEmail($emailTableRows, $emailArray, $applicantEmail) {
     $to = "rowland.charles@gmail.com";
     $subject = "Mid-Rivers Community Sponsorship Request";
     $headers = "From: sponsorship_request@midrivers.com\r\n";
-    //$headers .= "Cc: nichole.senner@midrivers.coop\r\n";
+    $headers .= "Cc: nichole.senner@midrivers.coop\r\n";
     $headers .= "Reply-To: noreply@midrivers.com\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
