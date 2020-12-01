@@ -8,13 +8,16 @@ import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import LayoutContentWrapper from '@iso/components/utility/layoutWrapper';
 import {Redirect} from "react-router";
 
-export default function SingleSponsorship() {
-    const {currentApp, emailLoading, saveLoading, loading, emailSent, emailError, fbError, appDeleted} = useSelector(state => state.sponsorshipsReducer);
+export default function SingleSponsorship(props) {
+    const {currentApp, emailLoading, saveLoading, loading, emailSent,
+        emailError, fbError, appDeleted} = useSelector(state => state.sponsorshipsReducer);
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const urlArray = match.url.split("/");
     const sponsorshipId  = urlArray.slice(-1).pop();
     const redirectPath = match.url.replace(sponsorshipId, '');
+
+    console.log("SingleSponsorship props", props);
 
     const getCurrentSponsorship = useCallback(
         () => dispatch(sponsorshipActions.fetchSingleApplication(sponsorshipId)),

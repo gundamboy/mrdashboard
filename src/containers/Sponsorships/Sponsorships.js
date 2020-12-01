@@ -1,4 +1,4 @@
-import React, {Component, useCallback, useEffect, useRef} from 'react';
+import React, {Component, useCallback, useEffect, useRef, useState} from 'react';
 import LayoutContentWrapper from '@iso/components/utility/layoutWrapper';
 import LayoutContent from '@iso/components/utility/layoutContent';
 import {useDispatch, useSelector} from "react-redux";
@@ -7,7 +7,7 @@ import sponsorshipsReducer from "../../redux/sponsorships/reducer";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
 import {sponsorshipColumns, sponsorshipTabs} from "../Tables/AntTables/configs";
-import { Spin } from "antd";
+import {Space, Spin } from "antd";
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
@@ -16,10 +16,12 @@ import Button from "@iso/components/uielements/button";
 export default function Sponsorships() {
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
-    const { results, loading, error, appDeleted, emailSent } = useSelector(state => state.sponsorshipsReducer);
+    const { results, loading, error, appDeleted,
+        emailSent, dataInserted, activeTab } = useSelector(state => state.sponsorshipsReducer);
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const target = useRef(null);
+    const [currentTab, setCurrentTab] = useState(activeTab);
 
     console.log("Sponsorships DASHBOARD: ", useSelector(state => state.sponsorshipsReducer));
 
@@ -38,8 +40,18 @@ export default function Sponsorships() {
         if(target.current && appDeleted || target.current && emailSent) {
             // scroll up
             target.current.scrollIntoView(0,0);
+
+            getSponsorshipApplications();
         }
-    }, 2)
+    }, 3)
+
+    const insertDummyData = useCallback(
+        (dataType) => dispatch(sponsorshipActions.addDummyData(dataType)), [dispatch]
+    );
+
+    const onTabChange = (key) => {
+        setCurrentTab(key);
+    };
 
 
     // build the data sets needed for the table in each tab
@@ -56,10 +68,13 @@ export default function Sponsorships() {
         };
 
         if(result.admin.approvalStatus === "pending") {
+            app["activeTab"] = "pending";
             pendingApplications.push(app);
         } else if(result.admin.approvalStatus === "approved") {
+            app["activeTab"] = "approved";
             approvedApplications.push(app);
         } if(result.admin.approvalStatus === "denied") {
+            app["activeTab"] = "denied";
             deniedApplications.push(app);
         }
 
@@ -76,7 +91,13 @@ export default function Sponsorships() {
         return (
             <LayoutContentWrapper style={{height: '100vh'}}>
                 <LayoutContent ref={target}>
-                    <Tabs className="isoTableDisplayTab">
+                    <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
+                        <Space>
+                            <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Dummy Monetary</Button>
+                            <Button onClick={(e) => {insertDummyData("Material")}}>Dummy Material</Button>
+                        </Space>
+                    </div>
+                    <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeTab}>
                         {sponsorshipTabs.map(tab => {
                             if (tab.value === 'pending') {
                                 if (pendingApplicationInfo.applicationData.length) {

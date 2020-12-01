@@ -1,4 +1,7 @@
 const sponsorshipActions = {
+    INSERT_DUMMY_DATA: 'INSERT_DUMMY_DATA',
+    INSERT_DUMMY_DATA_SUCCESS: 'INSERT_DUMMY_DATA_SUCCESS',
+
     APPLICATIONS: 'APPLICATIONS',
     FETCH_APPLICATIONS_START: 'FETCH_APPLICATIONS_START',
     FETCH_APPLICATIONS_SUCCESS: 'FETCH_APPLICATIONS_SUCCESS',
@@ -22,6 +25,11 @@ const sponsorshipActions = {
     DELETE_APPLICATION: "DELETE_APPLICATION",
     DELETE_APPLICATION_SUCCESS: "DELETE_APPLICATION_SUCCESS",
     DELETE_APPLICATION_ERROR: "DELETE_APPLICATION_ERROR",
+
+    addDummyData: dataType => ({
+        type: sponsorshipActions.INSERT_DUMMY_DATA,
+        dataType: dataType
+    }),
 
     fetchApplicationsStart: () => ({
         type: sponsorshipActions.FETCH_APPLICATIONS_START,

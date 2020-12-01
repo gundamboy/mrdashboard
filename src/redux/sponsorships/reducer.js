@@ -10,11 +10,21 @@ const INITIAL_DATA = {
     emailSent: false,
     emailError: false,
     fbError: false,
-    appDeleted: false
+    appDeleted: false,
+    activeTab: "pending"
 };
 
 export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
     switch (action.type) {
+        case sponsorshipActions.INSERT_DUMMY_DATA:
+            return {
+                ...state,
+            };
+        case sponsorshipActions.INSERT_DUMMY_DATA_SUCCESS:
+            return {
+                ...state,
+                dataInserted: action.dataInserted
+            };
         case sponsorshipActions.FETCH_APPLICATIONS_SUCCESS:
             return {
                 ...state,
@@ -59,6 +69,7 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
                 applicationUpdated: action.applicationUpdated,
                 updatedApp: action.updatedApp,
                 currentApp: action.currentApp,
+                results: []
             };
         case sponsorshipActions.SEND_EMAIL_SUCCESS:
             return {
@@ -95,7 +106,8 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
                 id: null,
                 emailSent: false,
                 loading: false,
-                error: false
+                error: false,
+                results: []
             };
 
         default:

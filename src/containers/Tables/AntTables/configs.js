@@ -57,7 +57,9 @@ const sponsorshipColumns = [
         width: "6%",
         render: (url) => (
             <div className="">
-              <Link to={url}>
+              <Link to={{
+                pathname: url,
+              }}>
                 <Button className="applicationButton" color="primary">View</Button>
               </Link>
             </div>
