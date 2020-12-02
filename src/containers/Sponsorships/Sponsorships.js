@@ -11,6 +11,8 @@ import {Space, Spin } from "antd";
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
+import IntlMessages from "@iso/components/utility/intlMessages";
+import PageHeader from "@iso/components/utility/pageHeader";
 
 
 export default function Sponsorships(props) {
@@ -91,6 +93,9 @@ export default function Sponsorships(props) {
 
         return (
             <LayoutContentWrapper style={{height: '100vh'}}>
+                <PageHeader>
+                    <IntlMessages id="sidebar.sponsorships" />
+                </PageHeader>
                 <LayoutContent ref={target}>
                     {!production &&
                     <div className="dummy-data-buttons" style={{textAlign: 'right'}}>

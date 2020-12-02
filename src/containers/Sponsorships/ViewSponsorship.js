@@ -14,6 +14,8 @@ import sponsorshipsReducer from "../../redux/sponsorships/reducer";
 import * as firebase from "firebase";
 import {Editor, EditorState, RichUtils, ContentState, convertFromHTML} from 'draft-js';
 import 'draft-js/dist/Draft.css';
+import IntlMessages from "@iso/components/utility/intlMessages";
+import PageHeader from "@iso/components/utility/pageHeader";
 
 
 export default function (props) {
@@ -24,6 +26,7 @@ export default function (props) {
     const [showPreview, setShowPreview] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [currentApplicationStatus, setCurrentApplicationStatus] = useState(props.currentSponsorship.admin.approvalStatus)
     let applicantEmailPreview = null;
     const submissionInfo = currentApp.submission;
     const appType = submissionInfo.sponsorshipSelect;
@@ -34,6 +37,8 @@ export default function (props) {
     let appTypeFieldsToShow = "";
     let approvalDate = "";
     let existingItems = null;
+
+    console.log("currentApplicationStatus:", currentApplicationStatus);
 
     const orgAddress = (
         <>
@@ -339,6 +344,7 @@ export default function (props) {
     const submitApplication = (formValues, appType) => {
         const approvalTime = formValues.statusSelect !== "pending" ? firebase.firestore.Timestamp.fromDate(new Date()) : "";
         let updatedApp = {};
+        let hasItems = false;
 
         if(appType === "Material") {
             setCurrentApp({
@@ -509,8 +515,17 @@ export default function (props) {
         setShowDeleteModal(false);
     }
 
+    // keeps track of the status the admin selects
+    const handleSelectChange = (value) => {
+        setCurrentApplicationStatus(value);
+        console.log("currentApplicationStatus onChange:", currentApplicationStatus);
+    }
+
     return (
         <LayoutWrapper>
+            <PageHeader>
+                <IntlMessages id="sidebar.sponsorships" />
+            </PageHeader>
             <Row gutter={[16,16]} style={{"width": "100%"}}>
                 <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 16}} lg={{span: 16}}>
                     {showPreview &&
@@ -674,6 +689,7 @@ export default function (props) {
                                         name="statusSelect"
                                         label={<h3 className="group-title">Set Application Status</h3>}>
                                         <Select
+                                            onChange={handleSelectChange}
                                             placeholder={"Status"}
                                             name="statusSelect"
                                             disabled={props.currentSponsorship.admin.notificationEmailed}
@@ -693,14 +709,12 @@ export default function (props) {
                                         </Col>
 
                                         <Col span={12}>
-                                            {!props.currentSponsorship.admin.notificationEmailed ?
+                                            {!props.currentSponsorship.admin.notificationEmailed &&
                                                 <Button className={"btn preview-email-applicant"}
                                                         type="default" size={"large"}
-                                                        disabled={currentApp.admin.approvalStatus === 'pending'}
+                                                        disabled={currentApplicationStatus === 'pending'}
                                                         onClick={(e) => {previewEmail()}}
                                                 >Preview Email</Button>
-                                                :
-                                                <p>Applicant has been emailed of decision. No further changes can be made.</p>
                                             }
                                         </Col>
 
