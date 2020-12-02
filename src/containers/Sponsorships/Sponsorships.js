@@ -6,8 +6,10 @@ import sponsorshipActions from "../../redux/sponsorships/actions";
 import sponsorshipsReducer from "../../redux/sponsorships/reducer";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
-import {sponsorshipColumns, sponsorshipTabs} from "../Tables/AntTables/configs";
-import {Space, Spin } from "antd";
+import { sponsorshipTabs} from "../Tables/AntTables/configs";
+import {Space, Spin, Input } from "antd";
+import { SearchOutlined } from '@ant-design/icons';
+import Highlighter from 'react-highlight-words';
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
@@ -17,7 +19,6 @@ import PageHeader from "@iso/components/utility/pageHeader";
 
 export default function Sponsorships(props) {
     const production = true;
-
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
     const { results, loading, error, appDeleted,
@@ -25,6 +26,11 @@ export default function Sponsorships(props) {
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const target = useRef(null);
+    const [searchText, setSearchText] = useState();
+    const [searchedColumn, setSearchedColumn] = useState();
+    const [filteredInfo, setFilteredInfo] = useState();
+    const [sortedInfo, setSortedInfo] = useState();
+    const searchInput = useRef(null);
 
     // calls state from redux
     const getSponsorshipApplications = useCallback(
@@ -35,6 +41,11 @@ export default function Sponsorships(props) {
     const setTab = useCallback(
         (currentTab) => dispatch(sponsorshipActions.setActiveTab(currentTab)),
         [dispatch]
+    );
+
+    // used to insert dummy data for testing
+    const insertDummyData = useCallback(
+        (dataType) => dispatch(sponsorshipActions.addDummyData(dataType)), [dispatch]
     );
 
     // this is like componentDidMount but its for a function component and not a class
@@ -51,14 +62,77 @@ export default function Sponsorships(props) {
         }
     }, 3)
 
-    const insertDummyData = useCallback(
-        (dataType) => dispatch(sponsorshipActions.addDummyData(dataType)), [dispatch]
-    );
+    // table search fields
+    const getColumnSearchProps = dataIndex => ({
+        filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
+            <div style={{ padding: 8 }}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => handleTextSearch(selectedKeys, confirm, dataIndex)}
+                    style={{ width: 188, marginBottom: 8, display: 'block' }}
+                />
 
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleTextSearch(selectedKeys, confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button onClick={() => handleTextReset(clearFilters)} size="small" style={{ width: 90 }}>
+                        Reset
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: filtered => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+        onFilter: (value, record) =>
+            record[dataIndex]
+                ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+                : '',
+        onFilterDropdownVisibleChange: visible => {
+            if (visible) {
+                setTimeout(() => searchInput.current, 100);
+            }
+        },
+        render: text =>
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ''}
+                />
+            ) : (
+                text
+            ),
+    });
+
+    const handleTextSearch = (selectedKeys, confirm, dataIndex) => {
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
+
+    const handleTextReset = clearFilters => {
+        clearFilters();
+        setSearchText("");
+    };
+
+    const clearFilters = () => {
+        setFilteredInfo(null);
+    };
+
+    // sets the currently selected tab in state
     const onTabChange = (key) => {
         setTab(key)
     };
-
 
     // build the data sets needed for the table in each tab
     for (let result of results) {
@@ -84,6 +158,64 @@ export default function Sponsorships(props) {
         applications.push(app);
 
     }
+
+    const sponsorshipColumns = [
+        {
+            columns: [
+                {
+                    title: "Submission Date",
+                    key: "date",
+                    dataIndex: "date",
+                    sorter: true,
+                    width: "10%",
+                    render: data => <p>{data}</p>,
+                    ...getColumnSearchProps('date'),
+                },
+                {
+                    title: "Org Name",
+                    key: "orgName",
+                    dataIndex: "orgName",
+                    sorter: true,
+                    render: text => <p>{text}</p>,
+                    ...getColumnSearchProps('orgName'),
+                },
+                {
+                    title: "Primary Name",
+                    key: "primaryName",
+                    dataIndex: "primaryName",
+                    sorter: true,
+                    render: text => <p>{text}</p>,
+                    ...getColumnSearchProps('primaryName'),
+                },
+                {
+                    title: "Application Type",
+                    key: "appType",
+                    dataIndex: "appType",
+                    width: 220,
+                    sorter: true,
+                    render: text => <p>{text}</p>,
+                    filters: [
+                        {text: "Material", value: "Material"},
+                        {text: "Monetary", value: "Monetary"},
+                    ],
+                    onFilter: (value, record) => record.appType.includes(value),
+                },
+                {
+                    title: "",
+                    key: "appLink",
+                    dataIndex: "appLink",
+                    width: "6%",
+                    render: url => (
+                        <div className="">
+                            <Link to={url}>
+                                <Button className="applicationButton" color="primary">View</Button>
+                            </Link>
+                        </div>
+                    ),
+                }
+            ]
+        }
+    ];
 
     if (applications.length) {
         let applicationInfo = new applicationsData(applications.length, applications);
