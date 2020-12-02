@@ -60,7 +60,6 @@ function sendEmail($emailTableRows, $emailArray, $applicantEmail) {
     } else {
         returnData(["status" => false]);
     }
-
 }
 
 

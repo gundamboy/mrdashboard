@@ -55,7 +55,7 @@ export default function Routes() {
   return (
     <ErrorBoundary>
       <Suspense fallback={<Loader />}>
-        <Router>
+        <Router bsaename="/dashboard">
           <Switch>
             {publicRoutes.map((route, index) => (
               <Route key={index} path={route.path} exact={route.exact}>
