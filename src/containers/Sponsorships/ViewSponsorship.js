@@ -344,7 +344,6 @@ export default function (props) {
     const submitApplication = (formValues, appType) => {
         const approvalTime = formValues.statusSelect !== "pending" ? firebase.firestore.Timestamp.fromDate(new Date()) : "";
         let updatedApp = {};
-        let hasItems = false;
 
         if(appType === "Material") {
             setCurrentApp({
@@ -518,7 +517,6 @@ export default function (props) {
     // keeps track of the status the admin selects
     const handleSelectChange = (value) => {
         setCurrentApplicationStatus(value);
-        console.log("currentApplicationStatus onChange:", currentApplicationStatus);
     }
 
     return (

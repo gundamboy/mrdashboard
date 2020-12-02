@@ -81,17 +81,6 @@ function* notifySingleApplicationFetched(sponsorship) {
     }
 }
 
-function* notifySingleApplicationError() {
-    try {
-        yield put({
-            type: sponsorshipActions.FETCH_SINGLE_APPLICATION_ERROR,
-            singleAppError: true,
-        })
-    } catch (error) {
-
-    }
-}
-
 // updates the state when a sponsorship has been updated from the admin panel
 function* notifyAppUpdated(updatedApp) {
     try {
@@ -113,8 +102,6 @@ function* notifyAppUpdated(updatedApp) {
 // initiates the sponsorship update process
 function* updateApplication(application) {
     try {
-        console.group("updateApplication SAGA");
-        console.log("application data", application);
         const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
         let updatedApp = {};
         let applicationUpdated = false;
@@ -126,7 +113,7 @@ function* updateApplication(application) {
                     "admin.amountApproved": appAdmin.amountApproved !== undefined ? appAdmin.amountApproved : "",
                     "admin.approvalDate": appAdmin.approvalDate,
                     "admin.approvalStatus": appAdmin.approvalStatus,
-                    "admin.itemsApproved": appAdmin.itemsApproved,
+                    "admin.itemsApproved": appAdmin.itemsApproved.length ? appAdmin.itemsApproved : "",
                     "admin.notes": appAdmin.notes,
                 }).then(() => {
                     const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
