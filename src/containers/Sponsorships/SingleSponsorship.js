@@ -29,7 +29,7 @@ export default function SingleSponsorship() {
 
     // if an email was sent, just get out of here.
     if(emailSent) {
-        return <Redirect to={redirectPath} />;
+        //return <Redirect to={redirectPath} />;
     }
 
     // if the app was deleted, get outta here

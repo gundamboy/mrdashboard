@@ -123,7 +123,7 @@ function* updateApplication(application) {
         const update = yield call(() => {
             return new Promise((resolve, reject) => {
                 collectionRef.update({
-                    "admin.amountApproved": appAdmin.amountApproved,
+                    "admin.amountApproved": appAdmin.amountApproved !== undefined ? appAdmin.amountApproved : "",
                     "admin.approvalDate": appAdmin.approvalDate,
                     "admin.approvalStatus": appAdmin.approvalStatus,
                     "admin.itemsApproved": appAdmin.itemsApproved,
@@ -154,8 +154,8 @@ function* updateApplication(application) {
 
 // posts data to the php to send an applicant an email
 function email(application, email) {
-    const API_PATH = "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php";
-    //const API_PATH = "/php/sponsorship-emails.php";
+    //const API_PATH = "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php";
+    const API_PATH = "/php/sponsorship-emails.php";
 
     return axios({
         method: 'post',

@@ -36,7 +36,8 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
                 results: action.payload,
                 loading: false,
                 error: false,
-                appDeleted: false
+                appDeleted: false,
+                emailSent: false
             };
         case sponsorshipActions.FETCH_APPLICATIONS_FAILURE:
             return {

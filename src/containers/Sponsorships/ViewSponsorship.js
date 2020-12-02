@@ -719,7 +719,7 @@ export default function (props) {
                                             <Button className={"delete-record-btn"}
                                                     type="delete"
                                                     size={"large"}
-                                                    disabled={!showAdvanced}
+                                                    disabled={props.currentSponsorship.admin.notificationEmailed}
                                                     onClick={showDeleteConfirmation}
                                             >Delete Application</Button>
                                         </Col>
