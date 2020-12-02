@@ -71,13 +71,13 @@ export default function (props) {
         {
             key: "orgWebsite",
             question: "Organization's Website URL",
-            answer: <a href={`${submissionInfo.orgWebsite}`} target="_blank">{submissionInfo.orgWebsite}</a>,
+            answer: <a href={formatWebsite(submissionInfo.orgWebsite)} target="_blank">{submissionInfo.orgWebsite}</a>,
             dataIndex: "orgWebsite"
         },
         {
             key: "orgFacebook",
             question: "Organization's Facebook Page",
-            answer: <a href={`${submissionInfo.orgFacebook}`} target="_blank">{submissionInfo.orgFacebook}</a>,
+            answer: <a href={formatWebsite(submissionInfo.orgFacebook)} target="_blank">{submissionInfo.orgFacebook}</a>,
             dataIndex: "orgFacebook"
         },
         {
@@ -645,7 +645,7 @@ export default function (props) {
                                 <p className={'status'}>Current Status: <span>{currentApp.admin.approvalStatus}</span></p>
                                 <p className={'date'}>Submitted on: <span>{currentApp.meta.submissionDate.toDate().getMonth()+1 + "/" + currentApp.meta.submissionDate.toDate().getDate() + "/" + currentApp.meta.submissionDate.toDate().getFullYear()}</span></p>
                                 {currentApp.admin.approvalStatus !== 'pending' && approvalDate}
-                                <p className={'notification-status'}>The applicant has {!props.emailSent && "not "}been notified.</p>
+                                <p className={'notification-status'}>The applicant has {!props.currentSponsorship.admin.notificationEmailed && "not "}been notified.</p>
                             </section>
                             <section className={"admin-section"}>
                                 <Form name="admin-form" layout="vertical" size={"default"}  onFinish={(values) => {submitApplication(values, appType)}}
@@ -742,6 +742,16 @@ export default function (props) {
             </Modal>
         </LayoutWrapper>
     )
+}
+
+function formatWebsite(site) {
+    let address = site;
+
+    if(!address.includes('http://')) {
+        address = 'http://' + site;
+    }
+
+    return address;
 }
 
 function socialLink(service, text) {
