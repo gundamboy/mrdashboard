@@ -8,13 +8,15 @@ import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
 import { sponsorshipTabs} from "../Tables/AntTables/configs";
 import {Space, Spin, Input } from "antd";
-import { SearchOutlined } from '@ant-design/icons';
+import {SearchOutlined, SettingFilled, SettingsFilled} from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
 import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
+import {AdvancedOptions} from "./Sponsorships.styles";
+import {ExportSponsorships} from "../../helpers/exportSponsorships";
 
 
 export default function Sponsorships(props) {
@@ -30,6 +32,7 @@ export default function Sponsorships(props) {
     const [searchedColumn, setSearchedColumn] = useState();
     const [filteredInfo, setFilteredInfo] = useState();
     const [sortedInfo, setSortedInfo] = useState();
+    const [showOptionsClass, setShowOptionsClass] = useState();
     const searchInput = useRef(null);
 
     // calls state from redux
@@ -217,6 +220,14 @@ export default function Sponsorships(props) {
         }
     ];
 
+    const toggleAdvancedOptions = () => {
+        if (!showOptionsClass) {
+            setShowOptionsClass("show");
+        } else {
+            setShowOptionsClass("");
+        }
+    };
+
     if (applications.length) {
         let applicationInfo = new applicationsData(applications.length, applications);
         const pendingApplicationInfo = new applicationsData(pendingApplications.length, pendingApplications);
@@ -229,14 +240,20 @@ export default function Sponsorships(props) {
                     <IntlMessages id="sidebar.sponsorships" />
                 </PageHeader>
                 <LayoutContent ref={target}>
-                    {!production &&
-                    <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
-                        <Space>
-                            <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Add Dummy Monetary</Button>
-                            <Button onClick={(e) => {insertDummyData("Material")}}>Add Dummy Material</Button>
-                        </Space>
+                    <div className="options" style={{textAlign: "right"}}>
+                        <Button style={{border: "none"}} shape="circle" icon={<SettingFilled style={{fontSize: 22}} onClick={toggleAdvancedOptions}/>}/>
                     </div>
-                    }
+                    <AdvancedOptions className={"advanced-options " + showOptionsClass}>
+                        {!production &&
+                        <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
+                            <Space>
+                                <Button type="link" onClick={(e) => {ExportSponsorships(results)}}>Export Sponsorships</Button>
+                                <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Add Dummy Monetary</Button>
+                                <Button onClick={(e) => {insertDummyData("Material")}}>Add Dummy Material</Button>
+                            </Space>
+                        </div>
+                        }
+                    </AdvancedOptions>
                     <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeTab}>
                         {sponsorshipTabs.map(tab => {
                             if (tab.value === 'pending') {

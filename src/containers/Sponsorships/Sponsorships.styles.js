@@ -1,5 +1,13 @@
 import styled from 'styled-components';
 
+export const AdvancedOptions = styled.div`
+    display: none;
+    
+    &.show {
+        display: block;
+    }
+`;
+
 export const ApplicationSection = styled.div`
     .ant-table-wrapper {
         margin-bottom: 3rem;
