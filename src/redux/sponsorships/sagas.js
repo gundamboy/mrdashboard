@@ -1,6 +1,6 @@
 import { all, takeEvery, put, call, delay } from 'redux-saga/effects';
 import sponsorshipActions from './actions';
-import { rsfSponsorships, dbSponsorships,  } from '@iso/lib/firebase/firebase';
+import { rsfSponsorships, dbSponsorships, sponsorshipsStorage } from '@iso/lib/firebase/firebase';
 import axios from 'axios';
 import * as firebase from "firebase";
 import actions from "@iso/redux/auth/actions";
@@ -40,8 +40,31 @@ function* getSingleApplication(documentId) {
                     getApplication.get()
                         .then((doc) => {
                             if (doc.exists) {
-                                sponsorship = {id: documentId.payload, ...doc.data()};
-                                resolve(fetchApplication);
+                                const app = doc.data();
+
+                                if(app.meta.hasFiles) {
+                                    const storageRef = sponsorshipsStorage.ref();
+                                    const storageItems = storageRef.child(documentId.payload);
+                                    let fileInfo = {};
+
+                                    storageItems.listAll().then((res) => {
+                                        res.items.forEach((itemRef) => {
+                                            itemRef.getDownloadURL().then((url) => {
+                                                fileInfo['name'] = itemRef.name;
+                                                fileInfo['url'] = url;
+
+                                                sponsorship = {id: documentId.payload, fileInfo: fileInfo, ...doc.data()};
+                                                resolve(fetchApplication);
+                                            })
+
+                                        })
+                                    });
+
+
+                                } else {
+                                    sponsorship = {id: documentId.payload, fileInfo: null, ...doc.data()};
+                                    resolve(fetchApplication);
+                                }
                             } else {
                                 console.log("DOC DOES NOT EXIST");
                                 console.log("Should be forced error");

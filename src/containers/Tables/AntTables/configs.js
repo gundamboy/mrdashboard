@@ -84,4 +84,14 @@ const sponsorshipSingleViewColumns = [
   }
 ];
 
-export {sponsorshipColumns, sponsorshipTabs, sponsorshipSingleViewColumns };
+const filesSingleViewColumns = [
+  {
+    title: "Files",
+    key: "files",
+    dataIndex: "files",
+    width: "50%",
+    render: text => <p>{text}</p>,
+  },
+];
+
+export {sponsorshipColumns, sponsorshipTabs, sponsorshipSingleViewColumns, filesSingleViewColumns };

@@ -4,7 +4,7 @@ import ReactDomServer from 'react-dom/server';
 import { useDispatch } from 'react-redux';
 import Box from '@iso/components/utility/box';
 import LayoutWrapper from '@iso/components/utility/layoutWrapper';
-import {sponsorshipSingleViewColumns} from "../Tables/AntTables/configs";
+import {sponsorshipSingleViewColumns, filesSingleViewColumns} from "../Tables/AntTables/configs";
 import TableWrapper from "@iso/containers/Tables/AntTables/AntTables.styles";
 import {Alert, Row, Col, Button, Form, Select, Input, Space, Typography, Divider, Checkbox, Modal} from 'antd';
 import {MinusCircleOutlined, PlusOutlined, UnderlineOutlined} from '@ant-design/icons';
@@ -29,6 +29,7 @@ export default function (props) {
     const [currentApplicationStatus, setCurrentApplicationStatus] = useState(props.currentSponsorship.admin.approvalStatus)
     let applicantEmailPreview = null;
     const submissionInfo = currentApp.submission;
+    const appMeta = currentApp.meta;
     const appType = submissionInfo.sponsorshipSelect;
     const appStatus = currentApp.admin.approvalStatus;
     const dispatch = useDispatch();
@@ -37,8 +38,6 @@ export default function (props) {
     let appTypeFieldsToShow = "";
     let approvalDate = "";
     let existingItems = null;
-
-    console.log("currentApplicationStatus:", currentApplicationStatus);
 
     const orgAddress = (
         <>
@@ -53,6 +52,15 @@ export default function (props) {
             <span className="address">{submissionInfo.primaryCity + ", " + submissionInfo.primaryZip}</span>
         </>
     )
+
+    const getAppFiles = () => {
+        if (appMeta.hasFiles) {
+            const theFile = currentApp.fileInfo;
+            return (<a href={theFile.url} target="_blank">{theFile.name}</a> );
+        } else {
+            return "No files were provided";
+        }
+    };
 
     const orgInfo = [
         {
@@ -130,6 +138,12 @@ export default function (props) {
             dataIndex: "relationship"
         },
     ];
+    let fileInfo = [
+        {
+            key: 'files',
+            files: getAppFiles(),
+            dataIndex: 'files'
+        }];
     let eventInfo = [
         {
             key: 'sponsorshipSelect',
@@ -647,6 +661,19 @@ export default function (props) {
                                 bordered
                             />
                         </ApplicationSection>
+
+                        {currentApp.fileInfo !== null &&
+                        <ApplicationSection>
+                            <Title level={3} className={"application-section-title"}>File Information</Title>
+                            <TableWrapper
+                                pagination={false}
+                                columns={filesSingleViewColumns}
+                                dataSource={fileInfo}
+                                className="isoSimpleTable"
+                                bordered
+                            />
+                        </ApplicationSection>
+                        }
                     </Box>
                 </Col>
 

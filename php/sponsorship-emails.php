@@ -20,7 +20,7 @@ $emailTableRows = '';
 $emailSent = false;
 
 foreach ($emailArray as &$value) {
-    $emailTableRows .= '<tr><td>' . $value . '</td></tr>';
+    $emailTableRows .= '<tr><td style="border: none;">' . $value . '</td></tr>';
 }
 
 if(strlen($emailTableRows) > 0) {
@@ -29,12 +29,12 @@ if(strlen($emailTableRows) > 0) {
 
 function buildEmailMessage($emailTableRows) {
     $message = '<html><body>';
-    $message .= '<table rules="all" border="0" cellpadding="5" width="600" style="border-color: white;">';
+    $message .= '<table rules="all" border="0" cellpadding="5" width="600" style="border-color: white;"><tbody>';
     $message .= '<tr>';
     $message .= '<td style="border: none;" width="200"><img width="200" height="51" src="https://www.midrivers.com/wp-content/uploads/2020/04/MR-FullColor.png" alt="Mid-Rivers" /></td>';
     $message .= '<td style="border: none;" valign="middle"><h2>Mid-Rivers Sponsorship Request</h2></td>';
     $message .= '</tr>';
-    $message .= '</table>';
+    $message .= '</tbody></table>';
     $message .= '<table rules="all" border="0" cellpadding="5" width="600"><tbody>';
     $message .= $emailTableRows;
     $message .= '</tbody></table>';
@@ -45,10 +45,10 @@ function buildEmailMessage($emailTableRows) {
 
 function sendEmail($emailTableRows, $emailArray, $applicantEmail) {
     //$to = $applicantEmail;
-    $to = "rowland.charles@gmail.com";
+    $to = "nichole.senner@midrivers.coop";
     $subject = "Mid-Rivers Community Sponsorship Request";
     $headers = "From: sponsorship_request@midrivers.com\r\n";
-    $headers .= "Cc: nichole.senner@midrivers.coop\r\n";
+    $headers .= "Cc: rowland.charles@gmail.com\r\n";
     $headers .= "Reply-To: noreply@midrivers.com\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";

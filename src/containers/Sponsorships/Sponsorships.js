@@ -18,7 +18,7 @@ import PageHeader from "@iso/components/utility/pageHeader";
 
 
 export default function Sponsorships(props) {
-    const production = true;
+    const production = false;
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
     const { results, loading, error, appDeleted,
@@ -98,7 +98,7 @@ export default function Sponsorships(props) {
                 : '',
         onFilterDropdownVisibleChange: visible => {
             if (visible) {
-                setTimeout(() => searchInput.current, 100);
+                setTimeout(() => searchInput.current.focus(), 100);
             }
         },
         render: text =>
@@ -167,7 +167,7 @@ export default function Sponsorships(props) {
                     key: "date",
                     dataIndex: "date",
                     sorter: true,
-                    width: "10%",
+                    width: "12%",
                     render: data => <p>{data}</p>,
                     ...getColumnSearchProps('date'),
                 },
@@ -232,8 +232,8 @@ export default function Sponsorships(props) {
                     {!production &&
                     <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
                         <Space>
-                            <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Dummy Monetary</Button>
-                            <Button onClick={(e) => {insertDummyData("Material")}}>Dummy Material</Button>
+                            <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Add Dummy Monetary</Button>
+                            <Button onClick={(e) => {insertDummyData("Material")}}>Add Dummy Material</Button>
                         </Space>
                     </div>
                     }
