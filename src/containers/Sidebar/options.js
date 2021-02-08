@@ -5,8 +5,8 @@ const options = [
     leftIcon: 'ion-document',
   },
   {
-    key: 'authCheck',
-    label: 'sidebar.authCheck',
+    key: 'scholarships',
+    label: 'sidebar.scholarships',
     leftIcon: 'ion-document',
   },
 ];

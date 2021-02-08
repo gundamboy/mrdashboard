@@ -17,8 +17,8 @@ const routes = [
     component: lazy(() => import('../Sponsorships/Sponsorships')),
   },
   {
-    path: 'authCheck',
-    component: lazy(() => import('../AuthCheck')),
+    path: 'scholarships',
+    component: lazy(() => import('../Scholarships/Scholarships')),
   },
 ];
 

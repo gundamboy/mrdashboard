@@ -20,7 +20,6 @@ import PageHeader from "@iso/components/utility/pageHeader";
 
 export default function (props) {
     const editor = useRef(null);
-
     const [currentApp, setCurrentApp] = useState(props.currentSponsorship);
     const [editorState, setEditorState] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
@@ -452,7 +451,7 @@ export default function (props) {
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your
                             sponsorship request has been approved for ${currentApp.admin.amountApproved}.</p>
-                        <p>We will send your check to the address provided in the form. Please allow for 1-2 weeks for the check to arrive. If you have any questions or need additional information, please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop to coordinate the delivery of the check.</p>
+                        <p>The funds will be send to the organization’s address provided in the form. Please allow up to 2 weeks for the check to arrive. If you have any questions or need additional information, please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7322.</p>
                     </>
                 );
             } else if(currentApp.admin.approvalStatus === "denied") {
@@ -460,7 +459,7 @@ export default function (props) {
                     <>
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We regret to inform you that we are unable to fulfill your request at this time.</p>
-                        <p>If you have any questions, please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop.</p>
+                        <p>If you have any questions, please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7322.</p>
                     </>
                 );
             }
@@ -485,7 +484,7 @@ export default function (props) {
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your sponsorship request has been approved for the following items:</p>
                         <p>{itemsTextArray.join(', ')}.</p>
-                        <p>Please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop to coordinate the delivery of the items or if you have any questions.</p>
+                        <p>Please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7387 to coordinate the delivery of the items or if you have any questions.</p>
                     </>
                 );
             } else if(currentApp.admin.approvalStatus === "denied") {
@@ -493,7 +492,7 @@ export default function (props) {
                     <>
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We regret to inform you that we are unable to fulfill your request at this time.</p>
-                        <p>If you have any questions, please contact Nicole Senner at 406-687-7387 or nicole.sennern@midrivers.coop.</p>
+                        <p>If you have any questions, please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7322.</p>
                     </>
                 );
             }

@@ -164,8 +164,8 @@ function* updateApplication(application) {
 
 // posts data to the php to send an applicant an email
 function email(application, email) {
-    //const API_PATH = "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php";
-    const API_PATH = "/php/sponsorship-emails.php";
+    const API_PATH = "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php";
+    //const API_PATH = "/php/sponsorship-emails.php";
 
     return axios({
         method: 'post',
@@ -191,6 +191,8 @@ function* sendEmail(application) {
                 resolve(doEmail);
             })
         });
+
+        console.log("email data:", data);
 
         const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
         let applicationUpdated = false;

@@ -2,6 +2,14 @@
 header("Access-Control-Allow-Origin: *");
 header('Content-type: application/json');
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require 'PHPMailer/src/Exception.php';
+require 'PHPMailer/src/PHPMailer.php';
+require 'PHPMailer/src/SMTP.php';
+
 $rest_json = file_get_contents("php://input");
 $_POST = json_decode($rest_json, true);
 
@@ -19,12 +27,14 @@ $applicantEmail = $applicationSubmissionInfo['primaryEmail'];
 $emailTableRows = '';
 $emailSent = false;
 
+$mail = new PHPMailer(true);
+
 foreach ($emailArray as &$value) {
     $emailTableRows .= '<tr><td style="border: none;">' . $value . '</td></tr>';
 }
 
 if(strlen($emailTableRows) > 0) {
-    sendEmail($emailTableRows, $emailArray, $applicantEmail);
+    sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $applicationSubmissionInfo['primaryName']);
 }
 
 function buildEmailMessage($emailTableRows) {
@@ -43,25 +53,34 @@ function buildEmailMessage($emailTableRows) {
     return $message;
 }
 
-function sendEmail($emailTableRows, $emailArray, $applicantEmail) {
-    //$to = $applicantEmail;
-    $to = "nichole.senner@midrivers.coop";
-    $subject = "Mid-Rivers Community Sponsorship Request";
-    $headers = "From: sponsorship_request@midrivers.com\r\n";
-    $headers .= "Cc: rowland.charles@gmail.com\r\n";
-    $headers .= "Reply-To: noreply@midrivers.com\r\n";
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
-    $headers .= "Content-Transfer-Encoding: 64bit\r\n";
-    $body = buildEmailMessage($emailTableRows);
+function sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $name) {
+    try {
+        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
+        $mail->isSMTP();
+        $mail->Host = 'smtps.midrivers.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'no_reply@midrivers.com';
+        $mail->Password = 'Hcgmgro]0u';
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+        $mail->setFrom('no_reply@midrivers.com', 'Midrivers Sponsorships');
+        $mail->addReplyTo('no_reply@midrivers.com', 'Midrivers Sponsorships');
+        $mail->addAddress($applicantEmail, $name);
+        $mail->addBCC('nicole.senner@midrivers.coop', 'Nicole');
+        $mail->Subject = "Mid-Rivers Community Sponsorship Request";
+        $mail->isHTML(true);
+        $mail->Body = buildEmailMessage($emailTableRows);
 
-    if (mail($to, $subject, $body, $headers)) {
-        returnData(["status" => true, "emailArray" => $emailArray, "body" => $body]);
-    } else {
-        returnData(["status" => false]);
+        if ($mail->send()) {
+            returnData(["status" => true, "emailArray" => $emailArray]);
+
+        } else {
+            returnData(["status" => false, "phpmail-FAILED" => $mail->ErrorInfo]);
+        }
+    } catch (Exception $e) {
+        returnData(["status" => false, "phpmail FAILED EXCEPTION" => $mail->ErrorInfo, "exception"=>$e]);
     }
 }
-
 
 function returnData($dataArray) {
     echo json_encode($dataArray);

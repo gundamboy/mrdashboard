@@ -7,20 +7,21 @@ import sponsorshipsReducer from "../../redux/sponsorships/reducer";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
 import { sponsorshipTabs} from "../Tables/AntTables/configs";
-import {Space, Spin, Input } from "antd";
-import {SearchOutlined, SettingFilled, SettingsFilled} from '@ant-design/icons';
+import {Space, Spin, Input, Tooltip } from "antd";
+import {SearchOutlined, SettingFilled, FileExcelOutlined} from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
 import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {AdvancedOptions} from "./Sponsorships.styles";
+import {AdvancedOptions, AdvancedOptionsWrapper} from "./Sponsorships.styles";
 import {ExportSponsorships} from "../../helpers/exportSponsorships";
+import {formattedDate} from "../../helpers/shared";
 
 
 export default function Sponsorships(props) {
-    const production = false;
+    const production = true;
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
     const { results, loading, error, appDeleted,
@@ -142,7 +143,7 @@ export default function Sponsorships(props) {
         const app = {
             "id": result.id,
             "key": result.id,
-            "date": new Date(result.meta["submissionDate"].toDate()).toDateString(),
+            "date": formattedDate(new Date(result.meta["submissionDate"].toDate())),
             "orgName": result.submission["orgName"],
             "primaryName": result.submission["primaryName"],
             "appType": result.submission["sponsorshipSelect"],
@@ -240,20 +241,31 @@ export default function Sponsorships(props) {
                     <IntlMessages id="sidebar.sponsorships" />
                 </PageHeader>
                 <LayoutContent ref={target}>
-                    <div className="options" style={{textAlign: "right"}}>
-                        <Button style={{border: "none"}} shape="circle" icon={<SettingFilled style={{fontSize: 22}} onClick={toggleAdvancedOptions}/>}/>
-                    </div>
-                    <AdvancedOptions className={"advanced-options " + showOptionsClass}>
-                        {!production &&
-                        <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
-                            <Space>
-                                <Button type="link" onClick={(e) => {ExportSponsorships(results)}}>Export Sponsorships</Button>
-                                <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Add Dummy Monetary</Button>
-                                <Button onClick={(e) => {insertDummyData("Material")}}>Add Dummy Material</Button>
-                            </Space>
+                    <AdvancedOptionsWrapper className="advanced-options-wrapper">
+                        <AdvancedOptions className={"advanced-options " + showOptionsClass}>
+                            {!production &&
+                            <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
+                                <Space>
+                                    <Button type="link" onClick={(e) => {ExportSponsorships(results)}}>Export Sponsorships</Button>
+                                    <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Add Dummy Monetary</Button>
+                                    <Button onClick={(e) => {insertDummyData("Material")}}>Add Dummy Material</Button>
+                                </Space>
+                            </div>
+                            }
+                            {production &&
+                            <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
+                                <Space>
+                                    <Button type="link" icon={<FileExcelOutlined />} onClick={(e) => {ExportSponsorships(results)}}>Export Sponsorships</Button>
+                                </Space>
+                            </div>
+                            }
+                        </AdvancedOptions>
+                        <div className="options" style={{textAlign: "right"}}>
+                            <Tooltip title="Advanced Options" mouseEnterDelay={0.65}>
+                                <Button style={{border: "none"}} shape="circle" icon={<SettingFilled style={{fontSize: 22}} onClick={toggleAdvancedOptions}/>}/>
+                            </Tooltip>
                         </div>
-                        }
-                    </AdvancedOptions>
+                    </AdvancedOptionsWrapper>
                     <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeTab}>
                         {sponsorshipTabs.map(tab => {
                             if (tab.value === 'pending') {
@@ -334,6 +346,9 @@ export default function Sponsorships(props) {
     } else {
         return (
             <LayoutContentWrapper style={{height: '100vh'}}>
+                <PageHeader>
+                    <IntlMessages id="sidebar.sponsorships" />
+                </PageHeader>
                 <LayoutContent className={"ant-spin-nested-loading"}>
                     <TableWrapper
                     loading={true}/>
