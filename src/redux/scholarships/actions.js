@@ -8,7 +8,7 @@ const actions = {
     FETCH_SINGLE_SCHOLARSHIP_START: 'FETCH_SINGLE_SCHOLARSHIP_START',
     FETCH_SINGLE_SCHOLARSHIP: 'FETCH_SINGLE_SCHOLARSHIP',
     FETCH_SINGLE_SCHOLARSHIP_SUCCESS: 'FETCH_SINGLE_SCHOLARSHIP_SUCCESS',
-    FETCH_SINGLE_SCHOLARSHIP_ERROR: 'FETCH_SINGLE_SCHOLARSHIP_ERROR',
+    FETCH_SINGLE_SCHOLARSHIP_FAILURE: 'FETCH_SINGLE_SCHOLARSHIP_FAILURE',
 
     UPDATE_SCHOLARSHIP: "UPDATE_SCHOLARSHIP",
     UPDATE_SCHOLARSHIP_SUCCESS: "UPDATE_SCHOLARSHIP_SUCCESS",
@@ -23,6 +23,15 @@ const actions = {
     fetchScholarshipsSuccess: scholarships => ({
         type: actions.FETCH_SCHOLARSHIPS_SUCCESS,
         payload: scholarships
+    }),
+
+    fetchSingleApplicationState: sponsorshipId => ({
+        type: actions.FETCH_SINGLE_SCHOLARSHIP_START,
+        payload: sponsorshipId,
+    }),
+    fetchSingleScholarship: scholarship => ({
+        type: actions.FETCH_SINGLE_SCHOLARSHIP_SUCCESS,
+        payload: scholarship
     }),
 }
 

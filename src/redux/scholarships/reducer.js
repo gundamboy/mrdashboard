@@ -26,6 +26,19 @@ export default function reducer(state = initState, { type, payload, newRecord })
                 loading: false,
                 error: true,
             }
+        case actions.FETCH_SINGLE_SCHOLARSHIP_SUCCESS:
+            return {
+                ...state,
+                currentScholarship: payload,
+                loading: false,
+                error: false,
+            }
+        case actions.FETCH_SINGLE_SCHOLARSHIP_FAILURE:
+            return {
+                ...state,
+                loading: false,
+                error: true,
+            }
         default:
             return state
     }

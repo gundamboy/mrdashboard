@@ -4,8 +4,8 @@ import LayoutContent from '@iso/components/utility/layoutContent';
 import {useDispatch, useSelector} from "react-redux";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
-import {scholarshipColumnsPending, scholarshipColumnsCompleted, scholarshipTabs} from "./tableConfig";
-import {Space, Spin, Input, Tooltip } from "antd";
+import {scholarshipTabs} from "./tableConfig";
+import {Space, Spin, Input, Tooltip, Alert} from "antd";
 import {SearchOutlined, SettingFilled, FileExcelOutlined} from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
@@ -25,9 +25,13 @@ export default function Scholarships() {
     const {scholarships, loading, activeTab} = useSelector(
         state => state.Scholarships);
     const [showOptionsClass, setShowOptionsClass] = useState();
+    const [searchText, setSearchText] = useState();
+    const [searchedColumn, setSearchedColumn] = useState();
+    const [filteredInfo, setFilteredInfo] = useState();
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const target = useRef(null);
+    const searchInput = useRef(null);
     let Component = TableViews.SortView;
 
     // this is like componentDidMount but its for a function component and not a class
@@ -43,7 +47,6 @@ export default function Scholarships() {
         }
     };
 
-
     // dispatches the setActiveTab action in the actions.js file
     const setTab = useCallback(
         (currentTab) => dispatch(scholarshipsActions.setActiveTab(currentTab)),
@@ -53,6 +56,69 @@ export default function Scholarships() {
     // calls SetTab
     const onTabChange = (key) => {
         setTab(key)
+    };
+
+    // table search fields
+    const getColumnSearchProps = dataIndex => ({
+        filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
+            <div style={{ padding: 8 }}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => handleTextSearch(selectedKeys, confirm, dataIndex)}
+                    style={{ width: 188, marginBottom: 8, display: 'block' }}
+                />
+
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleTextSearch(selectedKeys, confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button onClick={() => handleTextReset(clearFilters)} size="small" style={{ width: 90 }}>
+                        Reset
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: filtered => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+        onFilter: (value, record) =>
+            record[dataIndex]
+                ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+                : '',
+        onFilterDropdownVisibleChange: visible => {
+            if (visible) {
+                setTimeout(() => searchInput.current.focus(), 100);
+            }
+        },
+        render: text =>
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ''}
+                />
+            ) : (
+                text
+            ),
+    });
+
+    const handleTextSearch = (selectedKeys, confirm, dataIndex) => {
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
+
+    const handleTextReset = clearFilters => {
+        clearFilters();
+        setSearchText("");
     };
 
     if(scholarships) {
@@ -68,6 +134,119 @@ export default function Scholarships() {
         let deniedScholarshipsInfo = null;
         let completedDccScholarshipsInfo = null;
         let completedEduScholarshipsInfo = null;
+
+        // TODO: do not put apps in the list if they are totally blank?
+        const scholarshipColumnsPending = [
+            {
+                columns: [
+                    {
+                        title: "Name",
+                        key: "name",
+                        dataIndex: "name",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('name'),
+                    },
+                    {
+                        title: "Email",
+                        key: "email",
+                        dataIndex: "email",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('email'),
+                    },
+                    {
+                        title: "City",
+                        key: "city",
+                        dataIndex: "city",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('city'),
+                    },
+                    {
+                        title: "Started",
+                        key: "started",
+                        dataIndex: "started",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('started'),
+                    },
+                    {
+                        title: "",
+                        key: "appLink",
+                        dataIndex: "appLink",
+                        width: "6%",
+                        render: url => (
+                            <div className="">
+                                <Link to={url}>
+                                    <Button className="applicationButton" color="primary">View</Button>
+                                </Link>
+                            </div>
+                        )
+                    }
+                ]
+            }
+        ]
+
+        const scholarshipColumnsCompleted = [
+            {
+                columns: [
+                    {
+                        title: "Name",
+                        key: "name",
+                        dataIndex: "name",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('name'),
+                    },
+                    {
+                        title: "Email",
+                        key: "email",
+                        dataIndex: "email",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('email'),
+                    },
+                    {
+                        title: "City",
+                        key: "city",
+                        dataIndex: "city",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('city'),
+                    },
+                    {
+                        title: "Started",
+                        key: "started",
+                        dataIndex: "started",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('started'),
+                    },
+                    {
+                        title: "Finished",
+                        key: "finished",
+                        dataIndex: "finished",
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps('finished'),
+                    },
+                    {
+                        title: "",
+                        key: "appLink",
+                        dataIndex: "appLink",
+                        width: "6%",
+                        render: url => (
+                            <div className="">
+                                <Link to={url}>
+                                    <Button className="applicationButton" color="primary">View</Button>
+                                </Link>
+                            </div>
+                        )
+                    }
+                ]
+            }
+        ]
 
         for (let scholarship of scholarships) {
             const dccApp = scholarship.dcc;
@@ -91,7 +270,7 @@ export default function Scholarships() {
                     "email": dccApp.email,
                     "city": dccApp.city,
                     "started": dccStartDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
                     "currentScholarship": scholarship
                 });
             }
@@ -106,7 +285,7 @@ export default function Scholarships() {
                     "city": dccApp.city,
                     "started": dccFinishedDate,
                     "finished": dccFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
                     "currentScholarship": scholarship
                 });
             }
@@ -120,7 +299,7 @@ export default function Scholarships() {
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "started": eduStartDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
                     "currentScholarship": scholarship
                 });
             }
@@ -135,7 +314,7 @@ export default function Scholarships() {
                     "city": eduApp.city,
                     "started": eduFinishedDate,
                     "finished": eduFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
                     "currentScholarship": scholarship
                 });
             }
@@ -150,7 +329,7 @@ export default function Scholarships() {
                     "city": dccApp.city,
                     "started": dccFinishedDate,
                     "finished": dccFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
                     "currentScholarship": scholarship
                 });
             }
@@ -165,7 +344,7 @@ export default function Scholarships() {
                     "city": eduApp.city,
                     "started": eduFinishedDate,
                     "finished": eduFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
                     "currentScholarship": scholarship
                 });
             }
@@ -180,7 +359,7 @@ export default function Scholarships() {
                     "city": dccApp.city,
                     "started": dccFinishedDate,
                     "finished": dccFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
                     "currentScholarship": scholarship
                 });
             }
@@ -195,19 +374,21 @@ export default function Scholarships() {
                     "city": eduApp.city,
                     "started": eduFinishedDate,
                     "finished": eduFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}`,
+                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
                     "currentScholarship": scholarship
                 });
             }
         }
 
         // sort by date by default
-        pendingDccScholarships.sort((a, b) => (a.started > b.started) ? 1 : -1);
-        completedDccScholarships.sort((a, b) => (a.started > b.started) ? 1 : -1);
-        pendingEduScholarships.sort((a, b) => (a.started > b.started) ? 1 : -1);
-        completedEduScholarships.sort((a, b) => (a.started > b.started) ? 1 : -1);
-        approvedScholarships.sort((a, b) => (a.started > b.started) ? 1 : -1);
-        deniedScholarships.sort((a, b) => (a.started > b.started) ? 1 : -1);
+        pendingDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        pendingEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
+        completedDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        completedEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
+        approvedScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        deniedScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
 
         pendingDccScholarshipsInfo = new applicationsData(pendingDccScholarships.length, pendingDccScholarships);
         pendingEduScholarshipsInfo = new applicationsData(pendingEduScholarships.length, pendingEduScholarships);
@@ -221,7 +402,11 @@ export default function Scholarships() {
                 <PageHeader>
                     <IntlMessages id="sidebar.scholarships"/>
                 </PageHeader>
+
                 <LayoutContent ref={target}>
+
+                    <Alert message="This is a preview and is not production ready." type="error" />
+
                     <AdvancedOptionsWrapper className="advanced-options-wrapper">
                         <AdvancedOptions className={"advanced-options " + showOptionsClass}>
                             <div className="export-buttons" style={{textAlign: 'right'}}>
@@ -237,7 +422,6 @@ export default function Scholarships() {
                         </div>
                     </AdvancedOptionsWrapper>
 
-                    {/*tabs here*/}
                     <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeTab}>
                         {scholarshipTabs.map(tab => {
                             if(tab.value === 'pendingDcc') {
@@ -391,7 +575,6 @@ export default function Scholarships() {
                             }
                         })}
                     </Tabs>
-
                 </LayoutContent>
             </LayoutContentWrapper>
         )
@@ -402,8 +585,7 @@ export default function Scholarships() {
                     <IntlMessages id="sidebar.scholarships" />
                 </PageHeader>
                 <LayoutContent className={"ant-spin-nested-loading"}>
-                    <TableWrapper
-                        loading={true}/>
+                    <TableWrapper loading={true}/>
                 </LayoutContent>
             </LayoutContentWrapper>
         );

@@ -17,6 +17,10 @@ const routes = [
     component: lazy(() => import('../Sponsorships/Sponsorships')),
   },
   {
+    path: 'scholarships/:scholarshipId/:scholarshipType',
+    component: lazy(() => import('../Scholarships/SingleScholarship')),
+  },
+  {
     path: 'scholarships',
     component: lazy(() => import('../Scholarships/Scholarships')),
   },
