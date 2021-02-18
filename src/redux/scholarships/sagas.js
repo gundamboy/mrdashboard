@@ -17,18 +17,21 @@ const currentYear = getCurrentYear().toString();
 
 function* initScholarships() {
     console.group("SAGA initScholarships");
-    console.log("inside initScholarships");
-
     try {
+
         const collectionRef = db.collection("scholarships").doc(currentYear).collection("applications");
+        const usersRef = db.collection("users");
         const snapshots = yield call(rsf.firestore.getCollection, collectionRef);
+        const userSnapshots = yield call(rsf.firestore.getCollection, usersRef);
         const scholarships = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        const users = userSnapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
 
         console.log("scholarships", scholarships);
 
         yield put( {
             type: scholarshipsActions.FETCH_SCHOLARSHIPS_SUCCESS,
-            payload: scholarships
+            payload: scholarships,
+            users: users
         });
 
     } catch (error) {

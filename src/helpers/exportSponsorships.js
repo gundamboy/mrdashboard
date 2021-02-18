@@ -8,17 +8,20 @@ export const GetSponsorships = (applicationsObj, status, appType) => {
 
     let approvedMonetarySponsorshipsHeaderRow = [
         "Submission Date", "Current Status", "Application Type", "Organization Name", "Primary Contact",
-        "Primary Telephone", "Primary Email", "Monetary Approved", "Admin Notes", "Applicant Emailed", "Application Link"
+        "Primary Telephone", "Primary Email", "Monetary Approved", "Admin Notes", "Applicant Emailed",
+        "Application Link"
     ];
 
     let approvedMaterialSponsorshipsHeaderRow = [
         "Submission Date", "Current Status", "Application Type", "Organization Name", "Primary Contact",
-        "Primary Telephone", "Primary Email", "Items Approved", "Admin Notes", "Applicant Emailed", "Application Link"
+        "Primary Telephone", "Primary Email", "Items Approved", "Admin Notes", "Applicant Emailed",
+        "Application Link"
     ];
 
     let deniedSponsorshipsHeaderRow = [
         "Submission Date", "Current Status", "Application Type", "Organization Name", "Primary Contact",
-        "Primary Telephone", "Primary Email", "Admin Notes", "Applicant Emailed", "Application Link"
+        "Primary Telephone", "Primary Email", "Admin Notes", "Applicant Emailed",
+        "Application Link"
     ];
 
     let sponsorshipsArray = [];
@@ -36,7 +39,7 @@ export const GetSponsorships = (applicationsObj, status, appType) => {
 
     // set the content arrays
     applicationsObj.forEach((app) => {
-        //console.log("app:", app);
+        console.log("app:", app);
         const submissionDate =  new Date(app.meta["submissionDate"].toDate()).toDateString();
         let itemsString = "";
         let itemsTextArray = [];
@@ -110,6 +113,6 @@ export const ExportSponsorships = (applicationsObj) => {
     XLSX.utils.book_append_sheet(wb, approvedMonetarySheet, "Approved Monetary Applications");
     XLSX.utils.book_append_sheet(wb, approvedMaterialSheet, "Approved Material Applications");
 
-    XLSX.writeFile(wb, "sponsorships-data.xlsx");
+    //XLSX.writeFile(wb, "sponsorships-data.xlsx");
 
 }

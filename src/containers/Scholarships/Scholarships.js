@@ -16,13 +16,14 @@ import PageHeader from "@iso/components/utility/pageHeader";
 import {AdvancedOptions, AdvancedOptionsWrapper} from "./Scholarships.styles";
 import scholarshipsActions from "../../redux/scholarships/actions";
 import {formattedDate} from "../../helpers/shared";
+import {ExportScholarships} from "../../helpers/exportScholarships";
 
 const {
     fetchScholarshipsStart
 } = scholarshipsActions;
 
 export default function Scholarships() {
-    const {scholarships, loading, activeTab} = useSelector(
+    const {scholarships, loading, activeTab, users} = useSelector(
         state => state.Scholarships);
     const [showOptionsClass, setShowOptionsClass] = useState();
     const [searchText, setSearchText] = useState();
@@ -249,136 +250,129 @@ export default function Scholarships() {
         ]
 
         for (let scholarship of scholarships) {
-            const dccApp = scholarship.dcc;
-            const eduApp = scholarship.higherEdu;
-            const admin = scholarship.admin.approvalStatus;
-            const adminDcc = admin.dcc;
-            const adminEdu = admin.higherEdu;
-            const firebaseDates = scholarship.dates;
-            const dccStartDate = firebaseDates.dcc.started !== "" ? formattedDate(firebaseDates.dcc.started.toDate()) : "";
-            const eduStartDate = firebaseDates.higherEdu.started !== "" ? formattedDate(firebaseDates.higherEdu.started.toDate()) : "";
-            const dccFinishedDate = firebaseDates.dcc.finished !== "" ? formattedDate(firebaseDates.dcc.finished.toDate()) : "";
-            const eduFinishedDate = firebaseDates.higherEdu.finished !== "" ? formattedDate(firebaseDates.higherEdu.finished.toDate()) : "";
 
-
-            // pending dcc
-            if(!firebaseDates.dcc.finished && firebaseDates.dcc.started) {
-                pendingDccScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": dccApp.name,
-                    "email": dccApp.email,
-                    "city": dccApp.city,
-                    "started": dccStartDate,
-                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
-                });
+                const dccApp = scholarship.dcc;
+                const eduApp = scholarship.higherEdu;
+                const admin = scholarship.admin.approvalStatus;
+                const adminDcc = admin.dcc;
+                const adminEdu = admin.higherEdu;
+                const firebaseDates = scholarship.dates;
+                const dccStartDate = firebaseDates.dcc.started !== "" ? formattedDate(firebaseDates.dcc.started.toDate()) : "";
+                const eduStartDate = firebaseDates.higherEdu.started !== "" ? formattedDate(firebaseDates.higherEdu.started.toDate()) : "";
+                const dccFinishedDate = firebaseDates.dcc.finished !== "" ? formattedDate(firebaseDates.dcc.finished.toDate()) : "";
+                const eduFinishedDate = firebaseDates.higherEdu.finished !== "" ? formattedDate(firebaseDates.higherEdu.finished.toDate()) : "";
+                // pending dcc
+                if (!firebaseDates.dcc.finished && firebaseDates.dcc.started) {
+                    pendingDccScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": dccApp.name,
+                        "email": dccApp.email,
+                        "city": dccApp.city,
+                        "started": dccStartDate,
+                        "appLink": `${match.path}/${scholarship.id}/dcc`,
+                        "currentScholarship": scholarship
+                    });
+                }
+                // completed dcc
+                if (firebaseDates.dcc.finished) {
+                    completedDccScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": dccApp.name,
+                        "email": dccApp.email,
+                        "city": dccApp.city,
+                        "started": dccFinishedDate,
+                        "finished": dccFinishedDate,
+                        "appLink": `${match.path}/${scholarship.id}/dcc`,
+                        "currentScholarship": scholarship
+                    });
+                }
+                // pending edu
+                if (!firebaseDates.higherEdu.finished && firebaseDates.higherEdu.started) {
+                    pendingEduScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": eduApp.name,
+                        "email": eduApp.email,
+                        "city": eduApp.city,
+                        "started": eduStartDate,
+                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                        "currentScholarship": scholarship
+                    });
+                }
+                // completed edu
+                if (firebaseDates.higherEdu.finished) {
+                    completedEduScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": eduApp.name,
+                        "email": eduApp.email,
+                        "city": eduApp.city,
+                        "started": eduFinishedDate,
+                        "finished": eduFinishedDate,
+                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                        "currentScholarship": scholarship
+                    });
+                }
+                // approved
+                if (firebaseDates.dcc.finished && adminDcc.approvalStatus === "approved") {
+                    approvedScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": dccApp.name,
+                        "email": dccApp.email,
+                        "city": dccApp.city,
+                        "started": dccFinishedDate,
+                        "finished": dccFinishedDate,
+                        "appLink": `${match.path}/${scholarship.id}/dcc`,
+                        "currentScholarship": scholarship
+                    });
+                }
+                // approved
+                if (firebaseDates.higherEdu.finished && adminEdu.approvalStatus === "approved") {
+                    approvedScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": eduApp.name,
+                        "email": eduApp.email,
+                        "city": eduApp.city,
+                        "started": eduFinishedDate,
+                        "finished": eduFinishedDate,
+                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                        "currentScholarship": scholarship
+                    });
+                }
+                // denied
+                if (firebaseDates.dcc.finished && adminDcc.approvalStatus === "denied") {
+                    deniedScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": dccApp.name,
+                        "email": dccApp.email,
+                        "city": dccApp.city,
+                        "started": dccFinishedDate,
+                        "finished": dccFinishedDate,
+                        "appLink": `${match.path}/${scholarship.id}/dcc`,
+                        "currentScholarship": scholarship
+                    });
+                }
+                // denied
+                if (firebaseDates.higherEdu.finished && adminEdu.approvalStatus === "denied") {
+                    deniedScholarships.push({
+                        "id": scholarship.id,
+                        "key": scholarship.id,
+                        "name": eduApp.name,
+                        "email": eduApp.email,
+                        "city": eduApp.city,
+                        "started": eduFinishedDate,
+                        "finished": eduFinishedDate,
+                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                        "currentScholarship": scholarship
+                    });
+                }
             }
 
-            // completed dcc
-            if(firebaseDates.dcc.finished) {
-                completedDccScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": dccApp.name,
-                    "email": dccApp.email,
-                    "city": dccApp.city,
-                    "started": dccFinishedDate,
-                    "finished": dccFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
-                });
-            }
-
-            // pending edu
-            if(!firebaseDates.higherEdu.finished && firebaseDates.higherEdu.started) {
-                pendingEduScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": eduApp.name,
-                    "email": eduApp.email,
-                    "city": eduApp.city,
-                    "started": eduStartDate,
-                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
-                });
-            }
-
-            // completed edu
-            if(firebaseDates.higherEdu.finished) {
-                completedEduScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": eduApp.name,
-                    "email": eduApp.email,
-                    "city": eduApp.city,
-                    "started": eduFinishedDate,
-                    "finished": eduFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
-                });
-            }
-
-            // approved
-            if(firebaseDates.dcc.finished && adminDcc.approvalStatus === "approved") {
-                approvedScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": dccApp.name,
-                    "email": dccApp.email,
-                    "city": dccApp.city,
-                    "started": dccFinishedDate,
-                    "finished": dccFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
-                });
-            }
-
-            // approved
-            if(firebaseDates.higherEdu.finished && adminEdu.approvalStatus === "approved") {
-                approvedScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": eduApp.name,
-                    "email": eduApp.email,
-                    "city": eduApp.city,
-                    "started": eduFinishedDate,
-                    "finished": eduFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
-                });
-            }
-
-            // denied
-            if(firebaseDates.dcc.finished && adminDcc.approvalStatus === "denied") {
-                deniedScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": dccApp.name,
-                    "email": dccApp.email,
-                    "city": dccApp.city,
-                    "started": dccFinishedDate,
-                    "finished": dccFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
-                });
-            }
-
-            // denied
-            if(firebaseDates.higherEdu.finished && adminEdu.approvalStatus === "denied") {
-                deniedScholarships.push({
-                    "id": scholarship.id,
-                    "key": scholarship.id,
-                    "name": eduApp.name,
-                    "email": eduApp.email,
-                    "city": eduApp.city,
-                    "started": eduFinishedDate,
-                    "finished": eduFinishedDate,
-                    "appLink" : `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
-                });
-            }
-        }
 
         // sort by date by default
         pendingDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
@@ -410,8 +404,9 @@ export default function Scholarships() {
                     <AdvancedOptionsWrapper className="advanced-options-wrapper">
                         <AdvancedOptions className={"advanced-options " + showOptionsClass}>
                             <div className="export-buttons" style={{textAlign: 'right'}}>
-                                <Button type="link" onClick={(e) => {
-                                }}>Export Scholarships</Button>
+                                <Button type="link" onClick={(e) => {ExportScholarships(pendingDccScholarshipsInfo, pendingEduScholarshipsInfo,
+                                    completedDccScholarshipsInfo, completedEduScholarshipsInfo,
+                                    approvedScholarshipsInfo, deniedScholarshipsInfo)}}>Export Scholarships</Button>
                             </div>
                         </AdvancedOptions>
                         <div className="options" style={{textAlign: "right"}}>

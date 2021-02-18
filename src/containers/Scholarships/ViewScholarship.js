@@ -2,7 +2,7 @@ import React, {useState, useCallback, useRef} from 'react';
 import LayoutWrapper from "@iso/components/utility/layoutWrapper";
 import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {Affix, Col, Form, Row, Select, Typography} from "antd";
+import {Affix, Col, Form, Row, Select, Typography, Input, Radio} from "antd";
 import Box from "@iso/components/utility/box";
 import {ScholarshipSection} from "./Scholarships.styles";
 
@@ -11,6 +11,7 @@ export default function (props) {
     const [currentApplicationStatus, setCurrentApplicationStatus] = useState(false)
     const [container, setContainer] = useState(null);
     const [top, setTop] = useState(10);
+    const [grades, setGrades] = useState(10);
     const scholarshipAnswers = props.currentScholarship[props.scholarshipType];
     const scholarshipAdmin = props.currentScholarship["admin"];
     const scholarshipDates = props.currentScholarship["dates"][props.scholarshipType];
@@ -24,18 +25,19 @@ export default function (props) {
 
     const formLayout = {
         labelCol: {
-            span: 16,
+            span: 10,
         },
         wrapperCol: {
-            span: 16,
+            span: 14,
         },
     };
 
     const onGradingFinish = () => {}
 
-    console.log("scholarshipAnswers", scholarshipAnswers);
-    console.log("scholarshipUrls", scholarshipUrls);
-    console.log("profileImageUrl", scholarshipUrls.profileImageUrl);
+    const saveGrades = (value, key) => {
+        console.log("save grade value:", value);
+        console.log("save grade key:", key);
+    }
 
     if(scholarshipAnswers.hasOwnProperty("nextSchoolType")) {
         if(scholarshipAnswers.nextSchoolType === "fourYearCollege") {
@@ -355,103 +357,192 @@ export default function (props) {
                         <ScholarshipSection>
                             <Title level={3} className={"application-section-title"}>Grading</Title>
                             <Form {...formLayout} layout="vertical" name="grading-form" onFinish={onGradingFinish}>
-                                <Form.Item label="Personal Info">
-                                    <Select className={"personal-info"}>
-                                        <Select.Option value="0">0</Select.Option>
-                                        <Select.Option value="5">5</Select.Option>
-                                        <Select.Option value="10">10</Select.Option>
-                                        <Select.Option value="15">15</Select.Option>
-                                        <Select.Option value="20">20</Select.Option>
-                                        <Select.Option value="25">25</Select.Option>
-                                        <Select.Option value="30">30</Select.Option>
-                                        <Select.Option value="35">35</Select.Option>
-                                        <Select.Option value="40">40</Select.Option>
-                                    </Select>
-                                </Form.Item>
+                                <div className="general">
+                                    <h3>General</h3>
+                                    <Form.Item label="Member">
+                                        <Radio.Group onChange={(e) => {saveGrades(e.target.value, "isMember")}}>
+                                            <Radio.Button value={"yes"}>Yes</Radio.Button>
+                                            <Radio.Button value={"no"}>No</Radio.Button>
+                                        </Radio.Group>
+                                    </Form.Item>
 
-                                <Form.Item label="Account Info">
-                                    <Select className={"account-info"}>
-                                        <Select.Option value="0">0</Select.Option>
-                                        <Select.Option value="5">5</Select.Option>
-                                        <Select.Option value="10">10</Select.Option>
-                                        <Select.Option value="15">15</Select.Option>
-                                        <Select.Option value="20">20</Select.Option>
-                                        <Select.Option value="25">25</Select.Option>
-                                        <Select.Option value="30">30</Select.Option>
-                                        <Select.Option value="35">35</Select.Option>
-                                        <Select.Option value="40">40</Select.Option>
-                                    </Select>
-                                </Form.Item>
+                                    <Form.Item label="Past Winner">
+                                        <Radio.Group onChange={(e) => {saveGrades(e.target.value, "pastWinner")}}>
+                                            <Radio.Button value={"yes"}>Yes</Radio.Button>
+                                            <Radio.Button value={"no"}>No</Radio.Button>
+                                        </Radio.Group>
+                                    </Form.Item>
+                                </div>
 
-                                <Form.Item label="Current School Info">
-                                    <Select className={"current-school-info"}>
-                                        <Select.Option value="0">0</Select.Option>
-                                        <Select.Option value="5">5</Select.Option>
-                                        <Select.Option value="10">10</Select.Option>
-                                        <Select.Option value="15">15</Select.Option>
-                                        <Select.Option value="20">20</Select.Option>
-                                        <Select.Option value="25">25</Select.Option>
-                                        <Select.Option value="30">30</Select.Option>
-                                        <Select.Option value="35">35</Select.Option>
-                                        <Select.Option value="40">40</Select.Option>
-                                    </Select>
-                                </Form.Item>
+                                <div className="grades">
+                                    <h3>Grades</h3>
+                                    <Form.Item label="GPA">
+                                        <Select className={"gpa"} onChange={(v) => {saveGrades(v, "gpa")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                            <Select.Option value="4">4</Select.Option>
+                                            <Select.Option value="5">5</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                    <Form.Item label="ACT">
+                                        <Select className={"act"} onChange={(v) => {saveGrades(v, "act")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                    <Form.Item label="Rank">
+                                        <Select className={"rank"} onChange={(v) => {saveGrades(v, "rank")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                </div>
 
-                                <Form.Item label="Next School Info">
-                                    <Select className={"next-school-info"}>
-                                        <Select.Option value="0">0</Select.Option>
-                                        <Select.Option value="5">5</Select.Option>
-                                        <Select.Option value="10">10</Select.Option>
-                                        <Select.Option value="15">15</Select.Option>
-                                        <Select.Option value="20">20</Select.Option>
-                                        <Select.Option value="25">25</Select.Option>
-                                        <Select.Option value="30">30</Select.Option>
-                                        <Select.Option value="35">35</Select.Option>
-                                        <Select.Option value="40">40</Select.Option>
-                                    </Select>
-                                </Form.Item>
+                                <div className="activities-and-awards">
+                                    <h3>Activities & Awards</h3>
+                                    <Form.Item label="School Related">
+                                        <Select className={"school"} onChange={(v) => {saveGrades(v, "schoolRelated")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                    <Form.Item label="Community">
+                                        <Select className={"community"} onChange={(v) => {saveGrades(v, "community")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                            <Select.Option value="4">4</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                    <Form.Item label="Awards & Honors">
+                                        <Select className={"awards"} onChange={(v) => {saveGrades(v, "awards")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                </div>
 
-                                <Form.Item label="Work Experience">
-                                    <Select className={"work-experience"}>
-                                        <Select.Option value="0">0</Select.Option>
-                                        <Select.Option value="5">5</Select.Option>
-                                        <Select.Option value="10">10</Select.Option>
-                                        <Select.Option value="15">15</Select.Option>
-                                        <Select.Option value="20">20</Select.Option>
-                                        <Select.Option value="25">25</Select.Option>
-                                        <Select.Option value="30">30</Select.Option>
-                                        <Select.Option value="35">35</Select.Option>
-                                        <Select.Option value="40">40</Select.Option>
-                                    </Select>
-                                </Form.Item>
+                                <div className="work-history">
+                                    <h3>Work History</h3>
+                                    <Form.Item label="Employment">
+                                        <Select className={"employment"} onChange={(v) => {saveGrades(v, "employment")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                            <Select.Option value="4">4</Select.Option>
+                                            <Select.Option value="5">5</Select.Option>
+                                            <Select.Option value="6">6</Select.Option>
+                                            <Select.Option value="7">7</Select.Option>
+                                            <Select.Option value="8">8</Select.Option>
+                                            <Select.Option value="9">9</Select.Option>
+                                            <Select.Option value="10">10</Select.Option>
+                                            <Select.Option value="11">11</Select.Option>
+                                            <Select.Option value="12">12</Select.Option>
+                                            <Select.Option value="13">13</Select.Option>
+                                            <Select.Option value="14">14</Select.Option>
+                                            <Select.Option value="15">15</Select.Option>
+                                            <Select.Option value="16">16</Select.Option>
+                                            <Select.Option value="17">17</Select.Option>
+                                            <Select.Option value="18">18</Select.Option>
+                                            <Select.Option value="19">19</Select.Option>
+                                            <Select.Option value="20">20</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                </div>
 
-                                <Form.Item label="Essay Questions">
-                                    <Select className={"essay-questions"}>
-                                        <Select.Option value="0">0</Select.Option>
-                                        <Select.Option value="5">5</Select.Option>
-                                        <Select.Option value="10">10</Select.Option>
-                                        <Select.Option value="15">15</Select.Option>
-                                        <Select.Option value="20">20</Select.Option>
-                                        <Select.Option value="25">25</Select.Option>
-                                        <Select.Option value="30">30</Select.Option>
-                                        <Select.Option value="35">35</Select.Option>
-                                        <Select.Option value="40">40</Select.Option>
-                                    </Select>
-                                </Form.Item>
+                                <div className="essays">
+                                    <h3>Essays</h3>
+                                    <Form.Item label="Content">
+                                        <Select className={"content"} onChange={(v) => {saveGrades(v, "essays")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="0">1</Select.Option>
+                                            <Select.Option value="0">2</Select.Option>
+                                            <Select.Option value="0">3</Select.Option>
+                                            <Select.Option value="0">4</Select.Option>
+                                            <Select.Option value="0">5</Select.Option>
+                                            <Select.Option value="0">6</Select.Option>
+                                            <Select.Option value="0">7</Select.Option>
+                                            <Select.Option value="0">8</Select.Option>
+                                            <Select.Option value="0">9</Select.Option>
+                                            <Select.Option value="0">10</Select.Option>
+                                            <Select.Option value="0">11</Select.Option>
+                                            <Select.Option value="0">12</Select.Option>
+                                            <Select.Option value="0">13</Select.Option>
+                                            <Select.Option value="0">14</Select.Option>
+                                            <Select.Option value="0">15</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                    <Form.Item label="Grammar">
+                                        <Select className={"grammar"} onChange={(v) => {saveGrades(v, "grammar")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="0">1</Select.Option>
+                                            <Select.Option value="0">2</Select.Option>
+                                            <Select.Option value="0">3</Select.Option>
+                                            <Select.Option value="0">4</Select.Option>
+                                            <Select.Option value="0">5</Select.Option>
+                                            <Select.Option value="0">6</Select.Option>
+                                            <Select.Option value="0">7</Select.Option>
+                                            <Select.Option value="0">8</Select.Option>
+                                            <Select.Option value="0">9</Select.Option>
+                                            <Select.Option value="0">10</Select.Option>
+                                            <Select.Option value="0">11</Select.Option>
+                                            <Select.Option value="0">12</Select.Option>
+                                            <Select.Option value="0">13</Select.Option>
+                                            <Select.Option value="0">14</Select.Option>
+                                            <Select.Option value="0">15</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                </div>
 
-                                <Form.Item label="Required Documents">
-                                    <Select className={"docs"}>
-                                        <Select.Option value="0">0</Select.Option>
-                                        <Select.Option value="5">5</Select.Option>
-                                        <Select.Option value="10">10</Select.Option>
-                                        <Select.Option value="15">15</Select.Option>
-                                        <Select.Option value="20">20</Select.Option>
-                                        <Select.Option value="25">25</Select.Option>
-                                        <Select.Option value="30">30</Select.Option>
-                                        <Select.Option value="35">35</Select.Option>
-                                        <Select.Option value="40">40</Select.Option>
-                                    </Select>
-                                </Form.Item>
+                                <div className="area">
+                                    <h3>Area</h3>
+                                    <Form.Item label="Return to Area">
+                                        <Select className={"content"} onChange={(v) => {saveGrades(v, "returnToArea")}}>
+                                            <Select.Option value="0">0</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                            <Select.Option value="4">4</Select.Option>
+                                            <Select.Option value="5">5</Select.Option>
+                                            <Select.Option value="6">6</Select.Option>
+                                            <Select.Option value="7">7</Select.Option>
+                                            <Select.Option value="8">8</Select.Option>
+                                            <Select.Option value="9">9</Select.Option>
+                                            <Select.Option value="10">10</Select.Option>
+                                            <Select.Option value="11">11</Select.Option>
+                                            <Select.Option value="12">12</Select.Option>
+                                            <Select.Option value="13">13</Select.Option>
+                                            <Select.Option value="14">14</Select.Option>
+                                            <Select.Option value="15">15</Select.Option>
+                                            <Select.Option value="16">16</Select.Option>
+                                            <Select.Option value="17">17</Select.Option>
+                                            <Select.Option value="18">18</Select.Option>
+                                            <Select.Option value="19">19</Select.Option>
+                                            <Select.Option value="20">20</Select.Option>
+                                            <Select.Option value="21">21</Select.Option>
+                                            <Select.Option value="22">22</Select.Option>
+                                            <Select.Option value="23">23</Select.Option>
+                                            <Select.Option value="24">24</Select.Option>
+                                            <Select.Option value="25">25</Select.Option>
+                                            <Select.Option value="26">26</Select.Option>
+                                            <Select.Option value="27">27</Select.Option>
+                                            <Select.Option value="28">28</Select.Option>
+                                            <Select.Option value="29">29</Select.Option>
+                                            <Select.Option value="30">30</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                </div>
                             </Form>
 
                             <div className="points-total">
