@@ -69,6 +69,12 @@ export default function (props) {
             dataIndex: "organization"
         },
         {
+            key: 'orgName',
+            question: "Organization Name",
+            answer: submissionInfo.orgName,
+            dataIndex: 'questions'
+        },
+        {
             key: 'orgAddress',
             question: "Organization's Physical Address",
             answer: orgAddress,

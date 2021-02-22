@@ -1,7 +1,54 @@
 import firebase from 'firebase/app';
 import { db, auth, rsf } from '@iso/lib/firebase/firebase';
 
-export const fixScholarshipObjects = (allScholarships) => {
+export const updateAllScholarships = (allScholarships, table) => {
+    console.group("updateAllScholarships")
+    console.log("updateAllScholarships allScholarships: ", allScholarships);
+    /**
+    if (allScholarships.length) {
+        const scholarshipsArray = allScholarships;
+
+        auth.onAuthStateChanged(function(user) {
+            if(user) {
+                let batch = db.batch();
+                const collection = table === "scholarshipsTestCollection" ? firestore.collection('scholarshipsTestCollection')
+                    : firestore.collection('scholarships');
+
+                collection.doc("2021").collection("applications").get()
+                    .then(function(querySnapshot) {
+                        let batch = firestore.batch();
+
+                        querySnapshot.forEach(function(doc) {
+                            if(doc.exists) {
+                                const docId = doc.id;
+                                const keyRef = collection.doc("2021").collection("applications").doc(docId);
+
+                                batch.update(keyRef, {
+                                    // what to update goes here
+                                });
+                            }
+                        });
+
+                        batch.commit()
+                            .then(() => {
+                                console.log("uploaded");
+                            })
+                            .catch((error) => {
+                                console.group("Firebase Upload Error");
+                                console.log("code: ", error.code);
+                                console.log("message: ", error.message);
+                                console.groupEnd();
+                            })
+                    })
+            }
+        });
+    }
+     */
+
+    console.groupEnd();
+};
+
+export const cloneScholarshipObjects = (allScholarships) => {
     console.group("fixScholarshipObjects")
     console.log("fixScholarshipObjects allScholarships: ", allScholarships);
 

@@ -46,13 +46,11 @@ function* initScholarships() {
 }
 
 function* getSingleScholarship(documentId) {
-    console.log("get single scholarship id:", documentId);
     try {
         let scholarship = null;
 
         if(documentId) {
             const getScholarshipRef = db.collection("scholarships").doc(currentYear).collection("applications").doc(documentId.payload);
-
             const fetchScholarship = yield call(() => {
                 return new Promise((resolve, reject) => {
                     getScholarshipRef.get()
@@ -100,9 +98,33 @@ function* notifySingleScholarshipFetched(scholarship) {
    }
 }
 
+function* updateGrades(payload) {
+    try {
+        const documentId = payload.documentId;
+        const grades = payload.grades;
+        const getScholarshipRef = db.collection("scholarships").doc(currentYear).collection("applications").doc(documentId);
+
+        let updateDB = {};
+        updateDB["".concat("admin", ".").concat("grades")] = grades;
+
+        const updateGrades = yield call(() => {
+           return new Promise((resolve, reject) => {
+               getScholarshipRef.update(updateDB)
+                   .then(() => {})
+                   .catch((error) => {
+                   console.log("error updating application in firebase:", error);
+               });
+               resolve(updateGrades);
+           })
+        });
+    } catch (error) {
+
+    }
+}
 export default function* rootSaga() {
     yield all([
         takeEvery(scholarshipsActions.FETCH_SCHOLARSHIPS_START, initScholarships),
         takeEvery(scholarshipsActions.FETCH_SINGLE_SCHOLARSHIP_START, getSingleScholarship),
+        takeEvery(scholarshipsActions.UPDATE_SCHOLARSHIP_GRADES, updateGrades),
     ]);
 }

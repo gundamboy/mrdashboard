@@ -28,8 +28,6 @@ export default function SingleScholarship() {
         dispatch(fetchSingleApplicationState(scholarshipId));
     }, [dispatch]);
 
-    console.log("currentScholarship", currentScholarship);
-
     if(currentScholarship) {
         return (
             <>
@@ -41,6 +39,7 @@ export default function SingleScholarship() {
                     loading={loading}
                     redirectPath={redirectPath}
                     activeTab={activeTab}
+                    userId={scholarshipId}
                 />
             </>
         )

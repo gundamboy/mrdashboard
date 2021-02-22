@@ -1,24 +1,27 @@
-import React, {useState, useCallback, useRef} from 'react';
+import React, {useState, useCallback, useRef, useEffect} from 'react';
 import LayoutWrapper from "@iso/components/utility/layoutWrapper";
 import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {Affix, Col, Form, Row, Select, Typography, Input, Radio} from "antd";
+import {Affix, Col, Form, Row, Select, Typography, Input, Radio, Button} from "antd";
 import Box from "@iso/components/utility/box";
 import {ScholarshipSection} from "./Scholarships.styles";
+import NoImage from '@iso/assets/images/no-image.png';
+import {CloseOutlined} from "@ant-design/icons";
+import {useDispatch} from "react-redux";
+import scholarshipActions from "../../redux/scholarships/actions";
 
 export default function (props) {
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const dispatch = useDispatch();
     const [currentApplicationStatus, setCurrentApplicationStatus] = useState(false)
     const [container, setContainer] = useState(null);
     const [top, setTop] = useState(10);
-    const [grades, setGrades] = useState(10);
+    const [totalPoints, setTotalPoints] = useState(null);
     const scholarshipAnswers = props.currentScholarship[props.scholarshipType];
-    const scholarshipAdmin = props.currentScholarship["admin"];
-    const scholarshipDates = props.currentScholarship["dates"][props.scholarshipType];
     const scholarshipProgress = props.currentScholarship["progress"][props.scholarshipType];
     const scholarshipSubmissions = props.currentScholarship["submissions"][props.scholarshipType];
     const scholarshipUrls = props.currentScholarship["urls"][props.scholarshipType];
-    const getAppQuestionsTitle = (props.scholarshipType === "higherEdu") ? "The Mid-Rivers Higher Education Scholarship Questions" : "The Mid-Rivers Dawson Community College/Miles Community College Award Questions";
+    const sponsorshipName = (props.scholarshipType === "higherEdu") ? "The Mid-Rivers Higher Education Scholarship" : "The Mid-Rivers Dawson Community College/Miles Community College Award";
+    const [grades, setGrades] = useState(props.currentScholarship["admin"].grades);
     const { Title } = Typography;
     let nextSchoolType = scholarshipAnswers.nextSchoolType;
     let workExperienceColumnSize = 24;
@@ -34,9 +37,51 @@ export default function (props) {
 
     const onGradingFinish = () => {}
 
-    const saveGrades = (value, key) => {
-        console.log("save grade value:", value);
-        console.log("save grade key:", key);
+    const updateGrades = useCallback(
+        (id, grades) => dispatch(scholarshipActions.updateScholarshipPoints(id, grades)),
+        [dispatch]
+    );
+
+    const savePoints = (value, key) => {
+        // console.log("setGrades key: ", key);
+        setGrades({
+           ...grades,
+           points: {
+               ...grades.points,
+               [key]: parseInt(value)
+           }
+        });
+
+        updateGrades(props.userId,  {
+            ...grades,
+            points: {
+                ...grades.points,
+                [key]: parseInt(value)
+            }
+        })
+    }
+
+    const saveQuestions = (value, key) => {
+        // console.log("setGrades key: ", key);
+        setGrades({
+            ...grades,
+            [key]: parseInt(value)
+        });
+
+        updateGrades(props.userId,  {
+            ...grades,
+            [key]: value
+        })
+    }
+
+    const calculatePoints = (points) => {
+        let total = 0;
+
+        for(let point in points) {
+            total += points[point];
+        }
+
+        return total;
     }
 
     if(scholarshipAnswers.hasOwnProperty("nextSchoolType")) {
@@ -60,7 +105,7 @@ export default function (props) {
     return (
         <LayoutWrapper>
             <PageHeader>
-                Sponsorship for {scholarshipAnswers.name}
+                {sponsorshipName} for {scholarshipAnswers.name}
             </PageHeader>
             <Row gutter={[16,16]} style={{"width": "100%"}}>
                 <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 16}} lg={{span: 16}}>
@@ -72,7 +117,7 @@ export default function (props) {
                         <ScholarshipSection>
                             <div className="info-wrapper">
                                 <div className="profile-image-wrapper">
-                                    <img src={scholarshipUrls.profileImageUrl} alt={"profile image"}/>
+                                    <img src={scholarshipUrls.profileImageUrl ? scholarshipUrls.profileImageUrl : NoImage} alt={"profile image"}/>
                                 </div>
                                 <div className="userContent">
                                     <h2>{scholarshipAnswers.name}</h2>
@@ -339,13 +384,28 @@ export default function (props) {
                             <div className="essay-questions">
                                 <Row gutter={[16,16]} style={{"width": "100%"}}>
                                     <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 8}} lg={{span: 8}}>
-                                        <p><a href={scholarshipUrls.profileImageUrl} target="_blank">Profile Image</a></p>
+                                        <p>
+                                            {scholarshipUrls.profileImageUrl
+                                                ? <a href={scholarshipUrls.profileImageUrl} target="_blank">Profile Image</a>
+                                                : <span className={"no-document"}><CloseOutlined />No Profile Image</span>
+                                            }
+
+                                        </p>
                                     </Col>
                                     <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 8}} lg={{span: 8}}>
-                                        <p><a href={scholarshipUrls.transcriptsUrl} target="_blank">Transcripts</a></p>
+                                        <p>
+                                            {scholarshipUrls.transcriptsUrl
+                                                ? <a href={scholarshipUrls.transcriptsUrl} target="_blank">Transcripts</a>
+                                                : <span className={"no-document"}><CloseOutlined />No Transcripts</span>
+                                            }
+
+                                        </p>
                                     </Col>
                                     <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 8}} lg={{span: 8}}>
-                                        <p><a href={scholarshipUrls.referenceLetterUrl} target="_blank">Reference Letter</a></p>
+                                        {scholarshipUrls.referenceLetterUrl
+                                            ? <a href={scholarshipUrls.referenceLetterUrl} target="_blank">Reference Letter</a>
+                                            : <span className={"no-document"}><CloseOutlined />No Reference Letter</span>
+                                        }
                                     </Col>
                                 </Row>
                             </div>
@@ -360,14 +420,14 @@ export default function (props) {
                                 <div className="general">
                                     <h3>General</h3>
                                     <Form.Item label="Member">
-                                        <Radio.Group onChange={(e) => {saveGrades(e.target.value, "isMember")}}>
+                                        <Radio.Group defaultValue={grades.isMember} onChange={(e) => {saveQuestions(e.target.value, "isMember")}}>
                                             <Radio.Button value={"yes"}>Yes</Radio.Button>
                                             <Radio.Button value={"no"}>No</Radio.Button>
                                         </Radio.Group>
                                     </Form.Item>
 
                                     <Form.Item label="Past Winner">
-                                        <Radio.Group onChange={(e) => {saveGrades(e.target.value, "pastWinner")}}>
+                                        <Radio.Group defaultValue={grades.pastWinner} onChange={(e) => {saveQuestions(e.target.value, "pastWinner")}}>
                                             <Radio.Button value={"yes"}>Yes</Radio.Button>
                                             <Radio.Button value={"no"}>No</Radio.Button>
                                         </Radio.Group>
@@ -377,7 +437,7 @@ export default function (props) {
                                 <div className="grades">
                                     <h3>Grades</h3>
                                     <Form.Item label="GPA">
-                                        <Select className={"gpa"} onChange={(v) => {saveGrades(v, "gpa")}}>
+                                        <Select className={"gpa"} defaultValue={parseInt(grades.points.gpa) !== 0 && grades.points.gpa} key={"gpa"} onChange={(v) => {savePoints(v, "gpa")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
@@ -386,16 +446,18 @@ export default function (props) {
                                             <Select.Option value="5">5</Select.Option>
                                         </Select>
                                     </Form.Item>
+
                                     <Form.Item label="ACT">
-                                        <Select className={"act"} onChange={(v) => {saveGrades(v, "act")}}>
+                                        <Select className={"act"} defaultValue={parseInt(grades.points.act) !== 0 && grades.points.act} key={"act"} onChange={(v) => {savePoints(v, "act")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
                                             <Select.Option value="3">3</Select.Option>
                                         </Select>
                                     </Form.Item>
+
                                     <Form.Item label="Rank">
-                                        <Select className={"rank"} onChange={(v) => {saveGrades(v, "rank")}}>
+                                        <Select className={"rank"} defaultValue={parseInt(grades.points.rank) !== 0 && grades.points.rank} key={"rank"} onChange={(v) => {savePoints(v, "rank")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
@@ -406,15 +468,16 @@ export default function (props) {
                                 <div className="activities-and-awards">
                                     <h3>Activities & Awards</h3>
                                     <Form.Item label="School Related">
-                                        <Select className={"school"} onChange={(v) => {saveGrades(v, "schoolRelated")}}>
+                                        <Select className={"school"} defaultValue={parseInt(grades.points.schoolRelated) !== 0 && grades.points.schoolRelated} onChange={(v) => {savePoints(v, "schoolRelated")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
                                             <Select.Option value="3">3</Select.Option>
                                         </Select>
                                     </Form.Item>
+
                                     <Form.Item label="Community">
-                                        <Select className={"community"} onChange={(v) => {saveGrades(v, "community")}}>
+                                        <Select className={"community"} defaultValue={parseInt(grades.points.community) !== 0 && grades.points.community} key={"community"} onChange={(v) => {savePoints(v, "community")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
@@ -422,8 +485,9 @@ export default function (props) {
                                             <Select.Option value="4">4</Select.Option>
                                         </Select>
                                     </Form.Item>
+
                                     <Form.Item label="Awards & Honors">
-                                        <Select className={"awards"} onChange={(v) => {saveGrades(v, "awards")}}>
+                                        <Select className={"awards"} defaultValue={parseInt(grades.points.awards) !== 0 && grades.points.awards} key={"awards"} onChange={(v) => {savePoints(v, "awards")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
@@ -435,7 +499,7 @@ export default function (props) {
                                 <div className="work-history">
                                     <h3>Work History</h3>
                                     <Form.Item label="Employment">
-                                        <Select className={"employment"} onChange={(v) => {saveGrades(v, "employment")}}>
+                                        <Select className={"employment"} defaultValue={parseInt(grades.points.employment) !== 0 && grades.points.employment} key={"employment"} onChange={(v) => {savePoints(v, "employment")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
@@ -464,43 +528,44 @@ export default function (props) {
                                 <div className="essays">
                                     <h3>Essays</h3>
                                     <Form.Item label="Content">
-                                        <Select className={"content"} onChange={(v) => {saveGrades(v, "essays")}}>
+                                        <Select className={"content"} defaultValue={parseInt(grades.points.essays) !== 0 && grades.points.essays} key={"essays"} onChange={(v) => {savePoints(v, "essays")}}>
                                             <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="0">1</Select.Option>
-                                            <Select.Option value="0">2</Select.Option>
-                                            <Select.Option value="0">3</Select.Option>
-                                            <Select.Option value="0">4</Select.Option>
-                                            <Select.Option value="0">5</Select.Option>
-                                            <Select.Option value="0">6</Select.Option>
-                                            <Select.Option value="0">7</Select.Option>
-                                            <Select.Option value="0">8</Select.Option>
-                                            <Select.Option value="0">9</Select.Option>
-                                            <Select.Option value="0">10</Select.Option>
-                                            <Select.Option value="0">11</Select.Option>
-                                            <Select.Option value="0">12</Select.Option>
-                                            <Select.Option value="0">13</Select.Option>
-                                            <Select.Option value="0">14</Select.Option>
-                                            <Select.Option value="0">15</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                            <Select.Option value="4">4</Select.Option>
+                                            <Select.Option value="5">5</Select.Option>
+                                            <Select.Option value="6">6</Select.Option>
+                                            <Select.Option value="7">7</Select.Option>
+                                            <Select.Option value="8">8</Select.Option>
+                                            <Select.Option value="9">9</Select.Option>
+                                            <Select.Option value="10">10</Select.Option>
+                                            <Select.Option value="11">11</Select.Option>
+                                            <Select.Option value="12">12</Select.Option>
+                                            <Select.Option value="13">13</Select.Option>
+                                            <Select.Option value="14">14</Select.Option>
+                                            <Select.Option value="15">15</Select.Option>
                                         </Select>
                                     </Form.Item>
+
                                     <Form.Item label="Grammar">
-                                        <Select className={"grammar"} onChange={(v) => {saveGrades(v, "grammar")}}>
+                                        <Select className={"grammar"} defaultValue={parseInt(grades.points.grammar) !== 0 && grades.points.grammar} key={"grammar"} onChange={(v) => {savePoints(v, "grammar")}}>
                                             <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="0">1</Select.Option>
-                                            <Select.Option value="0">2</Select.Option>
-                                            <Select.Option value="0">3</Select.Option>
-                                            <Select.Option value="0">4</Select.Option>
-                                            <Select.Option value="0">5</Select.Option>
-                                            <Select.Option value="0">6</Select.Option>
-                                            <Select.Option value="0">7</Select.Option>
-                                            <Select.Option value="0">8</Select.Option>
-                                            <Select.Option value="0">9</Select.Option>
-                                            <Select.Option value="0">10</Select.Option>
-                                            <Select.Option value="0">11</Select.Option>
-                                            <Select.Option value="0">12</Select.Option>
-                                            <Select.Option value="0">13</Select.Option>
-                                            <Select.Option value="0">14</Select.Option>
-                                            <Select.Option value="0">15</Select.Option>
+                                            <Select.Option value="1">1</Select.Option>
+                                            <Select.Option value="2">2</Select.Option>
+                                            <Select.Option value="3">3</Select.Option>
+                                            <Select.Option value="4">4</Select.Option>
+                                            <Select.Option value="5">5</Select.Option>
+                                            <Select.Option value="6">6</Select.Option>
+                                            <Select.Option value="7">7</Select.Option>
+                                            <Select.Option value="8">8</Select.Option>
+                                            <Select.Option value="9">9</Select.Option>
+                                            <Select.Option value="10">10</Select.Option>
+                                            <Select.Option value="11">11</Select.Option>
+                                            <Select.Option value="12">12</Select.Option>
+                                            <Select.Option value="13">13</Select.Option>
+                                            <Select.Option value="14">14</Select.Option>
+                                            <Select.Option value="15">15</Select.Option>
                                         </Select>
                                     </Form.Item>
                                 </div>
@@ -508,7 +573,7 @@ export default function (props) {
                                 <div className="area">
                                     <h3>Area</h3>
                                     <Form.Item label="Return to Area">
-                                        <Select className={"content"} onChange={(v) => {saveGrades(v, "returnToArea")}}>
+                                        <Select className={"content"} key={"area"} defaultValue={parseInt(grades.points.area) !== 0 && grades.points.area} onChange={(v) => {savePoints(v, "returnToArea")}}>
                                             <Select.Option value="0">0</Select.Option>
                                             <Select.Option value="1">1</Select.Option>
                                             <Select.Option value="2">2</Select.Option>
@@ -546,7 +611,11 @@ export default function (props) {
                             </Form>
 
                             <div className="points-total">
-                                <p>xxx points</p>
+                                <h3>{calculatePoints(grades.points)} points</h3>
+                            </div>
+
+                            <div className="save">
+                                <Button type="primary">Save</Button>
                             </div>
                         </ScholarshipSection>
                     </Box>

@@ -2,11 +2,9 @@ import actions from "./actions";
 
 const initState = {
     sponsorships: {},
-    activeTab: "pendingDcc",
+    activeScholarshipsTab: "pendingDcc",
     loading: false,
     grades: {
-        isMember: "",
-        pastWinner: "",
         gpa: 0,
         act: 0,
         rank: 0,
@@ -16,17 +14,16 @@ const initState = {
         employment: 0,
         essays: 0,
         grammar: 0,
-        returnToArea: 0,
-        total: 0
+        returnToArea: 0
     },
 };
 
 export default function reducer(state = initState, { type, payload, users }) {
     switch (type) {
-        case actions.ACTIVE_TAB:
+        case actions.ACTIVE_SCHOLARSHIPS_TAB:
             return {
                 ...state,
-                activeTab: payload.activeTab
+                activeScholarshipsTab: payload.activeScholarshipsTab
             };
         case actions.FETCH_SCHOLARSHIPS_SUCCESS:
             return {
@@ -54,6 +51,11 @@ export default function reducer(state = initState, { type, payload, users }) {
                 ...state,
                 loading: false,
                 error: true,
+            }
+        case actions.UPDATE_SCHOLARSHIP_GRADES_SUCCESS:
+            return {
+                ...state,
+                grades: payload
             }
         default:
             return state

@@ -95,6 +95,13 @@ export const ScholarshipSection = styled.div`
         border-bottom: 1px solid rgba(0, 0, 0, 0.25);
     }
     
+    .no-document {
+        .anticon {
+            color: red;
+            padding-right: 5px;
+        }
+    }
+    
     form {
         .ant-form-item {
             margin-bottom: 2rem;}

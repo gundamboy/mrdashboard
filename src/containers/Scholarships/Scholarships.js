@@ -17,13 +17,14 @@ import {AdvancedOptions, AdvancedOptionsWrapper} from "./Scholarships.styles";
 import scholarshipsActions from "../../redux/scholarships/actions";
 import {formattedDate} from "../../helpers/shared";
 import {ExportScholarships} from "../../helpers/exportScholarships";
+import {cloneScholarshipObjects} from "../../helpers/cloneScholarshipsToTestCollection"
 
 const {
     fetchScholarshipsStart
 } = scholarshipsActions;
 
 export default function Scholarships() {
-    const {scholarships, loading, activeTab, users} = useSelector(
+    const {scholarships, loading, activeScholarshipsTab, users} = useSelector(
         state => state.Scholarships);
     const [showOptionsClass, setShowOptionsClass] = useState();
     const [searchText, setSearchText] = useState();
@@ -34,6 +35,7 @@ export default function Scholarships() {
     const target = useRef(null);
     const searchInput = useRef(null);
     let Component = TableViews.SortView;
+
 
     // this is like componentDidMount but its for a function component and not a class
     useEffect(() => {
@@ -123,6 +125,7 @@ export default function Scholarships() {
     };
 
     if(scholarships) {
+
         let pendingDccScholarships = [];
         let pendingEduScholarships = [];
         let completedDccScholarships = [];
@@ -417,7 +420,7 @@ export default function Scholarships() {
                         </div>
                     </AdvancedOptionsWrapper>
 
-                    <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeTab}>
+                    <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeScholarshipsTab}>
                         {scholarshipTabs.map(tab => {
                             if(tab.value === 'pendingDcc') {
                                 if(pendingDccScholarships.length) {

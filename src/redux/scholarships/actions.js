@@ -1,5 +1,6 @@
 const actions = {
     ACTIVE_TAB: 'ACTIVE_TAB',
+    ACTIVE_SCHOLARSHIPS_TAB: 'ACTIVE_SCHOLARSHIPS_TAB',
 
     FETCH_SCHOLARSHIPS_START: 'FETCH_SCHOLARSHIPS_START',
     FETCH_SCHOLARSHIPS_SUCCESS: 'FETCH_SCHOLARSHIPS_SUCCESS',
@@ -13,8 +14,11 @@ const actions = {
     UPDATE_SCHOLARSHIP: "UPDATE_SCHOLARSHIP",
     UPDATE_SCHOLARSHIP_SUCCESS: "UPDATE_SCHOLARSHIP_SUCCESS",
 
+    UPDATE_SCHOLARSHIP_GRADES: "UPDATE_SCHOLARSHIP_GRADES",
+    UPDATE_SCHOLARSHIP_GRADES_SUCCESS: "UPDATE_SCHOLARSHIP_GRADES_SUCCESS",
+
     setActiveTab: currentTab => ({
-        type: actions.ACTIVE_TAB,
+        type: actions.ACTIVE_SCHOLARSHIPS_TAB,
         payload: currentTab
     }),
     fetchScholarshipsStart: () => {
@@ -32,6 +36,12 @@ const actions = {
     fetchSingleScholarship: scholarship => ({
         type: actions.FETCH_SINGLE_SCHOLARSHIP_SUCCESS,
         payload: scholarship
+    }),
+
+    updateScholarshipPoints: (documentId, grades) => ({
+        type: actions.UPDATE_SCHOLARSHIP_GRADES,
+        grades: grades,
+        documentId: documentId
     }),
 }
 
