@@ -24,7 +24,7 @@ const {
 } = scholarshipsActions;
 
 export default function Scholarships() {
-    const {scholarships, loading, activeScholarshipsTab, users} = useSelector(
+    const {scholarships, loading, activeScholarshipsTab, scholarshipDeleted} = useSelector(
         state => state.Scholarships);
     const [showOptionsClass, setShowOptionsClass] = useState();
     const [searchText, setSearchText] = useState();
@@ -35,7 +35,6 @@ export default function Scholarships() {
     const target = useRef(null);
     const searchInput = useRef(null);
     let Component = TableViews.SortView;
-
 
     // this is like componentDidMount but its for a function component and not a class
     useEffect(() => {
@@ -256,16 +255,14 @@ export default function Scholarships() {
 
                 const dccApp = scholarship.dcc;
                 const eduApp = scholarship.higherEdu;
-                const admin = scholarship.admin.approvalStatus;
-                const adminDcc = admin.dcc;
-                const adminEdu = admin.higherEdu;
+                const approvalStatus = scholarship.admin.approvalStatus;
                 const firebaseDates = scholarship.dates;
                 const dccStartDate = firebaseDates.dcc.started !== "" ? formattedDate(firebaseDates.dcc.started.toDate()) : "";
                 const eduStartDate = firebaseDates.higherEdu.started !== "" ? formattedDate(firebaseDates.higherEdu.started.toDate()) : "";
                 const dccFinishedDate = firebaseDates.dcc.finished !== "" ? formattedDate(firebaseDates.dcc.finished.toDate()) : "";
                 const eduFinishedDate = firebaseDates.higherEdu.finished !== "" ? formattedDate(firebaseDates.higherEdu.finished.toDate()) : "";
                 // pending dcc
-                if (!firebaseDates.dcc.finished && firebaseDates.dcc.started) {
+                if (!firebaseDates.dcc.finished && firebaseDates.dcc.started && approvalStatus.dcc === "pending") {
                     pendingDccScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,
@@ -292,7 +289,7 @@ export default function Scholarships() {
                     });
                 }
                 // pending edu
-                if (!firebaseDates.higherEdu.finished && firebaseDates.higherEdu.started) {
+                if (!firebaseDates.higherEdu.finished && firebaseDates.higherEdu.started && approvalStatus.higherEdu === "pending") {
                     pendingEduScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,
@@ -319,7 +316,7 @@ export default function Scholarships() {
                     });
                 }
                 // approved
-                if (firebaseDates.dcc.finished && adminDcc.approvalStatus === "approved") {
+                if (approvalStatus.dcc === "approved") {
                     approvedScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,
@@ -333,7 +330,7 @@ export default function Scholarships() {
                     });
                 }
                 // approved
-                if (firebaseDates.higherEdu.finished && adminEdu.approvalStatus === "approved") {
+                if (approvalStatus.higherEdu === "approved") {
                     approvedScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,
@@ -347,7 +344,7 @@ export default function Scholarships() {
                     });
                 }
                 // denied
-                if (firebaseDates.dcc.finished && adminDcc.approvalStatus === "denied") {
+                if (approvalStatus.dcc === "denied") {
                     deniedScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,
@@ -361,7 +358,7 @@ export default function Scholarships() {
                     });
                 }
                 // denied
-                if (firebaseDates.higherEdu.finished && adminEdu.approvalStatus === "denied") {
+                if (approvalStatus.higherEdu === "denied") {
                     deniedScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,

@@ -1,46 +1,94 @@
 import React, {useState, useCallback, useRef, useEffect} from 'react';
 import LayoutWrapper from "@iso/components/utility/layoutWrapper";
-import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {Affix, Col, Form, Row, Select, Typography, Input, Radio, Button} from "antd";
+import {Affix, Col, Form, Row, Select, Typography, Input, Radio, Button, Space, Checkbox} from "antd";
 import Box from "@iso/components/utility/box";
-import {ScholarshipSection} from "./Scholarships.styles";
+import {EditorControls, EditorWrapper, ScholarshipSection, ScholarshipStatusHeader} from "./Scholarships.styles";
 import NoImage from '@iso/assets/images/no-image.png';
 import {CloseOutlined} from "@ant-design/icons";
 import {useDispatch} from "react-redux";
 import scholarshipActions from "../../redux/scholarships/actions";
+import {Editor, EditorState, RichUtils, ContentState, convertFromHTML, convertToRaw} from 'draft-js';
+import 'draft-js/dist/Draft.css';
+import ReactDomServer from "react-dom/server";
 
 export default function (props) {
     const dispatch = useDispatch();
-    const [currentApplicationStatus, setCurrentApplicationStatus] = useState(false)
+    const editor = useRef(null);
+    const [editorState, setEditorState] = useState(null);
+    const [showPreview, setShowPreview] = useState(false);
+    const [emailSending, setEmailSending] = useState(false);
+    const [enableScholarshipDelete, setEnableScholarshipDelete] = useState(false);
     const [container, setContainer] = useState(null);
-    const [top, setTop] = useState(10);
-    const [totalPoints, setTotalPoints] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const scholarshipAnswers = props.currentScholarship[props.scholarshipType];
-    const scholarshipProgress = props.currentScholarship["progress"][props.scholarshipType];
-    const scholarshipSubmissions = props.currentScholarship["submissions"][props.scholarshipType];
+    const admin = props.currentScholarship.admin;
     const scholarshipUrls = props.currentScholarship["urls"][props.scholarshipType];
     const sponsorshipName = (props.scholarshipType === "higherEdu") ? "The Mid-Rivers Higher Education Scholarship" : "The Mid-Rivers Dawson Community College/Miles Community College Award";
+    const [approvalStatus, setApprovalStatus] = useState(props.currentScholarship.admin.approvalStatus[props.scholarshipType]);
+    const applicantNotified = admin.applicantNotified[props.scholarshipType];
     const [grades, setGrades] = useState(props.currentScholarship["admin"].grades);
     const { Title } = Typography;
+    const { TextArea } = Input;
     let nextSchoolType = scholarshipAnswers.nextSchoolType;
     let workExperienceColumnSize = 24;
 
+    console.log("props", props);
+
+    if(admin.applicantNotified[props.scholarshipType]) {
+        if(emailSending === true) {
+            setShowPreview(false);
+            setEmailSending(false);
+        }
+    }
+
     const formLayout = {
         labelCol: {
-            span: 10,
+            span: 8,
         },
         wrapperCol: {
-            span: 14,
+            span: 10,
         },
     };
 
-    const onGradingFinish = () => {}
+    const onFormsFinish = () => {}
+
 
     const updateGrades = useCallback(
         (id, grades) => dispatch(scholarshipActions.updateScholarshipPoints(id, grades)),
         [dispatch]
     );
+
+    const updateNotes = useCallback(
+        (id, notes) => dispatch(scholarshipActions.updateScholarshipNotes(id, notes.target.value)),
+        [dispatch]
+    );
+
+    const saveApprovalStatus = useCallback(
+        (id, appType, status) => dispatch(scholarshipActions.updateScholarshipApproval(id, appType, status)),
+        [dispatch]
+    );
+
+    const sendApplicationEmail = useCallback(
+        (userEmail, emailTextArray, userId, name, scholarshipType, status) => dispatch(scholarshipActions.sendScholarshipEmail(userEmail, emailTextArray, userId, name, scholarshipType, status)),
+        [dispatch]
+    );
+
+    const removeScholarship = useCallback(
+        (documentId) => dispatch(scholarshipActions.deleteScholarship(documentId)),
+        [dispatch]
+    );
+
+    const handleDeleteScholarship = () => {
+        setIsDeleting(true);
+        removeScholarship(props.userId)
+    }
+
+    const onApprovalStatusChange = (status) => {
+        setApprovalStatus(status);
+
+        saveApprovalStatus(props.userId, props.scholarshipType, status);
+    }
 
     const savePoints = (value, key) => {
         // console.log("setGrades key: ", key);
@@ -84,6 +132,133 @@ export default function (props) {
         return total;
     }
 
+    const scholarshipEmailText = () => {
+        if(approvalStatus === "approved") {
+            if(props.scholarshipType === 'higherEdu') {
+                // approved higherEdu
+                return (
+                    <>
+                        <p>Dear {scholarshipAnswers.name},</p>
+                        <p>Congratulations! You are the recipient of one of twenty-five (25) $1,000 Mid-Rivers Higher Education Scholarships for 2021! Applications were extremely competitive this year, so you should be commended on your high-scoring submission.</p>
+                        <p>A $1,000 check will be forwarded to the admissions office at the college or university you will be attending during the fall of 2021. This check will be applicable for academic expenses during the 2021-2021 academic school year.</p>
+                        <p>Please accept your award clicking the link below and completing the acceptance form.</p>
+                        <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/rrtdyvy0h9tm0t}"}    {"{LINK-TEXT: Application Acceptance Form}"}</p>
+                        <p>If you have any questions, please call <a href='tel:6873336'>(406) 687-3336</a>. Mid-Rivers is hopeful that this scholarship will contribute to your future success.</p>
+                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}mrcom@midrivers.coop</p>
+                    </>
+                )
+            } else {
+                // approved dcc
+                return (
+                    <>
+                        <p>Dear {scholarshipAnswers.name},</p>
+                        <p>Congratulations! You are the recipient of one of six (6) $1,500 Mid-Rivers Dawson Community College/Miles Community College Scholarships for 2021! Applications were extremely competitive this year, so you should be commended on your high-scoring submission.</p>
+                        <p>A $1,500 check will be forwarded to the admissions office at the college or university you will be attending during the fall of 2021. This check will be applicable for academic expenses during the 2021-2021 academic school year.</p>
+                        <p>Please accept your award clicking the link below and completing the acceptance form.</p>
+                        <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/rrtdyvy0h9tm0t}"}    {"%%LINK-TEXT: Application Acceptance Form"}</p>
+                        <p>If you have any questions, please call <a href='tel:6873336'>(406) 687-3336</a>. Mid-Rivers is hopeful that this scholarship will contribute to your future success.</p>
+                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}mrcom@midrivers.coop</p>
+                    </>
+                )
+            }
+        } else {
+            // denied
+            return (
+                <>
+                    <p>Dear {scholarshipAnswers.name},</p>
+                    <p>Thank you for applying for one of the 2021 Mid-Rivers Competitive Scholarships. Unfortunately, you were not selected as one of this year's competitive scholarship recipients; however, we would like to encourage you to attend the Mid-Rivers Telephone Cooperative, Inc. Annual Meeting for an opportunity to try for another scholarship.</p>
+                    <p>Mid-Rivers will award fourteen (14) additional $500 scholarships to area students through a drawing at the Cooperative's Annual Meeting.The meeting date has not been set yet due to Coronavirus concerns, but notice will be sent to all members when the date and location is set.</p>
+                    <p>To qualify for the scholarship drawing, the student must:</p>
+                    <p>
+                        1) Attend the Annual Meeting with a parent or guardian who is a Cooperative Member with active local telephone or Internet service from Mid-Rivers.{"<br>"}<br />
+                        2) Be enrolled to attend a higher education institution in the fall of 2021.{"<br>"}<br />
+                        3) Provide PROOF of full-time enrollment at the Annual Meeting.{"<br>"}<br />
+                        4) Sign up at the Scholarship Registration table at the Annual Meeting.{"<br>"}<br />
+                        5) Participate in simple interactive tasks that will be assigned at the Annual Meeting.{"<br>"}<br />
+                        5) Be present during the Business Meeting when the drawing takes place.
+                    </p>
+                    <p>The fourteen scholarship recipients will be drawn at random from the list of eligible students attending the meeting. Interested students may contact Mid-Rivers at <a href='tel:18004522288'>1-800-452-2288</a> for more information.</p>
+                    <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}mrcom@midrivers.coop</p>
+                </>
+            )
+        }
+    }
+
+    // draftjs handler for setting key handlers
+    const handleKeyCommand = useCallback((command, editorState) => {
+        const newState = RichUtils.handleKeyCommand(editorState, command)
+        if (newState) {
+            setEditorState(newState)
+            return "handled"
+        }
+
+        return "not-handled"
+    });
+
+    // creates the draftjs editor when preview is clicked
+    const createEditor = (emailBody) => {
+        const blocksFromHTML = convertFromHTML(ReactDomServer.renderToString(emailBody));
+        const initialContent = ContentState.createFromBlockArray(
+            blocksFromHTML.contentBlocks,
+            blocksFromHTML.entityMap,
+        );
+
+        setEditorState(EditorState.createWithContent(initialContent));
+        setShowPreview(true);
+    };
+
+    // Preview the email being sent
+    const previewEmail = (e) => {
+        e.preventDefault();
+
+        if (editorState) {
+            setShowPreview(true);
+        } else {
+            // get email text/body and set it in createEditor
+            showEmailText();
+        }
+    };
+
+    // resets the email text to the default
+    const showEmailText = () => {
+        const emailBody = scholarshipEmailText();
+        createEditor(emailBody);
+    };
+
+    // closes the email preview box
+    const cancelEmailPreview = () => {
+        setShowPreview(null);
+    };
+
+    // gets the editor contents and triggers the sendApplication function
+    const emailApplicant = () => {
+        const contentState = editorState.getCurrentContent();
+        const blocksArray = contentState.getBlocksAsArray();
+        let emailTextArray = [];
+
+        setEmailSending(true);
+
+        for(let idx in blocksArray) {
+            let contentBlock = blocksArray[idx];
+            emailTextArray.push(contentBlock.getText());
+        }
+
+        emailTextArray.forEach((line, idx) => {
+            if(line.indexOf("{WOOFOO-LINK:") !== -1) {
+                const woofooArray = line.split("}");
+                const woofooLink = woofooArray[0].trim().substring(1).split("WOOFOO-LINK:").filter(function(el) { return el; });
+                const woofooText = woofooArray[1].trim().substring(1).split("LINK-TEXT:").filter(function(el) { return el; });
+                emailTextArray[idx] = `<a href="${woofooLink[0].trim()}">${woofooText[0].trim()}</a>`;
+            }
+        })
+
+        sendApplicationEmail(scholarshipAnswers.email, emailTextArray, props.userId, scholarshipAnswers.name, props.scholarshipType, approvalStatus);
+    };
+
+    const toggleDeleteScholarship = () => {
+        setEnableScholarshipDelete(!enableScholarshipDelete);
+    };
+
     if(scholarshipAnswers.hasOwnProperty("nextSchoolType")) {
         if(scholarshipAnswers.nextSchoolType === "fourYearCollege") {
             nextSchoolType = "Four Year College";
@@ -104,9 +279,86 @@ export default function (props) {
 
     return (
         <LayoutWrapper>
-            <PageHeader>
-                {sponsorshipName} for {scholarshipAnswers.name}
-            </PageHeader>
+            <ScholarshipStatusHeader>
+                <PageHeader>
+                    {sponsorshipName} for {scholarshipAnswers.name}
+                </PageHeader>
+                <h1 className="current-scholarship-status">Current Status: <span className={`status ${approvalStatus}`}>{approvalStatus}</span></h1>
+            </ScholarshipStatusHeader>
+            {showPreview &&
+            <Row gutter={[16, 16]} style={{"width": "100%"}}>
+
+                <div className={"editor-wrapper"}>
+                    <Box style={{padding: 20, height: 'auto'}}>
+                        <ScholarshipSection>
+                            <Title level={3} className={"application-section-title"}>Email Preview</Title>
+                        </ScholarshipSection>
+
+                        <EditorWrapper>
+                            <ScholarshipSection>
+                                <div className="editor-buttons">
+                                    <div className="buttons instructions">
+                                        {!props.emailSent
+                                            ?
+                                            <p>You can edit the text below. Click 'Send Email' to send the applicant their approval/denial email.</p>
+                                            :
+                                            <p>The applicant has already been emailed. You can edit the text below and/or
+                                                resend the email or cancel.</p>
+                                        }
+                                    </div>
+                                </div>
+                            </ScholarshipSection>
+
+                            <ScholarshipSection>
+                                <Editor
+                                    editorState={editorState}
+                                    onChange={setEditorState}
+                                    handleKeyCommand={handleKeyCommand}
+                                    spellCheck={true}
+                                    ref={editor}
+                                />
+                            </ScholarshipSection>
+                        </EditorWrapper>
+
+                        <ScholarshipSection>
+                            <EditorControls>
+                                <div className="send-email-button-wrapper">
+                                    <Button className={"btn cancel-email-btn"}
+                                            type="third" size={"large"}
+                                            onClick={(e) => {
+                                                showEmailText()
+                                            }}
+                                            disabled={emailSending}
+                                    >Reset to default</Button>
+
+                                    <div className="right">
+                                        <Space>
+                                            <Button className={"btn cancel-email-btn"}
+                                                    type="secondary" size={"large"}
+                                                    onClick={(e) => {
+                                                        cancelEmailPreview()
+                                                    }}
+                                                    disabled={emailSending}
+                                            >Cancel</Button>
+
+                                            <Button className={"btn send-email-to-email-applicant"}
+                                                    loading={emailSending}
+                                                    type="primary" size={"large"}
+                                                    disabled={approvalStatus === 'pending'}
+                                                    onClick={(e) => {
+                                                        emailApplicant()
+                                                    }}
+                                            >{!props.emailSent ? "Send Email" : "Resend Email"}</Button>
+                                        </Space>
+                                    </div>
+                                </div>
+                            </EditorControls>
+                        </ScholarshipSection>
+                    </Box>
+                </div>
+            </Row>
+            }
+
             <Row gutter={[16,16]} style={{"width": "100%"}}>
                 <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 16}} lg={{span: 16}}>
                     <Box style={{ padding: 20, height: 'auto' }}>
@@ -415,212 +667,289 @@ export default function (props) {
                 <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 8}} lg={{span: 8}}  ref={setContainer}>
                     <Box style={{ padding: 20, height: 'auto' }}>
                         <ScholarshipSection>
+                            <Title level={3} className={"application-section-title"}>Admin</Title>
+                            <div className="delete-app-wrapper">
+                                <div className="delete-confirm-box-wrapper">
+                                    <Checkbox
+                                        onChange={toggleDeleteScholarship}
+                                        >
+                                        Enable Delete
+                                    </Checkbox>
+                                </div>
+                                <Button className={"btn preview-email-applicant"}
+                                        type="default" size={"large"}
+                                        disabled={!enableScholarshipDelete}
+                                        loading={isDeleting}
+                                        onClick={handleDeleteScholarship}
+                                >Delete Application</Button>
+                            </div>
+                        </ScholarshipSection>
+                    </Box>
+
+
+                    <Box style={{ padding: 20, height: 'auto' }}>
+                        <ScholarshipSection>
+                            <Title level={3} className={"application-section-title"}>Emails</Title>
+                            {!applicantNotified ?
+                                <Button className={"btn preview-email-applicant"}
+                                        type="default" size={"large"}
+                                        disabled={approvalStatus === 'pending'}
+                                        onClick={previewEmail}
+                                >Preview Email</Button>
+                                :
+                                <p className={"applicantNotified"}>This applicant has been notified and the application cannot be changed.</p>
+                            }
+                        </ScholarshipSection>
+                    </Box>
+
+                    <Box style={{ padding: 20, height: 'auto' }}>
+                        <ScholarshipSection>
                             <Title level={3} className={"application-section-title"}>Grading</Title>
-                            <Form {...formLayout} layout="vertical" name="grading-form" onFinish={onGradingFinish}>
-                                <div className="general">
-                                    <h3>General</h3>
-                                    <Form.Item label="Member">
-                                        <Radio.Group defaultValue={grades.isMember} onChange={(e) => {saveQuestions(e.target.value, "isMember")}}>
-                                            <Radio.Button value={"yes"}>Yes</Radio.Button>
-                                            <Radio.Button value={"no"}>No</Radio.Button>
-                                        </Radio.Group>
-                                    </Form.Item>
+                            <Form {...formLayout}  name="grading-form" onFinish={onFormsFinish}>
+                                <div className="general grade-block">
+                                    <h3 className={"sub-title"}>General</h3>
+                                    <div className="items" >
+                                        <Form.Item label="Member">
+                                            <Radio.Group disabled={applicantNotified} buttonStyle={"solid"} defaultValue={grades.isMember} onChange={(e) => {saveQuestions(e.target.value, "isMember")}}>
+                                                <Radio.Button value={"yes"}>Yes</Radio.Button>
+                                                <Radio.Button value={"no"}>No</Radio.Button>
+                                            </Radio.Group>
+                                        </Form.Item>
 
-                                    <Form.Item label="Past Winner">
-                                        <Radio.Group defaultValue={grades.pastWinner} onChange={(e) => {saveQuestions(e.target.value, "pastWinner")}}>
-                                            <Radio.Button value={"yes"}>Yes</Radio.Button>
-                                            <Radio.Button value={"no"}>No</Radio.Button>
-                                        </Radio.Group>
-                                    </Form.Item>
+                                        <Form.Item label="Past Winner">
+                                            <Radio.Group disabled={applicantNotified} buttonStyle={"solid"} defaultValue={grades.pastWinner} onChange={(e) => {saveQuestions(e.target.value, "pastWinner")}}>
+                                                <Radio.Button value={"yes"}>Yes</Radio.Button>
+                                                <Radio.Button value={"no"}>No</Radio.Button>
+                                            </Radio.Group>
+                                        </Form.Item>
+                                    </div>
                                 </div>
 
-                                <div className="grades">
-                                    <h3>Grades</h3>
-                                    <Form.Item label="GPA">
-                                        <Select className={"gpa"} defaultValue={parseInt(grades.points.gpa) !== 0 && grades.points.gpa} key={"gpa"} onChange={(v) => {savePoints(v, "gpa")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                            <Select.Option value="4">4</Select.Option>
-                                            <Select.Option value="5">5</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                <div className="grades grade-block">
+                                    <h3 className={"sub-title"}>Grades</h3>
+                                    <div className="items">
+                                        <Form.Item label="GPA">
+                                            <Select disabled={applicantNotified} className={"gpa"} defaultValue={parseInt(grades.points.gpa) !== 0 && grades.points.gpa} key={"gpa"} onChange={(v) => {savePoints(v, "gpa")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                                <Select.Option value="4">4</Select.Option>
+                                                <Select.Option value="5">5</Select.Option>
+                                            </Select>
+                                        </Form.Item>
 
-                                    <Form.Item label="ACT">
-                                        <Select className={"act"} defaultValue={parseInt(grades.points.act) !== 0 && grades.points.act} key={"act"} onChange={(v) => {savePoints(v, "act")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                        <Form.Item label="ACT">
+                                            <Select disabled={applicantNotified} className={"act"} defaultValue={parseInt(grades.points.act) !== 0 && grades.points.act} key={"act"} onChange={(v) => {savePoints(v, "act")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                            </Select>
+                                        </Form.Item>
 
-                                    <Form.Item label="Rank">
-                                        <Select className={"rank"} defaultValue={parseInt(grades.points.rank) !== 0 && grades.points.rank} key={"rank"} onChange={(v) => {savePoints(v, "rank")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                        <Form.Item label="Rank">
+                                            <Select disabled={applicantNotified} className={"rank"} defaultValue={parseInt(grades.points.rank) !== 0 && grades.points.rank} key={"rank"} onChange={(v) => {savePoints(v, "rank")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                            </Select>
+                                        </Form.Item>
+                                    </div>
                                 </div>
 
-                                <div className="activities-and-awards">
-                                    <h3>Activities & Awards</h3>
-                                    <Form.Item label="School Related">
-                                        <Select className={"school"} defaultValue={parseInt(grades.points.schoolRelated) !== 0 && grades.points.schoolRelated} onChange={(v) => {savePoints(v, "schoolRelated")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                <div className="activities-and-awards grade-block">
+                                    <h3 className={"sub-title"}>Activities & Awards</h3>
+                                    <div className="items">
+                                        <Form.Item label="School Related">
+                                            <Select disabled={applicantNotified} className={"school"} defaultValue={parseInt(grades.points.schoolRelated) !== 0 && grades.points.schoolRelated} onChange={(v) => {savePoints(v, "schoolRelated")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                            </Select>
+                                        </Form.Item>
 
-                                    <Form.Item label="Community">
-                                        <Select className={"community"} defaultValue={parseInt(grades.points.community) !== 0 && grades.points.community} key={"community"} onChange={(v) => {savePoints(v, "community")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                            <Select.Option value="4">4</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                        <Form.Item label="Community">
+                                            <Select disabled={applicantNotified} className={"community"} defaultValue={parseInt(grades.points.community) !== 0 && grades.points.community} key={"community"} onChange={(v) => {savePoints(v, "community")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                                <Select.Option value="4">4</Select.Option>
+                                            </Select>
+                                        </Form.Item>
 
-                                    <Form.Item label="Awards & Honors">
-                                        <Select className={"awards"} defaultValue={parseInt(grades.points.awards) !== 0 && grades.points.awards} key={"awards"} onChange={(v) => {savePoints(v, "awards")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                        <Form.Item label="Awards & Honors">
+                                            <Select disabled={applicantNotified} className={"awards"} defaultValue={parseInt(grades.points.awards) !== 0 && grades.points.awards} key={"awards"} onChange={(v) => {savePoints(v, "awards")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                            </Select>
+                                        </Form.Item>
+                                    </div>
                                 </div>
 
-                                <div className="work-history">
-                                    <h3>Work History</h3>
-                                    <Form.Item label="Employment">
-                                        <Select className={"employment"} defaultValue={parseInt(grades.points.employment) !== 0 && grades.points.employment} key={"employment"} onChange={(v) => {savePoints(v, "employment")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                            <Select.Option value="4">4</Select.Option>
-                                            <Select.Option value="5">5</Select.Option>
-                                            <Select.Option value="6">6</Select.Option>
-                                            <Select.Option value="7">7</Select.Option>
-                                            <Select.Option value="8">8</Select.Option>
-                                            <Select.Option value="9">9</Select.Option>
-                                            <Select.Option value="10">10</Select.Option>
-                                            <Select.Option value="11">11</Select.Option>
-                                            <Select.Option value="12">12</Select.Option>
-                                            <Select.Option value="13">13</Select.Option>
-                                            <Select.Option value="14">14</Select.Option>
-                                            <Select.Option value="15">15</Select.Option>
-                                            <Select.Option value="16">16</Select.Option>
-                                            <Select.Option value="17">17</Select.Option>
-                                            <Select.Option value="18">18</Select.Option>
-                                            <Select.Option value="19">19</Select.Option>
-                                            <Select.Option value="20">20</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                <div className="work-history grade-block">
+                                    <h3 className={"sub-title"}>Work History</h3>
+                                    <div className="items">
+                                        <Form.Item label="Employment">
+                                            <Select disabled={applicantNotified} className={"employment"} defaultValue={parseInt(grades.points.employment) !== 0 && grades.points.employment} key={"employment"} onChange={(v) => {savePoints(v, "employment")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                                <Select.Option value="4">4</Select.Option>
+                                                <Select.Option value="5">5</Select.Option>
+                                                <Select.Option value="6">6</Select.Option>
+                                                <Select.Option value="7">7</Select.Option>
+                                                <Select.Option value="8">8</Select.Option>
+                                                <Select.Option value="9">9</Select.Option>
+                                                <Select.Option value="10">10</Select.Option>
+                                                <Select.Option value="11">11</Select.Option>
+                                                <Select.Option value="12">12</Select.Option>
+                                                <Select.Option value="13">13</Select.Option>
+                                                <Select.Option value="14">14</Select.Option>
+                                                <Select.Option value="15">15</Select.Option>
+                                                <Select.Option value="16">16</Select.Option>
+                                                <Select.Option value="17">17</Select.Option>
+                                                <Select.Option value="18">18</Select.Option>
+                                                <Select.Option value="19">19</Select.Option>
+                                                <Select.Option value="20">20</Select.Option>
+                                            </Select>
+                                        </Form.Item>
+                                    </div>
                                 </div>
 
-                                <div className="essays">
-                                    <h3>Essays</h3>
-                                    <Form.Item label="Content">
-                                        <Select className={"content"} defaultValue={parseInt(grades.points.essays) !== 0 && grades.points.essays} key={"essays"} onChange={(v) => {savePoints(v, "essays")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                            <Select.Option value="4">4</Select.Option>
-                                            <Select.Option value="5">5</Select.Option>
-                                            <Select.Option value="6">6</Select.Option>
-                                            <Select.Option value="7">7</Select.Option>
-                                            <Select.Option value="8">8</Select.Option>
-                                            <Select.Option value="9">9</Select.Option>
-                                            <Select.Option value="10">10</Select.Option>
-                                            <Select.Option value="11">11</Select.Option>
-                                            <Select.Option value="12">12</Select.Option>
-                                            <Select.Option value="13">13</Select.Option>
-                                            <Select.Option value="14">14</Select.Option>
-                                            <Select.Option value="15">15</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                <div className="essays grade-block">
+                                    <h3 className={"sub-title"}>Essays</h3>
+                                    <div className="items">
+                                        <Form.Item label="Content">
+                                            <Select disabled={applicantNotified} className={"content"} defaultValue={parseInt(grades.points.essays) !== 0 && grades.points.essays} key={"essays"} onChange={(v) => {savePoints(v, "essays")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                                <Select.Option value="4">4</Select.Option>
+                                                <Select.Option value="5">5</Select.Option>
+                                                <Select.Option value="6">6</Select.Option>
+                                                <Select.Option value="7">7</Select.Option>
+                                                <Select.Option value="8">8</Select.Option>
+                                                <Select.Option value="9">9</Select.Option>
+                                                <Select.Option value="10">10</Select.Option>
+                                                <Select.Option value="11">11</Select.Option>
+                                                <Select.Option value="12">12</Select.Option>
+                                                <Select.Option value="13">13</Select.Option>
+                                                <Select.Option value="14">14</Select.Option>
+                                                <Select.Option value="15">15</Select.Option>
+                                            </Select>
+                                        </Form.Item>
 
-                                    <Form.Item label="Grammar">
-                                        <Select className={"grammar"} defaultValue={parseInt(grades.points.grammar) !== 0 && grades.points.grammar} key={"grammar"} onChange={(v) => {savePoints(v, "grammar")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                            <Select.Option value="4">4</Select.Option>
-                                            <Select.Option value="5">5</Select.Option>
-                                            <Select.Option value="6">6</Select.Option>
-                                            <Select.Option value="7">7</Select.Option>
-                                            <Select.Option value="8">8</Select.Option>
-                                            <Select.Option value="9">9</Select.Option>
-                                            <Select.Option value="10">10</Select.Option>
-                                            <Select.Option value="11">11</Select.Option>
-                                            <Select.Option value="12">12</Select.Option>
-                                            <Select.Option value="13">13</Select.Option>
-                                            <Select.Option value="14">14</Select.Option>
-                                            <Select.Option value="15">15</Select.Option>
-                                        </Select>
-                                    </Form.Item>
-                                </div>
+                                        <Form.Item label="Grammar">
+                                            <Select disabled={applicantNotified} className={"grammar"} defaultValue={parseInt(grades.points.grammar) !== 0 && grades.points.grammar} key={"grammar"}
+                                                    onChange={(v) => {savePoints(v, "grammar")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                                <Select.Option value="4">4</Select.Option>
+                                                <Select.Option value="5">5</Select.Option>
+                                                <Select.Option value="6">6</Select.Option>
+                                                <Select.Option value="7">7</Select.Option>
+                                                <Select.Option value="8">8</Select.Option>
+                                                <Select.Option value="9">9</Select.Option>
+                                                <Select.Option value="10">10</Select.Option>
+                                                <Select.Option value="11">11</Select.Option>
+                                                <Select.Option value="12">12</Select.Option>
+                                                <Select.Option value="13">13</Select.Option>
+                                                <Select.Option value="14">14</Select.Option>
+                                                <Select.Option value="15">15</Select.Option>
+                                            </Select>
+                                        </Form.Item>
 
-                                <div className="area">
-                                    <h3>Area</h3>
-                                    <Form.Item label="Return to Area">
-                                        <Select className={"content"} key={"area"} defaultValue={parseInt(grades.points.area) !== 0 && grades.points.area} onChange={(v) => {savePoints(v, "returnToArea")}}>
-                                            <Select.Option value="0">0</Select.Option>
-                                            <Select.Option value="1">1</Select.Option>
-                                            <Select.Option value="2">2</Select.Option>
-                                            <Select.Option value="3">3</Select.Option>
-                                            <Select.Option value="4">4</Select.Option>
-                                            <Select.Option value="5">5</Select.Option>
-                                            <Select.Option value="6">6</Select.Option>
-                                            <Select.Option value="7">7</Select.Option>
-                                            <Select.Option value="8">8</Select.Option>
-                                            <Select.Option value="9">9</Select.Option>
-                                            <Select.Option value="10">10</Select.Option>
-                                            <Select.Option value="11">11</Select.Option>
-                                            <Select.Option value="12">12</Select.Option>
-                                            <Select.Option value="13">13</Select.Option>
-                                            <Select.Option value="14">14</Select.Option>
-                                            <Select.Option value="15">15</Select.Option>
-                                            <Select.Option value="16">16</Select.Option>
-                                            <Select.Option value="17">17</Select.Option>
-                                            <Select.Option value="18">18</Select.Option>
-                                            <Select.Option value="19">19</Select.Option>
-                                            <Select.Option value="20">20</Select.Option>
-                                            <Select.Option value="21">21</Select.Option>
-                                            <Select.Option value="22">22</Select.Option>
-                                            <Select.Option value="23">23</Select.Option>
-                                            <Select.Option value="24">24</Select.Option>
-                                            <Select.Option value="25">25</Select.Option>
-                                            <Select.Option value="26">26</Select.Option>
-                                            <Select.Option value="27">27</Select.Option>
-                                            <Select.Option value="28">28</Select.Option>
-                                            <Select.Option value="29">29</Select.Option>
-                                            <Select.Option value="30">30</Select.Option>
-                                        </Select>
-                                    </Form.Item>
+                                        <Form.Item label="Return to Area">
+                                            <Select disabled={applicantNotified} className={"content"} key={"area"} defaultValue={parseInt(grades.points.area) !== 0 && grades.points.area}
+                                                    onChange={(v) => {savePoints(v, "returnToArea")}}>
+                                                <Select.Option value="0">0</Select.Option>
+                                                <Select.Option value="1">1</Select.Option>
+                                                <Select.Option value="2">2</Select.Option>
+                                                <Select.Option value="3">3</Select.Option>
+                                                <Select.Option value="4">4</Select.Option>
+                                                <Select.Option value="5">5</Select.Option>
+                                                <Select.Option value="6">6</Select.Option>
+                                                <Select.Option value="7">7</Select.Option>
+                                                <Select.Option value="8">8</Select.Option>
+                                                <Select.Option value="9">9</Select.Option>
+                                                <Select.Option value="10">10</Select.Option>
+                                                <Select.Option value="11">11</Select.Option>
+                                                <Select.Option value="12">12</Select.Option>
+                                                <Select.Option value="13">13</Select.Option>
+                                                <Select.Option value="14">14</Select.Option>
+                                                <Select.Option value="15">15</Select.Option>
+                                                <Select.Option value="16">16</Select.Option>
+                                                <Select.Option value="17">17</Select.Option>
+                                                <Select.Option value="18">18</Select.Option>
+                                                <Select.Option value="19">19</Select.Option>
+                                                <Select.Option value="20">20</Select.Option>
+                                                <Select.Option value="21">21</Select.Option>
+                                                <Select.Option value="22">22</Select.Option>
+                                                <Select.Option value="23">23</Select.Option>
+                                                <Select.Option value="24">24</Select.Option>
+                                                <Select.Option value="25">25</Select.Option>
+                                                <Select.Option value="26">26</Select.Option>
+                                                <Select.Option value="27">27</Select.Option>
+                                                <Select.Option value="28">28</Select.Option>
+                                                <Select.Option value="29">29</Select.Option>
+                                                <Select.Option value="30">30</Select.Option>
+                                            </Select>
+                                        </Form.Item>
+                                    </div>
                                 </div>
                             </Form>
+
+                            <hr/>
 
                             <div className="points-total">
                                 <h3>{calculatePoints(grades.points)} points</h3>
                             </div>
-
-                            <div className="save">
-                                <Button type="primary">Save</Button>
-                            </div>
                         </ScholarshipSection>
                     </Box>
+
+                    <Box style={{ padding: 20, height: 'auto' }}>
+                        <ScholarshipSection>
+                            <Title level={3} className={"application-section-title"}>Notes</Title>
+                            <Form layout="vertical" name="notes-form" onFinish={onFormsFinish}>
+                                <Form.Item label="Notes">
+                                    <TextArea rows={4}
+                                              onKeyUp={(e) => {updateNotes(props.userId, e)}}
+                                              defaultValue={props.currentScholarship.admin.notes ? props.currentScholarship.admin.notes : ""}
+                                    />
+                                </Form.Item>
+                            </Form>
+                        </ScholarshipSection>
+                    </Box>
+
+                    <Box style={{ padding: 20, height: 'auto' }}>
+                        <ScholarshipSection>
+                            <Title level={3} className={"application-section-title"}>Approvals</Title>
+                            <Form layout="vertical" name="approvals-form" onFinish={onFormsFinish}>
+                                <Form.Item label="Approval Status">
+                                    <Select disabled={applicantNotified} className="approval-select" key={"approval"} defaultValue={approvalStatus}
+                                            onChange={(v) => onApprovalStatusChange(v)}>
+                                        <Select.Option value={"approved"}>Approved</Select.Option>
+                                        <Select.Option value={"denied"}>Denied</Select.Option>
+                                        <Select.Option value={"pending"}>Pending</Select.Option>
+                                    </Select>
+                                </Form.Item>
+                            </Form>
+                        </ScholarshipSection>
+                    </Box>
+
+
                 </Col>
             </Row>
+
         </LayoutWrapper>
     )
 }

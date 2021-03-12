@@ -1,3 +1,4 @@
+const isLocal = false;
 
 export const getCurrentYear = () => {
     const currentDate = new Date();
@@ -5,7 +6,6 @@ export const getCurrentYear = () => {
 }
 
 export const formattedDate = (date) => {
-
     const year = date.getFullYear();
     let month = (1 + date.getMonth()).toString();
     month = month.length > 1 ? month : '0' + month;
@@ -14,4 +14,23 @@ export const formattedDate = (date) => {
     day = day.length > 1 ? day : '0' + day;
 
     return month + '/' + day +'/' + year;
+}
+
+export const fixSponsorshipDate = (date) => {
+    if(typeof date === "string") {
+        const dateArray = date.split("-");
+        return dateArray[1] + "/" + dateArray[2] + "/" + dateArray[0];
+    } else if(typeof  date === "object") {
+        return formattedDate(date.toDate());
+    } else {
+        return "";
+    }
+}
+
+export const SCHOLARSHIP_API_PATH = () => {
+    return isLocal ? "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/scholarship-emails.php" : "/php/scholarship-emails.php";
+}
+
+export const SPONSORSHIP_API_PATH = () => {
+    return isLocal ? "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php" : "/php/sponsorship-emails.php";
 }

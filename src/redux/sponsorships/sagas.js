@@ -5,6 +5,7 @@ import axios from 'axios';
 import * as firebase from "firebase";
 import actions from "@iso/redux/auth/actions";
 import {makeId} from "@iso/lib/helpers/utility";
+import {SPONSORSHIP_API_PATH} from "../../helpers/shared";
 
 // gets all the sponsorships for the dashboard tables
 function* initSponsorshipApplications() {
@@ -164,8 +165,7 @@ function* updateApplication(application) {
 
 // posts data to the php to send an applicant an email
 function email(application, email) {
-    //const API_PATH = "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php";
-    const API_PATH = "/php/sponsorship-emails.php";
+    const API_PATH = SPONSORSHIP_API_PATH();
 
     return axios({
         method: 'post',
@@ -173,7 +173,7 @@ function email(application, email) {
         headers: { 'content-type': 'application/json' },
         data: {
             application: application,
-            emailArray: email
+            emailArray: email,
         }
     }).catch((error) => {
         console.log("axios error:", error);

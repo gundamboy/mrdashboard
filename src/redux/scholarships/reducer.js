@@ -16,6 +16,7 @@ const initState = {
         grammar: 0,
         returnToArea: 0
     },
+    scholarshipDeleted: false
 };
 
 export default function reducer(state = initState, { type, payload, users }) {
@@ -23,7 +24,7 @@ export default function reducer(state = initState, { type, payload, users }) {
         case actions.ACTIVE_SCHOLARSHIPS_TAB:
             return {
                 ...state,
-                activeScholarshipsTab: payload.activeScholarshipsTab
+                activeScholarshipsTab: payload
             };
         case actions.FETCH_SCHOLARSHIPS_SUCCESS:
             return {
@@ -31,7 +32,8 @@ export default function reducer(state = initState, { type, payload, users }) {
                 scholarships: payload,
                 loading: false,
                 error: false,
-                users: users
+                users: users,
+                scholarshipDeleted: false
             }
         case actions.FETCH_SCHOLARSHIPS_FAILURE:
             return {
@@ -56,6 +58,22 @@ export default function reducer(state = initState, { type, payload, users }) {
             return {
                 ...state,
                 grades: payload
+            }
+        case actions.UPDATE_SCHOLARSHIP_NOTES_FAILURE:
+            return {
+                ...state,
+                notesError: payload
+            }
+        case actions.UPDATE_SCHOLARSHIP_APPROVAL_SUCCESS:
+            return {
+                ...state,
+                approval: payload
+            }
+        case actions.DELETE_SCHOLARSHIP_SUCCESS:
+            console.log("test");
+            return {
+                ...state,
+                scholarshipDeleted: true
             }
         default:
             return state

@@ -14,19 +14,22 @@ const {
 } = scholarshipsActions;
 
 export default function SingleScholarship() {
-    const {currentScholarship, loading, activeTab} = useSelector(state => state.Scholarships);
+    const {currentScholarship, loading, activeTab, notesError, scholarshipDeleted} = useSelector(state => state.Scholarships);
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const urlArray = match.url.split("/");
     const scholarshipType  = urlArray.slice(-1).pop();
     const scholarshipId  = urlArray[urlArray.length-2];
-
     const redirectPath = match.url.replace(scholarshipId + "/" + scholarshipType, '');
 
     // this is like componentDidMount but its for a function component and not a class
     useEffect(() => {
         dispatch(fetchSingleApplicationState(scholarshipId));
     }, [dispatch]);
+
+    if(scholarshipDeleted) {
+        return <Redirect to="/dashboard/scholarships" />
+    }
 
     if(currentScholarship) {
         return (
@@ -40,6 +43,8 @@ export default function SingleScholarship() {
                     redirectPath={redirectPath}
                     activeTab={activeTab}
                     userId={scholarshipId}
+                    notesError={notesError}
+                    scholarshipDeleted={scholarshipDeleted}
                 />
             </>
         )
@@ -53,5 +58,6 @@ export default function SingleScholarship() {
             </LayoutContentWrapper>
         )
     }
+
 
 }

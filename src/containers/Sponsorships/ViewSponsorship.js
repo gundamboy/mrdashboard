@@ -16,6 +16,7 @@ import {Editor, EditorState, RichUtils, ContentState, convertFromHTML} from 'dra
 import 'draft-js/dist/Draft.css';
 import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
+import {fixSponsorshipDate} from "../../helpers/shared";
 
 
 export default function (props) {
@@ -177,9 +178,15 @@ export default function (props) {
 
         {
             key: submissionInfo.sponsorshipSelect === "Monetary" ? 'eventMoneyDate' : "eventItemsDate",
-            question: submissionInfo.sponsorshipSelect === "Monetary" ? 'Amount Requested' : "Items Requested",
-            answer: submissionInfo.sponsorshipSelect === "Monetary" ? submissionInfo.eventMoneyDate : submissionInfo.eventItemsDate,
+            question: submissionInfo.sponsorshipSelect === "Monetary" ? 'Money Needed By Date' : "Items Needed By Date",
+            answer: submissionInfo.sponsorshipSelect === "Monetary" ? submissionInfo.eventMoneyDate ? fixSponsorshipDate(submissionInfo.eventMoneyDate) : "" : submissionInfo.eventItemsDate ? fixSponsorshipDate(submissionInfo.eventItemsDate) : "",
             dataIndex: submissionInfo.sponsorshipSelect === "Monetary" ? 'eventMoneyDate' : "eventItemsDate"
+        },
+        {
+            key: 'eventDate',
+            question: 'Event Dates',
+            answer: (submissionInfo.eventStartDate && submissionInfo.eventEndDate) ? fixSponsorshipDate(submissionInfo.eventStartDate) + " - " + fixSponsorshipDate(submissionInfo.eventEndDate) : "",
+            dataIndex: 'eventDate'
         },
         {
             key: 'eventPurpose',
@@ -196,7 +203,7 @@ export default function (props) {
         {
             key: 'advertisingEnd',
             question: 'Advertising Dates',
-            answer: submissionInfo.advertisingStart + " - " + submissionInfo.advertisingEnd,
+            answer: (submissionInfo.advertisingStart && submissionInfo.advertisingEnd) ? fixSponsorshipDate(submissionInfo.advertisingStart) + " - " + fixSponsorshipDate(submissionInfo.advertisingEnd) : "",
             dataIndex: 'advertisingEnd'
         },
         {
@@ -346,16 +353,15 @@ export default function (props) {
     if(appStatus === "approved") {
         approvalDate = (
             <p className={'approvalDate approved'}>Approved on: <span className={'date'}>{
-                currentApp.admin.approvalDate.toDate().getMonth()+1 + "/" +
-                currentApp.admin.approvalDate.toDate().getDate() + "/" +
-                currentApp.admin.approvalDate.toDate().getFullYear()}</span></p>
+                currentApp.admin.approvalDate ? fixSponsorshipDate(currentApp.admin.approvalDate) : ""
+            }</span></p>
+
         )
     } else if(appStatus === 'denied') {
         approvalDate = (
             <p className={'approvalDate denied'}>Denied on: <span className={'date'}>{
-                currentApp.admin.approvalDate.toDate().getMonth()+1 + "/" +
-                currentApp.admin.approvalDate.toDate().getDate() + "/" +
-                currentApp.admin.approvalDate.toDate().getFullYear()}</span></p>
+                currentApp.admin.approvalDate ? fixSponsorshipDate(currentApp.admin.approvalDate) : ""
+            }</span></p>
         )
     }
 
@@ -592,42 +598,42 @@ export default function (props) {
                                     handleKeyCommand={handleKeyCommand}
                                     spellCheck={true}
                                     ref={editor}
-                                    readOnly={!props.emailSent}
+                                    readOnly={props.emailSent === true}
                                 />
                             </div>
                             <div className="editor-controls">
                                 <Row gutter={[0, 0]}>
-                                <Col xs={{span: 24}}>
-                                    <div className="send-email-button-wrapper">
-                                        <Button className={"btn cancel-email-btn"}
-                                                type="third" size={"large"}
-                                                onClick={(e) => {
-                                                    resetDefaultEmail()
-                                                }}
-                                        >Reset to default</Button>
+                                    <Col xs={{span: 24}}>
+                                        <div className="send-email-button-wrapper">
+                                            <Button className={"btn cancel-email-btn"}
+                                                    type="third" size={"large"}
+                                                    onClick={(e) => {
+                                                        resetDefaultEmail()
+                                                    }}
+                                            >Reset to default</Button>
 
-                                        <div className="right">
-                                            <Space>
-                                                <Button className={"btn cancel-email-btn"}
-                                                        type="secondary" size={"large"}
-                                                        onClick={(e) => {
-                                                            cancelEmailPreview()
-                                                        }}
-                                                >Cancel</Button>
+                                            <div className="right">
+                                                <Space>
+                                                    <Button className={"btn cancel-email-btn"}
+                                                            type="secondary" size={"large"}
+                                                            onClick={(e) => {
+                                                                cancelEmailPreview()
+                                                            }}
+                                                    >Cancel</Button>
 
-                                                <Button className={"btn send-email-to-email-applicant"}
-                                                        loading={props.emailLoading}
-                                                        type="primary" size={"large"}
-                                                        disabled={currentApp.admin.approvalStatus === 'pending'}
-                                                        onClick={(e) => {
-                                                            emailApplicant(currentApp)
-                                                        }}
-                                                >{!props.emailSent ? "Send Email" : "Resend Email" }</Button>
-                                            </Space>
+                                                    <Button className={"btn send-email-to-email-applicant"}
+                                                            loading={props.emailLoading}
+                                                            type="primary" size={"large"}
+                                                            disabled={currentApp.admin.approvalStatus === 'pending'}
+                                                            onClick={(e) => {
+                                                                emailApplicant(currentApp)
+                                                            }}
+                                                    >{!props.emailSent ? "Send Email" : "Resend Email" }</Button>
+                                                </Space>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Col>
-                            </Row>
+                                    </Col>
+                                </Row>
                             </div>
 
                         </ApplicationSection>
@@ -740,11 +746,11 @@ export default function (props) {
 
                                         <Col span={12}>
                                             {!props.currentSponsorship.admin.notificationEmailed &&
-                                                <Button className={"btn preview-email-applicant"}
-                                                        type="default" size={"large"}
-                                                        disabled={currentApplicationStatus === 'pending'}
-                                                        onClick={(e) => {previewEmail()}}
-                                                >Preview Email</Button>
+                                            <Button className={"btn preview-email-applicant"}
+                                                    type="default" size={"large"}
+                                                    disabled={currentApplicationStatus === 'pending'}
+                                                    onClick={(e) => {previewEmail()}}
+                                            >Preview Email</Button>
                                             }
                                         </Col>
 
