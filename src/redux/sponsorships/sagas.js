@@ -60,8 +60,6 @@ function* getSingleApplication(documentId) {
 
                                         })
                                     });
-
-
                                 } else {
                                     sponsorship = {id: documentId.payload, fileInfo: null, ...doc.data()};
                                     resolve(fetchApplication);
@@ -191,8 +189,6 @@ function* sendEmail(application) {
                 resolve(doEmail);
             })
         });
-
-        console.log("email data:", data);
 
         const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
         let applicationUpdated = false;

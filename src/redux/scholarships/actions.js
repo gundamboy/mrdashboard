@@ -34,6 +34,13 @@ const actions = {
     DELETE_SCHOLARSHIP_SUCCESS: "DELETE_SCHOLARSHIP_SUCCESS",
     DELETE_SCHOLARSHIP_FAILURE: "DELETE_SCHOLARSHIP_FAILURE",
 
+    SET_SCHOLARSHIP_TABLE_SORTER: "SET_SCHOLARSHIP_TABLE_SORTER",
+
+    setScholarshipTableSorter: scholarshipTableSorter => ({
+        type: actions.SET_SCHOLARSHIP_TABLE_SORTER,
+        payload: scholarshipTableSorter
+    }),
+
     setActiveTab: currentTab => ({
         type: actions.ACTIVE_SCHOLARSHIPS_TAB,
         payload: currentTab
@@ -88,6 +95,12 @@ const actions = {
     deleteScholarship: (documentId) => ({
         type: actions.DELETE_SCHOLARSHIP,
         documentId: documentId
+    }),
+
+    scholarshipsEmailError: (error, fbError) => ({
+        type: actions.SEND_SCHOLARSHIP_EMAIL_ERROR,
+        error: error,
+        fbError: fbError
     }),
 }
 

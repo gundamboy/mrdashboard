@@ -70,10 +70,14 @@ export default function reducer(state = initState, { type, payload, users }) {
                 approval: payload
             }
         case actions.DELETE_SCHOLARSHIP_SUCCESS:
-            console.log("test");
             return {
                 ...state,
                 scholarshipDeleted: true
+            }
+        case actions.SET_SCHOLARSHIP_TABLE_SORTER:
+            return {
+                ...state,
+                scholarshipTableSorter: payload
             }
         default:
             return state

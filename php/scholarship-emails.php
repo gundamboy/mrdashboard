@@ -67,13 +67,12 @@ function sendPHPMailer($mail, $emailTableRows, $name, $email) {
         $mail->Body = buildEmailMessage($emailTableRows);
 
         if ($mail->send()) {
-            returnData(["status" => true, "post"=>$_POST]);
-
+            returnData(["status" => true]);
         } else {
-            returnData(["status" => false, "phpmail-FAILED" => $mail->ErrorInfo, "post"=>$_POST]);
+            returnData(["status" => false, "FAILED" => $mail->ErrorInfo]);
         }
     } catch (Exception $e) {
-        returnData(["status" => false, "phpmail FAILED EXCEPTION" => $mail->ErrorInfo, "exception"=>$e, "post"=>$_POST]);
+        returnData(["status" => false, "FAILED" => $mail->ErrorInfo, "exception"=>$e]);
     }
 }
 

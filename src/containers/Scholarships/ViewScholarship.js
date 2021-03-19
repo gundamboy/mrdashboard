@@ -33,8 +33,6 @@ export default function (props) {
     let nextSchoolType = scholarshipAnswers.nextSchoolType;
     let workExperienceColumnSize = 24;
 
-    console.log("props", props);
-
     if(admin.applicantNotified[props.scholarshipType]) {
         if(emailSending === true) {
             setShowPreview(false);
@@ -729,7 +727,7 @@ export default function (props) {
                                     <h3 className={"sub-title"}>Grades</h3>
                                     <div className="items">
                                         <Form.Item label="GPA">
-                                            <Select disabled={applicantNotified} className={"gpa"} defaultValue={parseInt(grades.points.gpa) !== 0 && grades.points.gpa} key={"gpa"} onChange={(v) => {savePoints(v, "gpa")}}>
+                                            <Select disabled={applicantNotified} className={"gpa"} defaultValue={grades.points.gpa} key={"gpa"} onChange={(v) => {savePoints(v, "gpa")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -740,7 +738,7 @@ export default function (props) {
                                         </Form.Item>
 
                                         <Form.Item label="ACT">
-                                            <Select disabled={applicantNotified} className={"act"} defaultValue={parseInt(grades.points.act) !== 0 && grades.points.act} key={"act"} onChange={(v) => {savePoints(v, "act")}}>
+                                            <Select disabled={applicantNotified} className={"act"} defaultValue={grades.points.act} key={"act"} onChange={(v) => {savePoints(v, "act")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -749,7 +747,7 @@ export default function (props) {
                                         </Form.Item>
 
                                         <Form.Item label="Rank">
-                                            <Select disabled={applicantNotified} className={"rank"} defaultValue={parseInt(grades.points.rank) !== 0 && grades.points.rank} key={"rank"} onChange={(v) => {savePoints(v, "rank")}}>
+                                            <Select disabled={applicantNotified} className={"rank"} defaultValue={grades.points.rank} key={"rank"} onChange={(v) => {savePoints(v, "rank")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -762,7 +760,7 @@ export default function (props) {
                                     <h3 className={"sub-title"}>Activities & Awards</h3>
                                     <div className="items">
                                         <Form.Item label="School Related">
-                                            <Select disabled={applicantNotified} className={"school"} defaultValue={parseInt(grades.points.schoolRelated) !== 0 && grades.points.schoolRelated} onChange={(v) => {savePoints(v, "schoolRelated")}}>
+                                            <Select disabled={applicantNotified} className={"school"} defaultValue={grades.points.schoolRelated} onChange={(v) => {savePoints(v, "schoolRelated")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -771,7 +769,7 @@ export default function (props) {
                                         </Form.Item>
 
                                         <Form.Item label="Community">
-                                            <Select disabled={applicantNotified} className={"community"} defaultValue={parseInt(grades.points.community) !== 0 && grades.points.community} key={"community"} onChange={(v) => {savePoints(v, "community")}}>
+                                            <Select disabled={applicantNotified} className={"community"} defaultValue={grades.points.community} key={"community"} onChange={(v) => {savePoints(v, "community")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -781,7 +779,7 @@ export default function (props) {
                                         </Form.Item>
 
                                         <Form.Item label="Awards & Honors">
-                                            <Select disabled={applicantNotified} className={"awards"} defaultValue={parseInt(grades.points.awards) !== 0 && grades.points.awards} key={"awards"} onChange={(v) => {savePoints(v, "awards")}}>
+                                            <Select disabled={applicantNotified} className={"awards"} defaultValue={grades.points.awards} key={"awards"} onChange={(v) => {savePoints(v, "awards")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -795,7 +793,7 @@ export default function (props) {
                                     <h3 className={"sub-title"}>Work History</h3>
                                     <div className="items">
                                         <Form.Item label="Employment">
-                                            <Select disabled={applicantNotified} className={"employment"} defaultValue={parseInt(grades.points.employment) !== 0 && grades.points.employment} key={"employment"} onChange={(v) => {savePoints(v, "employment")}}>
+                                            <Select disabled={applicantNotified} className={"employment"} defaultValue={grades.points.employment} key={"employment"} onChange={(v) => {savePoints(v, "employment")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -826,7 +824,7 @@ export default function (props) {
                                     <h3 className={"sub-title"}>Essays</h3>
                                     <div className="items">
                                         <Form.Item label="Content">
-                                            <Select disabled={applicantNotified} className={"content"} defaultValue={parseInt(grades.points.essays) !== 0 && grades.points.essays} key={"essays"} onChange={(v) => {savePoints(v, "essays")}}>
+                                            <Select disabled={applicantNotified} className={"content"} defaultValue={grades.points.essays} key={"essays"} onChange={(v) => {savePoints(v, "essays")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
                                                 <Select.Option value="2">2</Select.Option>
@@ -847,7 +845,7 @@ export default function (props) {
                                         </Form.Item>
 
                                         <Form.Item label="Grammar">
-                                            <Select disabled={applicantNotified} className={"grammar"} defaultValue={parseInt(grades.points.grammar) !== 0 && grades.points.grammar} key={"grammar"}
+                                            <Select disabled={applicantNotified} className={"grammar"} defaultValue={grades.points.grammar} key={"grammar"}
                                                     onChange={(v) => {savePoints(v, "grammar")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>
@@ -869,7 +867,7 @@ export default function (props) {
                                         </Form.Item>
 
                                         <Form.Item label="Return to Area">
-                                            <Select disabled={applicantNotified} className={"content"} key={"area"} defaultValue={parseInt(grades.points.area) !== 0 && grades.points.area}
+                                            <Select disabled={applicantNotified} className={"content"} key={"area"} defaultValue={grades.points.returnToArea}
                                                     onChange={(v) => {savePoints(v, "returnToArea")}}>
                                                 <Select.Option value="0">0</Select.Option>
                                                 <Select.Option value="1">1</Select.Option>

@@ -4,6 +4,8 @@ import {db, rsf, storageRef} from '@iso/lib/firebase/firebase';
 import axios from 'axios';
 import * as firebase from "firebase";
 import {getCurrentYear, SCHOLARSHIP_API_PATH} from "../../helpers/shared";
+import {cloneScholarshipObjects} from "../../helpers/cloneScholarshipsToTestCollection";
+import {fixGradesObjects} from "../../helpers/fixGradeObjects";
 
 const currentYear = getCurrentYear().toString();
 
@@ -20,7 +22,6 @@ const getApplicationsRef = () => {
 }
 
 function* initScholarships() {
-    console.group("SAGA initScholarships");
     try {
 
         const collectionRef = getApplicationsRef();
@@ -30,7 +31,9 @@ function* initScholarships() {
         const scholarships = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
         const users = userSnapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
 
-        console.log("scholarships", scholarships);
+        // only uncomment this to clone the production table into a testing table
+        //cloneScholarshipObjects(scholarships)
+
 
         yield put( {
             type: scholarshipsActions.FETCH_SCHOLARSHIPS_SUCCESS,
@@ -45,8 +48,6 @@ function* initScholarships() {
             data: error
         });
     }
-
-    console.groupEnd();
 }
 
 function* getSingleScholarship(documentId) {
@@ -229,10 +230,8 @@ function* sendEmail(payload) {
         let updatedApp = null;
 
         if(data.status) {
-
             const update = yield call(() => {
                 return new Promise((resolve, reject) => {
-
                     if(scholarshipType === "higherEdu") {
                         collectionRef.update({
                             "admin.applicantNotified.higherEdu": data.status,
@@ -264,6 +263,8 @@ function* sendEmail(payload) {
                     }
                 });
             });
+        } else {
+            yield put(scholarshipsActions.scholarshipsEmailError(true, false));
         }
 
         if(applicationUpdated) {
@@ -395,6 +396,16 @@ function* notifyScholarshipDeleted() {
     try {
         yield put({
             type: scholarshipsActions.DELETE_SCHOLARSHIP_SUCCESS,
+        });
+    } catch (error) {
+        console.log("notifyScholarshipDeleted error:", error);
+    }
+}
+
+function* notifyEmailError(errorType) {
+    try {
+        yield put({
+            type: scholarshipsActions.SEND_SCHOLARSHIP_EMAIL_ERROR,
         });
     } catch (error) {
         console.log("notifyScholarshipDeleted error:", error);

@@ -236,7 +236,7 @@ export default function Sponsorships(props) {
         const deniedApplicationInfo = new applicationsData(deniedApplications.length, deniedApplications);
 
         return (
-            <LayoutContentWrapper style={{height: '100vh'}}>
+            <LayoutContentWrapper style={{height: '100%'}}>
                 <PageHeader>
                     <IntlMessages id="sidebar.sponsorships" />
                 </PageHeader>

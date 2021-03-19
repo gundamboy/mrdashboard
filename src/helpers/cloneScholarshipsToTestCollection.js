@@ -4,19 +4,19 @@ import { db, auth, rsf } from '@iso/lib/firebase/firebase';
 export const updateAllScholarships = (allScholarships, table) => {
     console.group("updateAllScholarships")
     console.log("updateAllScholarships allScholarships: ", allScholarships);
-    /**
+
     if (allScholarships.length) {
         const scholarshipsArray = allScholarships;
 
         auth.onAuthStateChanged(function(user) {
             if(user) {
                 let batch = db.batch();
-                const collection = table === "scholarshipsTestCollection" ? firestore.collection('scholarshipsTestCollection')
-                    : firestore.collection('scholarships');
+                const collection = table === "scholarshipsTestCollection" ? db.collection('scholarshipsTestCollection')
+                    : db.collection('scholarships');
 
                 collection.doc("2021").collection("applications").get()
                     .then(function(querySnapshot) {
-                        let batch = firestore.batch();
+                        let batch = db.batch();
 
                         querySnapshot.forEach(function(doc) {
                             if(doc.exists) {
@@ -43,7 +43,6 @@ export const updateAllScholarships = (allScholarships, table) => {
             }
         });
     }
-     */
 
     console.groupEnd();
 };
