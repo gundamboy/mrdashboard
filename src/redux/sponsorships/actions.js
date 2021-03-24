@@ -28,9 +28,16 @@ const sponsorshipActions = {
     DELETE_APPLICATION_SUCCESS: "DELETE_APPLICATION_SUCCESS",
     DELETE_APPLICATION_ERROR: "DELETE_APPLICATION_ERROR",
 
+    SET_SPONSORSHIP_TABLE_SORTER: "SET_SPONSORSHIP_TABLE_SORTER",
+
     addDummyData: dataType => ({
         type: sponsorshipActions.INSERT_DUMMY_DATA,
         dataType: dataType
+    }),
+
+    setSponsorshipTableSorter: sponsorshipTableSorter => ({
+        type: sponsorshipActions.SET_SPONSORSHIP_TABLE_SORTER,
+        payload: sponsorshipTableSorter
     }),
 
     setActiveTab: currentTab => ({

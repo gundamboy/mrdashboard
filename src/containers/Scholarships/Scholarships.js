@@ -15,7 +15,7 @@ import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
 import {AdvancedOptions, AdvancedOptionsWrapper} from "./Scholarships.styles";
 import scholarshipsActions from "../../redux/scholarships/actions";
-import {formattedDate} from "../../helpers/shared";
+import {compareByAlpha, formattedDate} from "../../helpers/shared";
 import {ExportScholarships} from "../../helpers/exportScholarships";
 
 const {
@@ -33,7 +33,6 @@ export default function Scholarships() {
     const target = useRef(null);
     const searchInput = useRef(null);
     let Component = TableViews.SortView;
-
 
     // this is like componentDidMount but its for a function component and not a class
     useEffect(() => {
@@ -122,6 +121,47 @@ export default function Scholarships() {
         setSearchText("");
     };
 
+    const getColumnData = (title, key) => {
+        let columnObj = {}
+
+        if(scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) {
+            if(scholarshipTableSorter.columnKey === key) {
+                const col = scholarshipTableSorter.column;
+                const field = col.key;
+
+                columnObj = {
+                    title: title,
+                    key: key,
+                    dataIndex: key,
+                    sortOrder: scholarshipTableSorter.order,
+                    sorter: (a, b) => compareByAlpha(a[field], b[field]),
+                    render: text => <p>{text}</p>,
+                    ...getColumnSearchProps(key),
+                };
+            } else {
+                columnObj = {
+                    title: title,
+                    key: key,
+                    dataIndex: key,
+                    sorter: true,
+                    render: text => <p>{text}</p>,
+                    ...getColumnSearchProps(key),
+                };
+            }
+        } else {
+            columnObj = {
+                title: title,
+                key: key,
+                dataIndex: key,
+                sorter: true,
+                render: text => <p>{text}</p>,
+                ...getColumnSearchProps(key),
+            };
+        }
+
+        return columnObj;
+    }
+
     if(scholarships) {
         let pendingDccScholarships = [];
         let pendingEduScholarships = [];
@@ -136,45 +176,20 @@ export default function Scholarships() {
         let completedDccScholarshipsInfo = null;
         let completedEduScholarshipsInfo = null;
 
-        // TODO: do not put apps in the list if they are totally blank?
         const scholarshipColumnsPending = [
             {
                 columns: [
                     {
-                        title: "Name",
-                        key: "name",
-                        dataIndex: "name",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "name" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('name'),
+                        ...getColumnData("Name", "name")
                     },
                     {
-                        title: "Email",
-                        key: "email",
-                        dataIndex: "email",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "email" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('email'),
+                        ...getColumnData("Email", "email")
                     },
                     {
-                        title: "City",
-                        key: "city",
-                        dataIndex: "city",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "city" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('city'),
+                        ...getColumnData("City", "city")
                     },
                     {
-                        title: "Started",
-                        key: "started",
-                        dataIndex: "started",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "started" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('started'),
+                        ...getColumnData("Started", "started")
                     },
                     {
                         title: "",
@@ -191,55 +206,25 @@ export default function Scholarships() {
                     }
                 ]
             }
-        ]
+        ];
 
         const scholarshipColumnsCompleted = [
             {
                 columns: [
                     {
-                        title: "Name",
-                        key: "name",
-                        dataIndex: "name",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "name" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('name'),
+                        ...getColumnData("Name", "name")
                     },
                     {
-                        title: "Email",
-                        key: "email",
-                        dataIndex: "email",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "email" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('email'),
+                        ...getColumnData("Email", "email")
                     },
                     {
-                        title: "City",
-                        key: "city",
-                        dataIndex: "city",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "city" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('city'),
+                        ...getColumnData("City", "city")
                     },
                     {
-                        title: "Started",
-                        key: "started",
-                        dataIndex: "started",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "started" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('started'),
+                        ...getColumnData("Started", "started")
                     },
                     {
-                        title: "Finished",
-                        key: "finished",
-                        dataIndex: "finished",
-                        defaultSortOrder: (scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) ? scholarshipTableSorter.column.key === "finished" ? scholarshipTableSorter.order : ""  : "" ,
-                        sorter: true,
-                        render: text => <p>{text}</p>,
-                        ...getColumnSearchProps('finished'),
+                        ...getColumnData("Finished", "finished")
                     },
                     {
                         title: "",
@@ -431,6 +416,7 @@ export default function Scholarships() {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"scholarships"}
                                                 tableInfo={scholarshipColumnsPending[0]}
                                                 dataList={pendingDccScholarshipsInfo}
                                                 bordered={true}
@@ -456,6 +442,7 @@ export default function Scholarships() {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"scholarships"}
                                                 currentTab={tab.value}
                                                 tableInfo={scholarshipColumnsPending[0]}
                                                 dataList={pendingEduScholarshipsInfo}
@@ -482,6 +469,7 @@ export default function Scholarships() {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"scholarships"}
                                                 currentTab={tab.value}
                                                 tableInfo={scholarshipColumnsCompleted[0]}
                                                 dataList={completedDccScholarshipsInfo}
@@ -508,6 +496,7 @@ export default function Scholarships() {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"scholarships"}
                                                 currentTab={tab.value}
                                                 tableInfo={scholarshipColumnsCompleted[0]}
                                                 dataList={completedEduScholarshipsInfo}
@@ -534,6 +523,7 @@ export default function Scholarships() {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"scholarships"}
                                                 currentTab={tab.value}
                                                 tableInfo={scholarshipColumnsCompleted[0]}
                                                 dataList={approvedScholarshipsInfo}
@@ -560,6 +550,7 @@ export default function Scholarships() {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"scholarships"}
                                                 currentTab={tab.value}
                                                 tableInfo={scholarshipColumnsCompleted[0]}
                                                 dataList={deniedScholarshipsInfo}

@@ -17,7 +17,7 @@ import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
 import {AdvancedOptions, AdvancedOptionsWrapper} from "./Sponsorships.styles";
 import {ExportSponsorships} from "../../helpers/exportSponsorships";
-import {formattedDate} from "../../helpers/shared";
+import {compareByAlpha, formattedDate} from "../../helpers/shared";
 
 
 export default function Sponsorships(props) {
@@ -25,7 +25,7 @@ export default function Sponsorships(props) {
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
     const { results, loading, error, appDeleted,
-        emailSent, dataInserted, activeTab } = useSelector(state => state.sponsorshipsReducer);
+        emailSent, dataInserted, activeTab, sponsorshipTableSorter } = useSelector(state => state.sponsorshipsReducer);
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const target = useRef(null);
@@ -118,6 +118,47 @@ export default function Sponsorships(props) {
             ),
     });
 
+    const getColumnData = (title, key) => {
+        let columnObj = {}
+
+        if(sponsorshipTableSorter !== undefined && sponsorshipTableSorter.column !== undefined) {
+            if(sponsorshipTableSorter.columnKey === key) {
+                const col = sponsorshipTableSorter.column;
+                const field = col.key;
+
+                columnObj = {
+                    title: title,
+                    key: key,
+                    dataIndex: key,
+                    sortOrder: sponsorshipTableSorter.order,
+                    sorter: (a, b) => compareByAlpha(a[field], b[field]),
+                    render: text => <p>{text}</p>,
+                    ...getColumnSearchProps(key),
+                };
+            } else {
+                columnObj = {
+                    title: title,
+                    key: key,
+                    dataIndex: key,
+                    sorter: true,
+                    render: text => <p>{text}</p>,
+                    ...getColumnSearchProps(key),
+                };
+            }
+        } else {
+            columnObj = {
+                title: title,
+                key: key,
+                dataIndex: key,
+                sorter: true,
+                render: text => <p>{text}</p>,
+                ...getColumnSearchProps(key),
+            };
+        }
+
+        return columnObj;
+    }
+
     const handleTextSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
         setSearchText(selectedKeys[0]);
@@ -167,37 +208,17 @@ export default function Sponsorships(props) {
         {
             columns: [
                 {
-                    title: "Submission Date",
-                    key: "date",
-                    dataIndex: "date",
-                    sorter: true,
+                    ...getColumnData("Submission Date", "date"),
                     width: "12%",
-                    render: data => <p>{data}</p>,
-                    ...getColumnSearchProps('date'),
                 },
                 {
-                    title: "Org Name",
-                    key: "orgName",
-                    dataIndex: "orgName",
-                    sorter: true,
-                    render: text => <p>{text}</p>,
-                    ...getColumnSearchProps('orgName'),
+                    ...getColumnData("Org Name", "orgName")
                 },
                 {
-                    title: "Primary Name",
-                    key: "primaryName",
-                    dataIndex: "primaryName",
-                    sorter: true,
-                    render: text => <p>{text}</p>,
-                    ...getColumnSearchProps('primaryName'),
+                    ...getColumnData("Primary Name", "primaryName")
                 },
                 {
-                    title: "Application Type",
-                    key: "appType",
-                    dataIndex: "appType",
-                    width: 220,
-                    sorter: true,
-                    render: text => <p>{text}</p>,
+                    ...getColumnData("Application Type", "appType"),
                     filters: [
                         {text: "Material", value: "Material"},
                         {text: "Monetary", value: "Monetary"},
@@ -273,6 +294,7 @@ export default function Sponsorships(props) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"sponsorships"}
                                                 tableInfo={sponsorshipColumns[0]}
                                                 dataList={pendingApplicationInfo}
                                                 bordered={true}
@@ -296,6 +318,7 @@ export default function Sponsorships(props) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"sponsorships"}
                                                 tableInfo={sponsorshipColumns[0]}
                                                 dataList={approvedApplicationInfo}
                                                 bordered={true}
@@ -319,6 +342,7 @@ export default function Sponsorships(props) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
+                                                parentPage={"sponsorships"}
                                                 tableInfo={sponsorshipColumns[0]}
                                                 dataList={deniedApplicationInfo}
                                                 bordered={true}

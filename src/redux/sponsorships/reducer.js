@@ -1,4 +1,5 @@
 import sponsorshipActions from './actions';
+import actions from "../scholarships/actions";
 
 const INITIAL_DATA = {
     results: [],
@@ -115,7 +116,11 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
                 error: false,
                 results: []
             };
-
+        case sponsorshipActions.SET_SPONSORSHIP_TABLE_SORTER:
+            return {
+                ...state,
+                sponsorshipTableSorter: action.payload
+            }
         default:
             return state
     }
