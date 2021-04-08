@@ -14,7 +14,8 @@ const {
 } = scholarshipsActions;
 
 export default function SingleScholarship() {
-    const {currentScholarship, loading, activeTab, notesError, scholarshipDeleted} = useSelector(state => state.Scholarships);
+    const {currentScholarship, scholarshipLoading, activeTab, notesError, scholarshipDeleted, scholarshipEmailError,
+        scholarshipFirebaseError} = useSelector(state => state.Scholarships);
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const urlArray = match.url.split("/");
@@ -39,12 +40,14 @@ export default function SingleScholarship() {
                 <ViewScholarship
                     currentScholarship={currentScholarship}
                     scholarshipType={scholarshipType}
-                    loading={loading}
+                    scholarshipLoading={scholarshipLoading}
                     redirectPath={redirectPath}
                     activeTab={activeTab}
                     userId={scholarshipId}
                     notesError={notesError}
                     scholarshipDeleted={scholarshipDeleted}
+                    emailError={scholarshipEmailError}
+                    scholarshipFirebaseError={scholarshipFirebaseError}
                 />
             </>
         )

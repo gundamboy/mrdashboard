@@ -1,9 +1,10 @@
 import actions from "./actions";
+import sponsorshipActions from "../sponsorships/actions";
 
 const initState = {
     sponsorships: {},
     activeScholarshipsTab: "pendingDcc",
-    loading: false,
+    scholarshipLoading: false,
     grades: {
         gpa: 0,
         act: 0,
@@ -16,7 +17,9 @@ const initState = {
         grammar: 0,
         returnToArea: 0
     },
-    scholarshipDeleted: false
+    scholarshipDeleted: false,
+    scholarshipEmailError: false,
+    scholarshipEmailSuccess: false
 };
 
 export default function reducer(state = initState, { type, payload, users }) {
@@ -30,28 +33,30 @@ export default function reducer(state = initState, { type, payload, users }) {
             return {
                 ...state,
                 scholarships: payload,
-                loading: false,
+                scholarshipLoading: false,
                 error: false,
                 users: users,
-                scholarshipDeleted: false
+                scholarshipDeleted: false,
+                scholarshipEmailError: false,
+                scholarshipEmailSuccess: false
             }
         case actions.FETCH_SCHOLARSHIPS_FAILURE:
             return {
                 ...state,
-                loading: false,
+                scholarshipLoading: false,
                 error: true,
             }
         case actions.FETCH_SINGLE_SCHOLARSHIP_SUCCESS:
             return {
                 ...state,
                 currentScholarship: payload,
-                loading: false,
+                scholarshipLoading: false,
                 error: false,
             }
         case actions.FETCH_SINGLE_SCHOLARSHIP_FAILURE:
             return {
                 ...state,
-                loading: false,
+                scholarshipLoading: false,
                 error: true,
             }
         case actions.UPDATE_SCHOLARSHIP_GRADES_SUCCESS:
@@ -78,6 +83,27 @@ export default function reducer(state = initState, { type, payload, users }) {
             return {
                 ...state,
                 scholarshipTableSorter: payload
+            }
+        case actions.SEND_SCHOLARSHIP_EMAIL_ERROR:
+            return {
+                ...state,
+                scholarshipEmailError: true,
+                scholarshipEmailSuccess: false,
+                emailLoading: false,
+            }
+        case actions.SEND_EMAIL_SUCCESS:
+            return {
+                ...state,
+                emailLoading: false,
+                emailSent: true,
+                scholarshipEmailError: false,
+                scholarshipFirebaseError: false
+            };
+        case actions.SEND_SCHOLARSHIP_EMAIL_SUCCESS:
+            return {
+                ...state,
+                scholarshipEmailError: false,
+                scholarshipEmailSuccess: true
             }
         default:
             return state

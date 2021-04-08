@@ -98,7 +98,6 @@ export const EditorWrapper = styled.div`
 `;
 
 export const EditorControls = styled.div`
-
     .send-email-button-wrapper {
         display: flex;
         justify-content: space-between;
@@ -106,7 +105,6 @@ export const EditorControls = styled.div`
         .cancel-email-btn {
             
         }
-        
 `;
 
 export const ScholarshipSection = styled.div`

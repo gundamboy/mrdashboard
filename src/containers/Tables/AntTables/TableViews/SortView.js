@@ -3,6 +3,7 @@ import TableWrapper from '../AntTables.styles';
 import {useDispatch, useSelector} from "react-redux";
 import scholarshipsActions from "../../../../redux/scholarships/actions";
 import sponsorshipActions from "../../../../redux/sponsorships/actions";
+import referralActions from "../../../../redux/referrals/actions";
 
 export default function({ dataList, tableInfo, bordered, size, pagination, loading, expandable, parentPage }) {
   const [state, setState] = useState(dataList.getAll());
@@ -18,6 +19,11 @@ export default function({ dataList, tableInfo, bordered, size, pagination, loadi
       [dispatch]
   );
 
+  const setReferralColumnSorter = useCallback(
+      (sorter) => dispatch(referralActions.setReferralTableSorter(sorter)),
+      [dispatch]
+  );
+
   function onChange(pagination, filters, sorter) {
 
     if(parentPage === "scholarships") {
@@ -26,6 +32,10 @@ export default function({ dataList, tableInfo, bordered, size, pagination, loadi
 
     if(parentPage === "sponsorships") {
       setSponsorshipsColumnSorter(sorter);
+    }
+
+    if(parentPage === "referrals") {
+      setReferralColumnSorter(sorter);
     }
 
     if (sorter && sorter.columnKey && sorter.order) {

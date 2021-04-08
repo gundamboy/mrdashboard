@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useRef, useEffect} from 'react';
 import LayoutWrapper from "@iso/components/utility/layoutWrapper";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {Affix, Col, Form, Row, Select, Typography, Input, Radio, Button, Space, Checkbox} from "antd";
+import {Affix, Col, Form, Row, Select, Typography, Input, Radio, Button, Space, Checkbox, Alert} from "antd";
 import Box from "@iso/components/utility/box";
 import {EditorControls, EditorWrapper, ScholarshipSection, ScholarshipStatusHeader} from "./Scholarships.styles";
 import NoImage from '@iso/assets/images/no-image.png';
@@ -84,12 +84,11 @@ export default function (props) {
 
     const onApprovalStatusChange = (status) => {
         setApprovalStatus(status);
-
         saveApprovalStatus(props.userId, props.scholarshipType, status);
     }
 
     const savePoints = (value, key) => {
-        // console.log("setGrades key: ", key);
+        //console.log("setGrades key: ", key);
         setGrades({
            ...grades,
            points: {
@@ -250,7 +249,8 @@ export default function (props) {
             }
         })
 
-        sendApplicationEmail(scholarshipAnswers.email, emailTextArray, props.userId, scholarshipAnswers.name, props.scholarshipType, approvalStatus);
+        sendApplicationEmail(scholarshipAnswers.email, emailTextArray, props.userId,
+            scholarshipAnswers.name, props.scholarshipType, approvalStatus);
     };
 
     const toggleDeleteScholarship = () => {
@@ -285,12 +285,31 @@ export default function (props) {
             </ScholarshipStatusHeader>
             {showPreview &&
             <Row gutter={[16, 16]} style={{"width": "100%"}}>
-
                 <div className={"editor-wrapper"}>
                     <Box style={{padding: 20, height: 'auto'}}>
                         <ScholarshipSection>
                             <Title level={3} className={"application-section-title"}>Email Preview</Title>
                         </ScholarshipSection>
+
+                        {(props.emailError && !props.scholarshipFirebaseError) &&
+                        <Alert
+                            className={props.emailError ? "email-alert php-error show" : "email-alert php-error"}
+                            message="Error"
+                            description="There was an error sending the applicant email."
+                            type="error"
+                            showIcon
+                        />
+                        }
+
+                        {props.scholarshipFirebaseError &&
+                        <Alert
+                            className={props.scholarshipFirebaseError ? "email-alert fb-error show" : "email-alert fb-error"}
+                            message="Error"
+                            description="There was an error updating the applicant data in firebase."
+                            type="error"
+                            showIcon
+                        />
+                        }
 
                         <EditorWrapper>
                             <ScholarshipSection>
@@ -336,11 +355,11 @@ export default function (props) {
                                                     onClick={(e) => {
                                                         cancelEmailPreview()
                                                     }}
-                                                    disabled={emailSending}
+                                                    disabled={props.scholarshipLoading}
                                             >Cancel</Button>
 
                                             <Button className={"btn send-email-to-email-applicant"}
-                                                    loading={emailSending}
+                                                    loading={props.scholarshipLoading}
                                                     type="primary" size={"large"}
                                                     disabled={approvalStatus === 'pending'}
                                                     onClick={(e) => {

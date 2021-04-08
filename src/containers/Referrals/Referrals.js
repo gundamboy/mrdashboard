@@ -2,10 +2,8 @@ import React, {Component, useCallback, useEffect, useRef, useState} from 'react'
 import LayoutContentWrapper from '@iso/components/utility/layoutWrapper';
 import LayoutContent from '@iso/components/utility/layoutContent';
 import {useDispatch, useSelector} from "react-redux";
-import sponsorshipActions from "../../redux/sponsorships/actions";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
-import { sponsorshipTabs} from "../Tables/AntTables/configs";
 import {Space, Spin, Input, Tooltip } from "antd";
 import {SearchOutlined, SettingFilled, FileExcelOutlined} from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
@@ -14,58 +12,43 @@ import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
 import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {AdvancedOptions, AdvancedOptionsWrapper} from "./Sponsorships.styles";
-import {ExportSponsorships} from "../../helpers/exportSponsorships";
-import {compareByAlpha, formattedDate} from "../../helpers/shared";
+import {formattedDate, compareByAlpha} from "../../helpers/shared";
+import { referralTabs } from "../Tables/AntTables/configs";
+import referralActions from "../../redux/referrals/actions";
+import { ReferralSection } from "./Referrals.styles";
+import {all} from "redux-saga/effects";
 
-
-export default function Sponsorships(props) {
-    const production = true;
-    let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
+export default function Referrals(props) {
+    // vars here
+    const { referrals, referralsLoading,
+        referralsActiveTab, referralTableSorter } = useSelector(state => state.referralsReducer);
+    let allReferrals = [], pendingReferrals = [], approvedReferrals = [], deniedReferrals = [];
     let Component = TableViews.SortView;
-    const { results, loading, error, appDeleted,
-        emailSent, dataInserted, activeTab, sponsorshipTableSorter } = useSelector(state => state.sponsorshipsReducer);
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const target = useRef(null);
     const [searchText, setSearchText] = useState();
     const [searchedColumn, setSearchedColumn] = useState();
-    const [showOptionsClass, setShowOptionsClass] = useState();
     const searchInput = useRef(null);
 
-    // calls state from redux
-    const getSponsorshipApplications = useCallback(
-        () => dispatch(sponsorshipActions.fetchApplicationsStart()),
-        [dispatch]
+    // fetch referrals start
+    const getReferralApplications = useCallback(
+        () => dispatch(referralActions.fetchReferralsStart()), [dispatch]
     );
 
-    // sets the active tab
-    const setTab = useCallback(
-        (currentTab) => dispatch(sponsorshipActions.setActiveTab(currentTab)),
-        [dispatch]
+    // set the active tab
+    const setTab  = useCallback(
+        (currentTab) => dispatch(referralActions.setReferralActiveTab((currentTab))),
+        [dispatch],
     );
 
-    // used to insert dummy data for testing
-    const insertDummyData = useCallback(
-        (dataType) => dispatch(sponsorshipActions.addDummyData(dataType)), [dispatch]
-    );
-
-    // this is like componentDidMount but its for a function component and not a class
+    // userEffect call fetch referrals start
     useEffect(() => {
-        getSponsorshipApplications();
-    }, [getSponsorshipApplications]);
+        getReferralApplications();
+    }, [getReferralApplications]);
 
-    // scrolls long page to top
-    setTimeout(() => {
-        if(target.current && appDeleted || target.current && emailSent) {
-            // scroll up
-            target.current.scrollIntoView(0,0);
 
-            getSponsorshipApplications();
-        }
-    }, 3)
-
-    // table search fields
+    // table search stuff goes here
     const getColumnSearchProps = dataIndex => ({
         filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
             <div style={{ padding: 8 }}>
@@ -117,20 +100,21 @@ export default function Sponsorships(props) {
             ),
     });
 
+
     // returns an object used for the table columns with or without default sorting based on redux state
     const getColumnData = (title, key) => {
         let columnObj = {}
 
-        if(sponsorshipTableSorter !== undefined && sponsorshipTableSorter.column !== undefined) {
-            if(sponsorshipTableSorter.columnKey === key) {
-                const col = sponsorshipTableSorter.column;
+        if(referralTableSorter !== undefined && referralTableSorter.column !== undefined) {
+            if(referralTableSorter.columnKey === key) {
+                const col = referralTableSorter.column;
                 const field = col.key;
 
                 columnObj = {
                     title: title,
                     key: key,
                     dataIndex: key,
-                    sortOrder: sponsorshipTableSorter.order,
+                    sortOrder: referralTableSorter.order,
                     sorter: (a, b) => compareByAlpha(a[field], b[field]),
                     render: text => <p>{text}</p>,
                     ...getColumnSearchProps(key),
@@ -159,69 +143,65 @@ export default function Sponsorships(props) {
         return columnObj;
     }
 
-    // table search fields
+
+    // table search text here
     const handleTextSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
         setSearchText(selectedKeys[0]);
         setSearchedColumn(dataIndex);
     };
 
+
+    //  table text search reset here
     const handleTextReset = clearFilters => {
         clearFilters();
         setSearchText("");
     };
 
-    // sets the currently selected tab in state
+
+    // set on table change here
     const onTabChange = (key) => {
         setTab(key)
     };
 
-    // build the data sets needed for the table in each tab
-    for (let result of results) {
+
+    // for loop to build the data set for each tab
+    for (let result of referrals) {
         const app = {
             "id": result.id,
             "key": result.id,
-            "date": formattedDate(new Date(result.meta["submissionDate"].toDate())),
-            "orgName": result.submission["orgName"],
-            "primaryName": result.submission["primaryName"],
-            "appType": result.submission["sponsorshipSelect"],
+            "date": formattedDate(new Date(result.submitted.toDate())),
+            "personYouAreReferring": result.personYouAreReferring,
+            "referrerName": result.referrerName,
             "appLink" : `${match.path}/${result.id}`,
-            "currentSponsorship": result
-        };
-
-        if(result.admin.approvalStatus === "pending") {
-            pendingApplications.push(app);
-        } else if(result.admin.approvalStatus === "approved") {
-            approvedApplications.push(app);
-        } else if(result.admin.approvalStatus === "denied") {
-            deniedApplications.push(app);
+            "currentReferral": result
         }
 
-        applications.push(app);
+        if(result.referralStatus === "pending") {
+            pendingReferrals.push(app);
+        } else if(result.referralStatus === "approved") {
+            approvedReferrals.push(app);
+        } else if(result.referralStatus === "denied") {
+            deniedReferrals.push(app);
+        }
 
+        allReferrals.push(app);
     }
 
-    // array of columns for table
-    const sponsorshipColumns = [
+
+    // array of columns for the table
+    const referralColumns = [
         {
             columns: [
                 {
                     ...getColumnData("Submission Date", "date"),
-                    width: "12%",
+                    width: "12%"
                 },
                 {
-                    ...getColumnData("Org Name", "orgName")
+                    ...getColumnData("Referrer Name", "referrerName"),
                 },
                 {
-                    ...getColumnData("Primary Name", "primaryName")
-                },
-                {
-                    ...getColumnData("Application Type", "appType"),
-                    filters: [
-                        {text: "Material", value: "Material"},
-                        {text: "Monetary", value: "Monetary"},
-                    ],
-                    onFilter: (value, record) => record.appType.includes(value),
+                    ...getColumnData("Referee Name", "personYouAreReferring"),
                 },
                 {
                     title: "",
@@ -240,68 +220,35 @@ export default function Sponsorships(props) {
         }
     ];
 
-    // shows or hides some advanced options / export button
-    const toggleAdvancedOptions = () => {
-        if (!showOptionsClass) {
-            setShowOptionsClass("show");
-        } else {
-            setShowOptionsClass("");
-        }
-    };
 
-    if (applications.length) {
-        let applicationInfo = new applicationsData(applications.length, applications);
-        const pendingApplicationInfo = new applicationsData(pendingApplications.length, pendingApplications);
-        const approvedApplicationInfo = new applicationsData(approvedApplications.length, approvedApplications);
-        const deniedApplicationInfo = new applicationsData(deniedApplications.length, deniedApplications);
+    if(allReferrals.length) {
+        let applicationInfo = new applicationsData(allReferrals.length, allReferrals);
+        const pendingApplicationInfo = new applicationsData(pendingReferrals.length, pendingReferrals);
+        const approvedApplicationInfo = new applicationsData(approvedReferrals.length, approvedReferrals);
+        const deniedApplicationInfo = new applicationsData(deniedReferrals.length, deniedReferrals);
 
         return (
-            <LayoutContentWrapper style={{height: '100%'}}>
+            <LayoutContentWrapper style={{height: '100vh'}}>
                 <PageHeader>
                     <IntlMessages id="sidebar.sponsorships" />
                 </PageHeader>
                 <LayoutContent ref={target}>
-                    <AdvancedOptionsWrapper className="advanced-options-wrapper">
-                        <AdvancedOptions className={"advanced-options " + showOptionsClass}>
-                            {!production &&
-                            <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
-                                <Space>
-                                    <Button type="link" onClick={(e) => {ExportSponsorships(results)}}>Export Sponsorships</Button>
-                                    <Button onClick={(e) => {insertDummyData("Monetary")}} type="primary">Add Dummy Monetary</Button>
-                                    <Button onClick={(e) => {insertDummyData("Material")}}>Add Dummy Material</Button>
-                                </Space>
-                            </div>
-                            }
-                            {production &&
-                            <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
-                                <Space>
-                                    <Button type="link" icon={<FileExcelOutlined />} onClick={(e) => {ExportSponsorships(results)}}>Export Sponsorships</Button>
-                                </Space>
-                            </div>
-                            }
-                        </AdvancedOptions>
-                        <div className="options" style={{textAlign: "right"}}>
-                            <Tooltip title="Advanced Options" mouseEnterDelay={0.65}>
-                                <Button style={{border: "none"}} shape="circle" icon={<SettingFilled style={{fontSize: 22}} onClick={toggleAdvancedOptions}/>}/>
-                            </Tooltip>
-                        </div>
-                    </AdvancedOptionsWrapper>
-                    <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={activeTab}>
-                        {sponsorshipTabs.map(tab => {
+                    <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={referralsActiveTab}>
+                        {referralTabs.map(tab => {
                             if (tab.value === 'pending') {
                                 if (pendingApplicationInfo.applicationData.length) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
-                                                parentPage={"sponsorships"}
-                                                tableInfo={sponsorshipColumns[0]}
+                                                parentPage={"referrals"}
+                                                tableInfo={referralColumns[0]}
                                                 dataList={pendingApplicationInfo}
                                                 bordered={true}
                                                 size={"small"}
-                                                loading={loading}
+                                                loading={referralsLoading}
                                                 expandable={false}
                                                 pagination={{hideOnSinglePage: true}}
-                                                currentSponsorship={pendingApplicationInfo.currentSponsorship}
+                                                currentReferral={pendingApplicationInfo.currentReferral}
                                             />
                                         </TabPane>
                                     )
@@ -317,12 +264,12 @@ export default function Sponsorships(props) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
-                                                parentPage={"sponsorships"}
-                                                tableInfo={sponsorshipColumns[0]}
+                                                parentPage={"referrals"}
+                                                tableInfo={referralColumns[0]}
                                                 dataList={approvedApplicationInfo}
                                                 bordered={true}
                                                 size={"small"}
-                                                loading={loading}
+                                                loading={referralsLoading}
                                                 expandable={false}
                                                 pagination={{hideOnSinglePage: true}}
                                                 currentSponsorship={applicationInfo.currentSponsorship}
@@ -341,12 +288,12 @@ export default function Sponsorships(props) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
-                                                parentPage={"sponsorships"}
-                                                tableInfo={sponsorshipColumns[0]}
+                                                parentPage={"referrals"}
+                                                tableInfo={referralColumns[0]}
                                                 dataList={deniedApplicationInfo}
                                                 bordered={true}
                                                 size={"small"}
-                                                loading={loading}
+                                                loading={referralsLoading}
                                                 expandable={false}
                                                 pagination={{hideOnSinglePage: true}}
                                                 currentSponsorship={deniedApplicationInfo.currentSponsorship}
@@ -370,19 +317,21 @@ export default function Sponsorships(props) {
         return (
             <LayoutContentWrapper style={{height: '100vh'}}>
                 <PageHeader>
-                    <IntlMessages id="sidebar.sponsorships" />
+                    <IntlMessages id="sidebar.referrals" />
                 </PageHeader>
                 <LayoutContent className={"ant-spin-nested-loading"}>
                     <TableWrapper
-                    loading={true}/>
+                        loading={true}/>
                 </LayoutContent>
             </LayoutContentWrapper>
         );
     }
+
 }
 
-const sortOption = {};
-class applicationsData {
+
+export const sortOption = {};
+export class applicationsData {
     constructor(size, applicationData) {
         this.size = size || 2000;
         this.datas = [];

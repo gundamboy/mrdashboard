@@ -35,6 +35,10 @@ export const SPONSORSHIP_API_PATH = () => {
     return isLocal ? "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/sponsorship-emails.php" : "/php/sponsorship-emails.php";
 }
 
+export const REFERRALS_API_PATH = () => {
+    return isLocal ? "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/referrals-emails.php" : "/php/referrals-emails.php";
+}
+
 export const compareByAlpha = (a, b) => {
     if (a.toLowerCase() > b.toLowerCase()) {
         return -1;

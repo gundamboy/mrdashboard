@@ -94,4 +94,19 @@ const filesSingleViewColumns = [
   },
 ];
 
-export {sponsorshipColumns, sponsorshipTabs, sponsorshipSingleViewColumns, filesSingleViewColumns };
+const referralTabs = [
+  {
+    title: 'Pending Referrals',
+    value: 'pending',
+  },
+  {
+    title: 'Approved Referrals',
+    value: 'approved',
+  },
+  {
+    title: 'Denied Referrals',
+    value: 'denied',
+  },
+]
+
+export {sponsorshipColumns, sponsorshipTabs, sponsorshipSingleViewColumns, filesSingleViewColumns, referralTabs };

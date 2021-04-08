@@ -6,6 +6,7 @@ import Ecommerce from '@iso/redux/ecommerce/reducer';
 import LanguageSwitcher from '@iso/redux/languageSwitcher/reducer';
 import sponsorshipsReducer from '../redux/sponsorships/reducer';
 import Scholarships from '../redux/scholarships/reducer';
+import referralsReducer from "./referrals/reducer";
 
 export default combineReducers({
   Auth,
@@ -15,4 +16,5 @@ export default combineReducers({
   LanguageSwitcher,
   sponsorshipsReducer,
   Scholarships,
+  referralsReducer
 });

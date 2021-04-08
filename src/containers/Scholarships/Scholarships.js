@@ -121,6 +121,7 @@ export default function Scholarships() {
         setSearchText("");
     };
 
+    // returns an object used for the table columns with or without default sorting based on redux state
     const getColumnData = (title, key) => {
         let columnObj = {}
 
@@ -176,6 +177,7 @@ export default function Scholarships() {
         let completedDccScholarshipsInfo = null;
         let completedEduScholarshipsInfo = null;
 
+        // array of columns for table
         const scholarshipColumnsPending = [
             {
                 columns: [
@@ -208,6 +210,7 @@ export default function Scholarships() {
             }
         ];
 
+        // array of columns for table
         const scholarshipColumnsCompleted = [
             {
                 columns: [
@@ -243,8 +246,8 @@ export default function Scholarships() {
             }
         ]
 
+        // makes the actual data the table displays
         for (let scholarship of scholarships) {
-
                 const dccApp = scholarship.dcc;
                 const eduApp = scholarship.higherEdu;
                 const approvalStatus = scholarship.admin.approvalStatus;
@@ -267,7 +270,7 @@ export default function Scholarships() {
                     });
                 }
                 // completed dcc
-                if (firebaseDates.dcc.finished) {
+                if (firebaseDates.dcc.finished && approvalStatus.dcc === "pending") {
                     completedDccScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,
@@ -294,7 +297,7 @@ export default function Scholarships() {
                     });
                 }
                 // completed edu
-                if (firebaseDates.higherEdu.finished) {
+                if (firebaseDates.higherEdu.finished && approvalStatus.higherEdu === "pending") {
                     completedEduScholarships.push({
                         "id": scholarship.id,
                         "key": scholarship.id,
@@ -369,13 +372,10 @@ export default function Scholarships() {
         // sort by date by default
         pendingDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         pendingEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
-
         completedDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         completedEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
-
         approvedScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         deniedScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
-
         pendingDccScholarshipsInfo = new applicationsData(pendingDccScholarships.length, pendingDccScholarships);
         pendingEduScholarshipsInfo = new applicationsData(pendingEduScholarships.length, pendingEduScholarships);
         completedDccScholarshipsInfo = new applicationsData(completedDccScholarships.length, completedDccScholarships);

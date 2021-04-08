@@ -100,7 +100,11 @@ const actions = {
     scholarshipsEmailError: (error, fbError) => ({
         type: actions.SEND_SCHOLARSHIP_EMAIL_ERROR,
         error: error,
-        fbError: fbError
+        scholarshipFirebaseError: fbError
+    }),
+
+    scholarshipsEmailSuccess: () => ({
+        type: actions.SEND_SCHOLARSHIP_EMAIL_SUCCESS,
     }),
 }
 

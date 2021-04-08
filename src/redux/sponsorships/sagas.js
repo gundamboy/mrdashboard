@@ -1,17 +1,16 @@
 import { all, takeEvery, put, call, delay } from 'redux-saga/effects';
 import sponsorshipActions from './actions';
-import { rsfSponsorships, dbSponsorships, sponsorshipsStorage } from '@iso/lib/firebase/firebase';
+import {rsfProjects, dbProjects, projectsStorage } from '@iso/lib/firebase/firebase';
 import axios from 'axios';
 import * as firebase from "firebase";
-import actions from "@iso/redux/auth/actions";
 import {makeId} from "@iso/lib/helpers/utility";
 import {SPONSORSHIP_API_PATH} from "../../helpers/shared";
 
 // gets all the sponsorships for the dashboard tables
 function* initSponsorshipApplications() {
     try {
-        const collectionRef = dbSponsorships.collection("sponsorships");
-        const snapshots = yield call(rsfSponsorships.firestore.getCollection, collectionRef);
+        const collectionRef = dbProjects.collection("sponsorships");
+        const snapshots = yield call(rsfProjects.firestore.getCollection, collectionRef);
         const applications = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
 
         yield put({
@@ -34,7 +33,7 @@ function* getSingleApplication(documentId) {
         let appError = false;
 
         if (documentId) {
-            const getApplication = dbSponsorships.collection("sponsorships").doc(documentId.payload);
+            const getApplication = dbProjects.collection("sponsorships").doc(documentId.payload);
 
             const fetchApplication = yield call(() => {
                 return new Promise((resolve, reject) => {
@@ -44,7 +43,7 @@ function* getSingleApplication(documentId) {
                                 const app = doc.data();
 
                                 if(app.meta.hasFiles) {
-                                    const storageRef = sponsorshipsStorage.ref();
+                                    const storageRef = projectsStorage.ref();
                                     const storageItems = storageRef.child(documentId.payload);
                                     let fileInfo = {};
 
@@ -124,7 +123,7 @@ function* notifyAppUpdated(updatedApp) {
 // initiates the sponsorship update process
 function* updateApplication(application) {
     try {
-        const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
+        const collectionRef = dbProjects.collection("sponsorships").doc(application.payload.id);
         let updatedApp = {};
         let applicationUpdated = false;
         const appAdmin = application.payload.admin;
@@ -138,7 +137,7 @@ function* updateApplication(application) {
                     "admin.itemsApproved": appAdmin.itemsApproved.length ? appAdmin.itemsApproved : "",
                     "admin.notes": appAdmin.notes,
                 }).then(() => {
-                    const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
+                    const collectionRef = dbProjects.collection("sponsorships").doc(application.payload.id);
                     collectionRef.get().then((doc) => {
                         updatedApp = doc.data();
                         applicationUpdated = true;
@@ -190,7 +189,7 @@ function* sendEmail(application) {
             })
         });
 
-        const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
+        const collectionRef = dbProjects.collection("sponsorships").doc(application.payload.id);
         let applicationUpdated = false;
         let firebaseError = false;
 
@@ -203,7 +202,7 @@ function* sendEmail(application) {
                         "admin.notificationEmailed": data.status,
                         "admin.notificationEmailedDate": data.status ? firebase.firestore.Timestamp.fromDate(new Date()) : "",
                     }).then(() => {
-                        const collectionRef = dbSponsorships.collection("sponsorships").doc(application.payload.id);
+                        const collectionRef = dbProjects.collection("sponsorships").doc(application.payload.id);
                         collectionRef.get().then((doc) => {
                             updatedApp = doc.data();
                             applicationUpdated = true;
@@ -247,7 +246,7 @@ function* sendEmail(application) {
 // deletes a single sponsorship
 function* deleteSponsorship(data) {
     try {
-        const collectionRef = dbSponsorships.collection("sponsorships").doc(data.id);
+        const collectionRef = dbProjects.collection("sponsorships").doc(data.id);
         let deleted = false;
         let deleteError = false;
 
@@ -342,7 +341,7 @@ function* addDummyData(data) {
 
         const insertDummyData = yield call(() => {
             return new Promise((resolve, reject) => {
-                dbSponsorships.collection("sponsorships")
+                dbProjects.collection("sponsorships")
                     .doc(randomId)
                     .set(dummyData)
                     .then(() => {

@@ -563,9 +563,9 @@ export default function (props) {
                                 showIcon
                             />
                             }
-                            {props.fbError &&
+                            {props.scholarshipFirebaseError &&
                             <Alert
-                                className={props.fbError ? "email-alert fb-error show" : "email-alert fb-error"}
+                                className={props.scholarshipFirebaseError ? "email-alert fb-error show" : "email-alert fb-error"}
                                 message="Error"
                                 description="There was an error updating the applicant data in firebase."
                                 type="error"

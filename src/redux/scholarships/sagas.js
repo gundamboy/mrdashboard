@@ -4,20 +4,18 @@ import {db, rsf, storageRef} from '@iso/lib/firebase/firebase';
 import axios from 'axios';
 import * as firebase from "firebase";
 import {getCurrentYear, SCHOLARSHIP_API_PATH} from "../../helpers/shared";
-import {cloneScholarshipObjects} from "../../helpers/cloneScholarshipsToTestCollection";
-import {fixGradesObjects} from "../../helpers/fixGradeObjects";
 
 const currentYear = getCurrentYear().toString();
 
-const getScholarshipTestRef = (documentId) => {
+function getScholarshipTestRef(documentId) {
     return db.collection("scholarshipsTestCollection").doc(currentYear).collection("applications").doc(documentId);
 }
 
-const getScholarshipRef = (documentId) => {
+function getScholarshipRef (documentId) {
     return db.collection("scholarships").doc(currentYear).collection("applications").doc(documentId);
 }
 
-const getApplicationsRef = () => {
+function getApplicationsRef () {
     return db.collection("scholarships").doc(currentYear).collection("applications");
 }
 
@@ -55,10 +53,10 @@ function* getSingleScholarship(documentId) {
         let scholarship = null;
 
         if(documentId) {
-            const scholarshipRef = getScholarshipRef(documentId.payload);
+            const collectionRef = getScholarshipRef(documentId.payload);
             const fetchScholarship = yield call(() => {
                 return new Promise((resolve, reject) => {
-                    scholarshipRef.get()
+                    collectionRef.get()
                         .then((doc) => {
                             if(doc.exists) {
                                 scholarship = doc.data();
@@ -107,14 +105,14 @@ function* updateGrades(payload) {
     try {
         const documentId = payload.documentId;
         const grades = payload.grades;
-        const getScholarshipRef = getSingleScholarship(documentId);
+        const collectionRef = getScholarshipRef(documentId);
 
         let updateDB = {};
         updateDB["".concat("admin", ".").concat("grades")] = grades;
 
         const updateGrades = yield call(() => {
            return new Promise((resolve, reject) => {
-               getScholarshipRef.update(updateDB)
+               collectionRef.update(updateDB)
                    .then(() => {})
                    .catch((error) => {
                    console.log("error updating application in firebase:", error);
@@ -123,7 +121,7 @@ function* updateGrades(payload) {
            })
         });
     } catch (error) {
-
+        console.log("updateGrades error:", error);
     }
 }
 
@@ -131,7 +129,7 @@ function* updateNotes(payload) {
     try {
         const documentId = payload.documentId;
         const notes = payload.notes;
-        const getScholarshipRef = getSingleScholarship(documentId);
+        const collectionRef = getScholarshipRef(documentId);
 
         let updateDB = {};
         updateDB["".concat("admin", ".").concat("notes")] = notes;
@@ -139,7 +137,7 @@ function* updateNotes(payload) {
 
         const updateNotes = yield call(() => {
             return new Promise((resolve, reject) => {
-                getScholarshipRef.update(updateDB)
+                collectionRef.update(updateDB)
                     .then(() => {
                         updated = true;
                     })
@@ -159,28 +157,30 @@ function* updateNotes(payload) {
 
 function* updateApproval(payload) {
     try {
+        console.log("updateApproval")
         const documentId = payload.documentId;
         const status = payload.approval;
         const appType = payload.appType;
-        const getScholarshipRef = getSingleScholarship(documentId);
+        const collectionRef = getScholarshipRef(documentId);
 
         let updateDB = {};
         updateDB["".concat("admin", ".", "approvalStatus", ".", appType)] = status;
         let updated = false;
 
-        const updateNotes = yield call(() => {
+        const updateApp = yield call(() => {
             return new Promise((resolve, reject) => {
-                getScholarshipRef.update(updateDB)
+                collectionRef.update(updateDB)
                     .then(() => {
                         updated = true;
                     })
                     .catch((error) => {
                         console.log("error updating application in firebase:", error);
                     });
-                resolve(updateNotes);
+                resolve(updateApp);
             })
         });
     } catch (error) {
+        console.log("updateApproval error:", error);
         yield put({
             type: scholarshipsActions.UPDATE_SCHOLARSHIP_APPROVAL_FAILURE,
             approvalError: true
@@ -189,10 +189,12 @@ function* updateApproval(payload) {
 }
 
 // posts data to the php to send an applicant an email
-function email(userEmail, emailArray, name, approvalStatus) {
+function* email(userEmail, emailArray, name, approvalStatus) {
     const API_PATH = SCHOLARSHIP_API_PATH();
 
-    return axios({
+    let error = false;
+
+    const send = () => axios({
         method: 'post',
         url: `${API_PATH}`,
         headers: { 'content-type': 'application/json' },
@@ -203,8 +205,15 @@ function email(userEmail, emailArray, name, approvalStatus) {
             name: name
         }
     }).catch((error) => {
+        error = true;
         console.log("axios error:", error);
     });
+
+    if(error) {
+        console.log("php error");
+    } else {
+        return send;
+    }
 }
 
 function* sendEmail(payload) {
@@ -221,7 +230,9 @@ function* sendEmail(payload) {
             })
         });
 
-        console.log("email data:", data);
+        if(!data) {
+            yield put(scholarshipsActions.scholarshipsEmailError(true, false));
+        }
 
         const collectionRef = getSingleScholarship(userId);
         let applicationUpdated = false;
@@ -263,6 +274,11 @@ function* sendEmail(payload) {
                     }
                 });
             });
+
+            if(firebaseError) {
+                yield put(scholarshipsActions.scholarshipsEmailError(false, true));
+            }
+
         } else {
             yield put(scholarshipsActions.scholarshipsEmailError(true, false));
         }
