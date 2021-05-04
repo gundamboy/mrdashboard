@@ -1,5 +1,4 @@
 import React, {useState, useCallback, useRef} from 'react';
-import {Redirect} from "react-router";
 import ReactDomServer from 'react-dom/server';
 import { useDispatch } from 'react-redux';
 import Box from '@iso/components/utility/box';
@@ -10,7 +9,6 @@ import {Alert, Row, Col, Button, Form, Select, Input, Space, Typography, Divider
 import {MinusCircleOutlined, PlusOutlined, UnderlineOutlined} from '@ant-design/icons';
 import {ApplicationSection} from "./Sponsorships.styles";
 import sponsorshipActions from "../../redux/sponsorships/actions";
-import sponsorshipsReducer from "../../redux/sponsorships/reducer";
 import * as firebase from "firebase";
 import {Editor, EditorState, RichUtils, ContentState, convertFromHTML} from 'draft-js';
 import 'draft-js/dist/Draft.css';

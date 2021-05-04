@@ -50,6 +50,7 @@ export default function SingleSponsorship() {
                 appDeleted={appDeleted}
                 redirectPath={redirectPath}
                 activeTab={activeTab}
+                userId={sponsorshipId}
             />
         )
     } else {

@@ -16,11 +16,10 @@ import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
 import {AdvancedOptions, AdvancedOptionsWrapper} from "./Sponsorships.styles";
 import {ExportSponsorships} from "../../helpers/exportSponsorships";
-import {compareByAlpha, formattedDate} from "../../helpers/shared";
+import {compareByAlpha, formattedDate, production} from "../../helpers/shared";
 
 
-export default function Sponsorships(props) {
-    const production = true;
+export default function Sponsorships() {
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [];
     let Component = TableViews.SortView;
     const { results, loading, error, appDeleted,

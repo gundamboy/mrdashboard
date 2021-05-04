@@ -7,10 +7,9 @@ import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import LayoutContentWrapper from '@iso/components/utility/layoutWrapper';
 import scholarshipsActions from "../../redux/scholarships/actions";
 import ViewScholarship from "./ViewScholarship";
-import {Alert} from "antd";
 
 const {
-    fetchSingleApplicationState
+    fetchSingleApplicationStart
 } = scholarshipsActions;
 
 export default function SingleScholarship() {
@@ -25,7 +24,7 @@ export default function SingleScholarship() {
 
     // this is like componentDidMount but its for a function component and not a class
     useEffect(() => {
-        dispatch(fetchSingleApplicationState(scholarshipId));
+        dispatch(fetchSingleApplicationStart(scholarshipId));
     }, [dispatch]);
 
     if(scholarshipDeleted) {
@@ -35,8 +34,6 @@ export default function SingleScholarship() {
     if(currentScholarship) {
         return (
             <>
-                <Alert message="This is a preview and is not production ready." type="error" />
-
                 <ViewScholarship
                     currentScholarship={currentScholarship}
                     scholarshipType={scholarshipType}
@@ -48,6 +45,7 @@ export default function SingleScholarship() {
                     scholarshipDeleted={scholarshipDeleted}
                     emailError={scholarshipEmailError}
                     scholarshipFirebaseError={scholarshipFirebaseError}
+                    notes={currentScholarship.admin.notes}
                 />
             </>
         )

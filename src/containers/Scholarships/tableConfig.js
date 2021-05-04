@@ -18,12 +18,24 @@ const scholarshipTabs = [
         value: 'completedEdu',
     },
     {
-        title: 'Approved Scholarships ',
-        value: 'approved',
+        title: 'Awarded DCC Scholarships ',
+        value: 'approvedDcc',
     },
     {
-        title: 'Denied Scholarships',
-        value: 'denied',
+        title: 'Awarded Higher Edu Scholarships ',
+        value: 'approvedEdu',
+    },
+    {
+        title: 'Denied DCC Scholarships',
+        value: 'deniedDcc',
+    },
+    {
+        title: 'Denied Higher Edu Scholarships',
+        value: 'deniedEdu',
+    },
+    {
+        title: 'Ineligible',
+        value: 'ineligible',
     },
 ]
 

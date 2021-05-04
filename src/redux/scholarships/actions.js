@@ -54,9 +54,9 @@ const actions = {
         payload: scholarships
     }),
 
-    fetchSingleApplicationState: sponsorshipId => ({
+    fetchSingleApplicationStart: scholarshipId => ({
         type: actions.FETCH_SINGLE_SCHOLARSHIP_START,
-        payload: sponsorshipId,
+        payload: scholarshipId,
     }),
     fetchSingleScholarship: scholarship => ({
         type: actions.FETCH_SINGLE_SCHOLARSHIP_SUCCESS,

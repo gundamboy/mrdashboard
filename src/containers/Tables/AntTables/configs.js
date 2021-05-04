@@ -2,7 +2,7 @@ import React from 'react';
 import {Link} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
 
-const sponsorshipTabs = [
+export const sponsorshipTabs = [
   {
     title: 'Pending Sponsorships',
     value: 'pending',
@@ -17,7 +17,7 @@ const sponsorshipTabs = [
   },
 ]
 
-const sponsorshipColumns = [
+export const sponsorshipColumns = [
   {
     columns: [
       {
@@ -67,7 +67,7 @@ const sponsorshipColumns = [
   }
 ];
 
-const sponsorshipSingleViewColumns = [
+export const sponsorshipSingleViewColumns = [
   {
     title: "Questions",
     key: "question",
@@ -84,7 +84,7 @@ const sponsorshipSingleViewColumns = [
   }
 ];
 
-const filesSingleViewColumns = [
+export const filesSingleViewColumns = [
   {
     title: "Files",
     key: "files",
@@ -94,7 +94,7 @@ const filesSingleViewColumns = [
   },
 ];
 
-const referralTabs = [
+export const referralTabs = [
   {
     title: 'Pending Referrals',
     value: 'pending',
@@ -109,4 +109,17 @@ const referralTabs = [
   },
 ]
 
-export {sponsorshipColumns, sponsorshipTabs, sponsorshipSingleViewColumns, filesSingleViewColumns, referralTabs };
+export const grantTabs = [
+  {
+    title: 'Pending Grants',
+    value: 'pending',
+  },
+  {
+    title: 'Approved Grants',
+    value: 'approved',
+  },
+  {
+    title: 'Denied Grants',
+    value: 'denied',
+  },
+]

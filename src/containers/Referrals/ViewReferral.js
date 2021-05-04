@@ -5,15 +5,11 @@ import Box from '@iso/components/utility/box';
 import LayoutWrapper from '@iso/components/utility/layoutWrapper';
 import TableWrapper from "@iso/containers/Tables/AntTables/AntTables.styles";
 import referralActions from "../../redux/referrals/actions";
-import referralsReducer from "../../redux/referrals/reducer";
-import * as firebase from "firebase";
 import {Editor, EditorState, RichUtils, ContentState, convertFromHTML} from 'draft-js';
 import 'draft-js/dist/Draft.css';
-import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
 import {EditorWrapper, ReferralSection, StatusHeader} from "./Referrals.styles";
 import {formattedDate} from "../../helpers/shared";
-import scholarshipActions from "../../redux/scholarships/actions";
 import {Alert, Button, Col, Form, Row, Select, Space, Typography, Input, Table} from "antd";
 import {EditorControls} from "../Scholarships/Scholarships.styles";
 
@@ -84,7 +80,7 @@ export default function (props) {
             // denied
             return (
                 <>
-                    <p>Thank you for submitting a referral to Mid-Rivers Communication referral program. Unfortunately, your referral did not qualify to receive a credit. If you would like to referral additional for a chance to earn referral credits, please go to https://www.midrivers.com/internet/.</p>
+                    <p>Thank you for joining Mid-Rivers Communications’ referral program. Unfortunately, your referral did not meet the necessary qualifications  to receive a credit. If you would like to refer additional people for a chance to earn referral credits, please go to https://www.midrivers.com/internet/</p>
                 </>
             )
         }

@@ -7,6 +7,7 @@ import LanguageSwitcher from '@iso/redux/languageSwitcher/reducer';
 import sponsorshipsReducer from '../redux/sponsorships/reducer';
 import Scholarships from '../redux/scholarships/reducer';
 import referralsReducer from "./referrals/reducer";
+import grantsReducer from "./grants/reducer";
 
 export default combineReducers({
   Auth,
@@ -16,5 +17,6 @@ export default combineReducers({
   LanguageSwitcher,
   sponsorshipsReducer,
   Scholarships,
-  referralsReducer
+  referralsReducer,
+  grantsReducer
 });

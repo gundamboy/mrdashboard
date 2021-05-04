@@ -32,6 +32,14 @@ const routes = [
     path: 'referrals',
     component: lazy(() => import('../Referrals/Referrals')),
   },
+  {
+    path: 'grants/:grantId',
+    component: lazy(() => import('../Grants/SingleGrant')),
+  },
+  {
+    path: 'grants',
+    component: lazy(() => import('../Grants/Grants')),
+  },
 ];
 
 export default function AppRouter() {

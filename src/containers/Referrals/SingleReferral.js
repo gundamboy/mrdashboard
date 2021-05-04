@@ -6,7 +6,6 @@ import referralActions from "../../redux/referrals/actions";
 import LayoutContent from "@iso/components/utility/layoutContent";
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import LayoutContentWrapper from '@iso/components/utility/layoutWrapper';
-import {Redirect} from "react-router";
 
 export default function SingleReferral() {
     const {currentReferral, referralsLoading, referralsActiveTab,

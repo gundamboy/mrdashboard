@@ -5,7 +5,7 @@ import {useDispatch, useSelector} from "react-redux";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
 import {scholarshipTabs} from "./tableConfig";
-import {Space, Spin, Input, Tooltip, Alert} from "antd";
+import {Space, Input, Tooltip} from "antd";
 import {SearchOutlined, SettingFilled, FileExcelOutlined} from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
@@ -163,6 +163,18 @@ export default function Scholarships() {
         return columnObj;
     }
 
+    const getTotalScore = (points) => {
+        let total = 0;
+        const pointKeys = Object.keys(points);
+
+        for (let i = 0; i < pointKeys.length; i++) {
+            total += points[pointKeys[i]];
+        }
+
+        return total;
+
+    }
+
     if(scholarships) {
         let pendingDccScholarships = [];
         let pendingEduScholarships = [];
@@ -170,12 +182,24 @@ export default function Scholarships() {
         let completedEduScholarships = [];
         let approvedScholarships = [];
         let deniedScholarships = [];
+        let ineligibleScholarships = [];
         let pendingDccScholarshipsInfo = null;
         let pendingEduScholarshipsInfo = null;
         let approvedScholarshipsInfo = null;
         let deniedScholarshipsInfo = null;
         let completedDccScholarshipsInfo = null;
         let completedEduScholarshipsInfo = null;
+
+        let deniedDccScholarships = [];
+        let deniedEduScholarships = [];
+        let approvedDccScholarships = [];
+        let approvedEduScholarships = [];
+
+        let approvedDccScholarshipsInfo = [];
+        let deniedDccScholarshipsInfo = [];
+        let approvedEduScholarshipsInfo = [];
+        let deniedEduScholarshipsInfo = [];
+        let ineligibleScholarshipsInfo = [];
 
         // array of columns for table
         const scholarshipColumnsPending = [
@@ -189,9 +213,6 @@ export default function Scholarships() {
                     },
                     {
                         ...getColumnData("City", "city")
-                    },
-                    {
-                        ...getColumnData("Started", "started")
                     },
                     {
                         title: "",
@@ -224,10 +245,71 @@ export default function Scholarships() {
                         ...getColumnData("City", "city")
                     },
                     {
-                        ...getColumnData("Started", "started")
+                        title: "",
+                        key: "appLink",
+                        dataIndex: "appLink",
+                        width: "6%",
+                        render: url => (
+                            <div className="">
+                                <Link to={url}>
+                                    <Button className="applicationButton" color="primary">View</Button>
+                                </Link>
+                            </div>
+                        )
+                    }
+                ]
+            }
+        ]
+
+        const scholarshipColumnsApproveDeny = [
+            {
+                columns: [
+                    {
+                        ...getColumnData("Name", "name")
                     },
                     {
-                        ...getColumnData("Finished", "finished")
+                        ...getColumnData("Email", "email")
+                    },
+                    {
+                        ...getColumnData("City", "city")
+                    },
+                    {
+                        ...getColumnData("App Type", "appType")
+                    },
+                    {
+                        ...getColumnData("Score", "score")
+                    },
+                    {
+                        title: "",
+                        key: "appLink",
+                        dataIndex: "appLink",
+                        width: "6%",
+                        render: url => (
+                            <div className="">
+                                <Link to={url}>
+                                    <Button className="applicationButton" color="primary">View</Button>
+                                </Link>
+                            </div>
+                        )
+                    }
+                ]
+            }
+        ]
+
+        const scholarshipColumnsIneligible = [
+            {
+                columns: [
+                    {
+                        ...getColumnData("Name", "name")
+                    },
+                    {
+                        ...getColumnData("Email", "email")
+                    },
+                    {
+                        ...getColumnData("City", "city")
+                    },
+                    {
+                        ...getColumnData("App Type", "appType")
                     },
                     {
                         title: "",
@@ -248,140 +330,239 @@ export default function Scholarships() {
 
         // makes the actual data the table displays
         for (let scholarship of scholarships) {
-                const dccApp = scholarship.dcc;
-                const eduApp = scholarship.higherEdu;
-                const approvalStatus = scholarship.admin.approvalStatus;
-                const firebaseDates = scholarship.dates;
-                const dccStartDate = firebaseDates.dcc.started !== "" ? formattedDate(firebaseDates.dcc.started.toDate()) : "";
-                const eduStartDate = firebaseDates.higherEdu.started !== "" ? formattedDate(firebaseDates.higherEdu.started.toDate()) : "";
-                const dccFinishedDate = firebaseDates.dcc.finished !== "" ? formattedDate(firebaseDates.dcc.finished.toDate()) : "";
-                const eduFinishedDate = firebaseDates.higherEdu.finished !== "" ? formattedDate(firebaseDates.higherEdu.finished.toDate()) : "";
-                // pending dcc
-                if (!firebaseDates.dcc.finished && firebaseDates.dcc.started && approvalStatus.dcc === "pending") {
-                    pendingDccScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": dccApp.name,
-                        "email": dccApp.email,
-                        "city": dccApp.city,
-                        "started": dccStartDate,
-                        "appLink": `${match.path}/${scholarship.id}/dcc`,
-                        "currentScholarship": scholarship
-                    });
-                }
-                // completed dcc
-                if (firebaseDates.dcc.finished && approvalStatus.dcc === "pending") {
-                    completedDccScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": dccApp.name,
-                        "email": dccApp.email,
-                        "city": dccApp.city,
-                        "started": dccFinishedDate,
-                        "finished": dccFinishedDate,
-                        "appLink": `${match.path}/${scholarship.id}/dcc`,
-                        "currentScholarship": scholarship
-                    });
-                }
-                // pending edu
-                if (!firebaseDates.higherEdu.finished && firebaseDates.higherEdu.started && approvalStatus.higherEdu === "pending") {
-                    pendingEduScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": eduApp.name,
-                        "email": eduApp.email,
-                        "city": eduApp.city,
-                        "started": eduStartDate,
-                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                        "currentScholarship": scholarship
-                    });
-                }
-                // completed edu
-                if (firebaseDates.higherEdu.finished && approvalStatus.higherEdu === "pending") {
-                    completedEduScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": eduApp.name,
-                        "email": eduApp.email,
-                        "city": eduApp.city,
-                        "started": eduFinishedDate,
-                        "finished": eduFinishedDate,
-                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                        "currentScholarship": scholarship
-                    });
-                }
-                // approved
-                if (approvalStatus.dcc === "approved") {
-                    approvedScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": dccApp.name,
-                        "email": dccApp.email,
-                        "city": dccApp.city,
-                        "started": dccFinishedDate,
-                        "finished": dccFinishedDate,
-                        "appLink": `${match.path}/${scholarship.id}/dcc`,
-                        "currentScholarship": scholarship
-                    });
-                }
-                // approved
-                if (approvalStatus.higherEdu === "approved") {
-                    approvedScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": eduApp.name,
-                        "email": eduApp.email,
-                        "city": eduApp.city,
-                        "started": eduFinishedDate,
-                        "finished": eduFinishedDate,
-                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                        "currentScholarship": scholarship
-                    });
-                }
-                // denied
-                if (approvalStatus.dcc === "denied") {
-                    deniedScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": dccApp.name,
-                        "email": dccApp.email,
-                        "city": dccApp.city,
-                        "started": dccFinishedDate,
-                        "finished": dccFinishedDate,
-                        "appLink": `${match.path}/${scholarship.id}/dcc`,
-                        "currentScholarship": scholarship
-                    });
-                }
-                // denied
-                if (approvalStatus.higherEdu === "denied") {
-                    deniedScholarships.push({
-                        "id": scholarship.id,
-                        "key": scholarship.id,
-                        "name": eduApp.name,
-                        "email": eduApp.email,
-                        "city": eduApp.city,
-                        "started": eduFinishedDate,
-                        "finished": eduFinishedDate,
-                        "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                        "currentScholarship": scholarship
-                    });
-                }
+            const dccApp = scholarship.dcc;
+            const eduApp = scholarship.higherEdu;
+            const approvalStatus = scholarship.admin.approvalStatus;
+            const firebaseDates = scholarship.dates;
+            const dccStartDate = firebaseDates.dcc.started !== "" ? formattedDate(firebaseDates.dcc.started.toDate()) : "";
+            const eduStartDate = firebaseDates.higherEdu.started !== "" ? formattedDate(firebaseDates.higherEdu.started.toDate()) : "";
+            const dccFinishedDate = firebaseDates.dcc.finished !== "" ? formattedDate(firebaseDates.dcc.finished.toDate()) : "";
+            const eduFinishedDate = firebaseDates.higherEdu.finished !== "" ? formattedDate(firebaseDates.higherEdu.finished.toDate()) : "";
+
+            // pending dcc
+            if (!firebaseDates.dcc.finished && firebaseDates.dcc.started && approvalStatus.dcc === "pending") {
+                pendingDccScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "started": dccStartDate,
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
             }
+            // completed dcc
+            if (firebaseDates.dcc.finished && approvalStatus.dcc === "pending") {
+                completedDccScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "started": dccFinishedDate,
+                    "finished": dccFinishedDate,
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
+            }
+            // pending edu
+            if (!firebaseDates.higherEdu.finished && firebaseDates.higherEdu.started && approvalStatus.higherEdu === "pending") {
+                pendingEduScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "started": eduStartDate,
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                    "currentScholarship": scholarship
+                });
+            }
+            // completed edu
+            if (firebaseDates.higherEdu.finished && approvalStatus.higherEdu === "pending") {
+                completedEduScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "started": eduFinishedDate,
+                    "finished": eduFinishedDate,
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                    "currentScholarship": scholarship
+                });
+            }
+
+                //ineligible
+            if(approvalStatus.dcc === "ineligible") {
+                ineligibleScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "appType": "DCC",
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
+            }
+
+            if(approvalStatus.higherEdu === "ineligible") {
+                ineligibleScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "appType": "DCC",
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
+            }
+
+            // approved
+            if (approvalStatus.dcc === "approved") {
+                approvedScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "appType": "DCC",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
+
+                approvedDccScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "appType": "DCC",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
+            }
+
+            if (approvalStatus.higherEdu === "approved") {
+                approvedScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "appType": "Higher Edu",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                    "currentScholarship": scholarship
+                });
+
+                approvedEduScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "appType": "Higher Edu",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                    "currentScholarship": scholarship
+                });
+            }
+
+            // denied
+            if (approvalStatus.dcc === "denied") {
+                deniedScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "appType": "DCC",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
+
+                deniedDccScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "appType": "DCC",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship
+                });
+            }
+
+            if (approvalStatus.higherEdu === "denied") {
+                deniedScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "appType": "Higher Edu",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                    "currentScholarship": scholarship
+                });
+
+                deniedEduScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "appType": "Higher Edu",
+                    "score": getTotalScore(scholarship.admin.grades.points),
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                    "currentScholarship": scholarship
+                });
+            }
+        }
 
 
         // sort by date by default
         pendingDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         pendingEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
         completedDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         completedEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
         approvedScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         deniedScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
+        approvedDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        deniedDccScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
+        approvedEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        deniedEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
+        ineligibleScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
         pendingDccScholarshipsInfo = new applicationsData(pendingDccScholarships.length, pendingDccScholarships);
         pendingEduScholarshipsInfo = new applicationsData(pendingEduScholarships.length, pendingEduScholarships);
+
         completedDccScholarshipsInfo = new applicationsData(completedDccScholarships.length, completedDccScholarships);
         completedEduScholarshipsInfo = new applicationsData(completedEduScholarships.length, completedEduScholarships);
+
         approvedScholarshipsInfo = new applicationsData(approvedScholarships.length, approvedScholarships);
         deniedScholarshipsInfo = new applicationsData(deniedScholarships.length, deniedScholarships);
+
+        approvedDccScholarshipsInfo = new applicationsData(approvedDccScholarships.length, approvedDccScholarships);
+        deniedDccScholarshipsInfo = new applicationsData(deniedDccScholarships.length, deniedDccScholarships);
+
+        approvedEduScholarshipsInfo = new applicationsData(approvedEduScholarships.length, approvedEduScholarships);
+        deniedEduScholarshipsInfo = new applicationsData(deniedEduScholarships.length, deniedEduScholarships);
+
+        ineligibleScholarshipsInfo = new applicationsData(ineligibleScholarships.length, ineligibleScholarships);
 
         return (
             <LayoutContentWrapper style={{height: '100%'}}>
@@ -390,15 +571,12 @@ export default function Scholarships() {
                 </PageHeader>
 
                 <LayoutContent ref={target}>
-
-                    <Alert message="This is a preview and is not production ready." type="error" />
-
                     <AdvancedOptionsWrapper className="advanced-options-wrapper">
                         <AdvancedOptions className={"advanced-options " + showOptionsClass}>
                             <div className="export-buttons" style={{textAlign: 'right'}}>
                                 <Button type="link" onClick={(e) => {ExportScholarships(pendingDccScholarshipsInfo, pendingEduScholarshipsInfo,
                                     completedDccScholarshipsInfo, completedEduScholarshipsInfo,
-                                    approvedScholarshipsInfo, deniedScholarshipsInfo)}}>Export Scholarships</Button>
+                                    approvedDccScholarshipsInfo, deniedDccScholarshipsInfo, approvedEduScholarshipsInfo, deniedEduScholarshipsInfo )}}>Export Scholarships</Button>
                             </div>
                         </AdvancedOptions>
                         <div className="options" style={{textAlign: "right"}}>
@@ -518,15 +696,15 @@ export default function Scholarships() {
                                 }
                             }
 
-                            if(tab.value === 'approved') {
-                                if(approvedScholarships.length) {
+                            if(tab.value === 'approvedDcc') {
+                                if(approvedDccScholarships.length) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
                                                 parentPage={"scholarships"}
                                                 currentTab={tab.value}
-                                                tableInfo={scholarshipColumnsCompleted[0]}
-                                                dataList={approvedScholarshipsInfo}
+                                                tableInfo={scholarshipColumnsApproveDeny[0]}
+                                                dataList={approvedDccScholarshipsInfo}
                                                 bordered={true}
                                                 size={"small"}
                                                 loading={loading}
@@ -545,21 +723,48 @@ export default function Scholarships() {
                                 }
                             }
 
-                            if(tab.value === 'denied') {
-                                if(deniedScholarships.length) {
+                            if(tab.value === 'approvedEdu') {
+                                if(approvedEduScholarships.length) {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <Component
                                                 parentPage={"scholarships"}
                                                 currentTab={tab.value}
-                                                tableInfo={scholarshipColumnsCompleted[0]}
-                                                dataList={deniedScholarshipsInfo}
+                                                tableInfo={scholarshipColumnsApproveDeny[0]}
+                                                dataList={approvedEduScholarshipsInfo}
                                                 bordered={true}
                                                 size={"small"}
                                                 loading={loading}
                                                 expandable={false}
                                                 pagination={{hideOnSinglePage: true}}
-                                                currentScholarship={deniedScholarshipsInfo.currentScholarship}
+                                                currentScholarship={approvedScholarshipsInfo.currentScholarship}
+                                            />
+                                        </TabPane>
+                                    )
+                                }  else {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <p>No Approved Applications at this time.</p>
+                                        </TabPane>
+                                    )
+                                }
+                            }
+
+                            if(tab.value === 'deniedDcc') {
+                                if(deniedDccScholarships.length) {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <Component
+                                                parentPage={"scholarships"}
+                                                currentTab={tab.value}
+                                                tableInfo={scholarshipColumnsApproveDeny[0]}
+                                                dataList={deniedDccScholarshipsInfo}
+                                                bordered={true}
+                                                size={"small"}
+                                                loading={loading}
+                                                expandable={false}
+                                                pagination={{hideOnSinglePage: true}}
+                                                currentScholarship={deniedDccScholarshipsInfo.currentScholarship}
                                             />
                                         </TabPane>
                                     )
@@ -567,6 +772,59 @@ export default function Scholarships() {
                                     return (
                                         <TabPane tab={tab.title} key={tab.value}>
                                             <p>No Denied Applications at this time.</p>
+                                        </TabPane>
+                                    )
+                                }
+                            }
+
+                            if(tab.value === 'deniedEdu') {
+                                if(deniedEduScholarships.length) {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <Component
+                                                parentPage={"scholarships"}
+                                                currentTab={tab.value}
+                                                tableInfo={scholarshipColumnsApproveDeny[0]}
+                                                dataList={deniedEduScholarshipsInfo}
+                                                bordered={true}
+                                                size={"small"}
+                                                loading={loading}
+                                                expandable={false}
+                                                pagination={{hideOnSinglePage: true}}
+                                                currentScholarship={deniedEduScholarshipsInfo.currentScholarship}
+                                            />
+                                        </TabPane>
+                                    )
+                                }  else {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <p>No Denied Applications at this time.</p>
+                                        </TabPane>
+                                    )
+                                }
+                            }
+
+                            if(tab.value === 'ineligible') {
+                                if(ineligibleScholarships.length) {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <Component
+                                                parentPage={"scholarships"}
+                                                tableInfo={scholarshipColumnsIneligible[0]}
+                                                dataList={ineligibleScholarshipsInfo}
+                                                bordered={true}
+                                                size={"small"}
+                                                loading={loading}
+                                                expandable={false}
+                                                pagination={{hideOnSinglePage: true}}
+                                                currentScholarship={ineligibleScholarshipsInfo.currentScholarship}
+                                            />
+                                        </TabPane>
+                                    )
+                                }  else {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <p>No ineligible applications at this time.</p>
                                         </TabPane>
                                     )
                                 }

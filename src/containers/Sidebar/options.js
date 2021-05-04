@@ -1,5 +1,10 @@
 const options = [
   {
+    key: 'grants',
+    label: 'sidebar.grants',
+    leftIcon: 'ion-document',
+  },
+    {
     key: 'referrals',
     label: 'sidebar.referrals',
     leftIcon: 'ion-document',

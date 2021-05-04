@@ -4,8 +4,8 @@ import LayoutContent from '@iso/components/utility/layoutContent';
 import {useDispatch, useSelector} from "react-redux";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
-import {Space, Spin, Input, Tooltip } from "antd";
-import {SearchOutlined, SettingFilled, FileExcelOutlined} from '@ant-design/icons';
+import {Space, Input } from "antd";
+import {SearchOutlined} from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
 import {Link, useRouteMatch} from "react-router-dom";
@@ -15,11 +15,8 @@ import PageHeader from "@iso/components/utility/pageHeader";
 import {formattedDate, compareByAlpha} from "../../helpers/shared";
 import { referralTabs } from "../Tables/AntTables/configs";
 import referralActions from "../../redux/referrals/actions";
-import { ReferralSection } from "./Referrals.styles";
-import {all} from "redux-saga/effects";
 
 export default function Referrals(props) {
-    // vars here
     const { referrals, referralsLoading,
         referralsActiveTab, referralTableSorter } = useSelector(state => state.referralsReducer);
     let allReferrals = [], pendingReferrals = [], approvedReferrals = [], deniedReferrals = [];

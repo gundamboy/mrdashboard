@@ -160,27 +160,27 @@ export const ScholarshipSection = styled.div`
                 }
             }
         }
-        
-        .community-activities {
-            .question-block {
-                margin-bottom: 2rem;
-            }
-        }
+    }
     
-        .account-information {
-            
+    .community-activities {
+        .question-block {
+            margin-bottom: 2rem;
         }
+    }
+
+    .account-information {
         
-        .work-experience {
-            .employment-block {
-                margin-bottom: 1rem;
-            }
+    }
+    
+    .work-experience {
+        .employment-block {
+            margin-bottom: 1rem;
         }
-        
-        .essay-questions {
-            .question-block {
-                margin-bottom: 4rem;
-            }
+    }
+    
+    .essay-questions {
+        .question-block {
+            margin-bottom: 4rem;
         }
     }
     
@@ -218,7 +218,7 @@ export const ScholarshipSection = styled.div`
             }
         }
     }
-  
+      
     .application-section-title {
         margin-bottom: 1rem;
         padding-bottom: 0.25rem;

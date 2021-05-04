@@ -1,3 +1,4 @@
+//const isLocal = true;
 const isLocal = false;
 
 export const getCurrentYear = () => {
@@ -49,4 +50,8 @@ export const compareByAlpha = (a, b) => {
     }
 
     return 0;
+}
+
+export const production = () => {
+    return true;
 }

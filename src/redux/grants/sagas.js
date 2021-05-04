@@ -1,5 +1,5 @@
 import { all, takeEvery, put, call, delay } from 'redux-saga/effects';
-import referralActions from "./actions";
+import grantsActions from "./actions";
 import {rsfProjects, dbProjects, authProjects, db} from '@iso/lib/firebase/firebase';
 import axios from 'axios';
 import * as firebase from "firebase";
@@ -7,159 +7,157 @@ import {getCurrentYear, REFERRALS_API_PATH} from "../../helpers/shared";
 
 const currentYear = getCurrentYear().toString();
 
-console.log("testing: ", authProjects.currentUser)
-
-function getReferralsRef (documentId) {
-    return dbProjects.collection("referrals").doc(currentYear).collection("applications").doc(documentId);
+function getGrantsRef (documentId) {
+    return dbProjects.collection("grants").doc(currentYear).collection("applications").doc(documentId);
 }
 
-const getReferralsCollectionRef = () => {
-    return dbProjects.collection("referrals").doc(currentYear).collection("applications");
+const getGrantsCollectionRef = () => {
+    return dbProjects.collection("grants").doc(currentYear).collection("applications");
 }
 
-function* getSingleReferralNonNotify(documentId) {
+function* getSingleGrantNonNotify(documentId) {
     try {
-        let referral = null;
+        let grant = null;
 
         if(documentId) {
-            const getReferral = getReferralsRef(documentId.payload);
+            const getGrant = getGrantsRef(documentId.payload);
 
-            const fetchReferral = yield call(() => {
+            const fetchGrant = yield call(() => {
                 return new Promise((resolve, reject) => {
-                    getReferral.get()
+                    getGrant.get()
                         .then((doc) => {
                             if(doc.exists) {
                                 const app = doc.data();
-                                referral = {id: documentId.payload, ...app};
-                                resolve(fetchReferral);
+                                grant = {id: documentId.payload, ...app};
+                                resolve(fetchGrant);
                             }
                         })
                         .catch((error) => {
-                            console.log("getSingleReferralNonNotify error:", error);
+                            console.log("getSingleGrantNonNotify error:", error);
                         });
                 });
             });
         }
 
-        if(referral !== null) {
-            return referral;
+        if(grant !== null) {
+            return grant;
         } else {
-            console.log("fetch single referral non notified not resolved");
+            console.log("fetch single grant non notified not resolved");
         }
 
     } catch (e) {
-        console.log("getSingleReferralNonNotify error", e);
+        console.log("getSingleGrantNonNotify error", e);
     }
 }
 
-function* initReferrals() {
+function* initGrants() {
     try {
-        const collectionRef = getReferralsCollectionRef();
+        const collectionRef = getGrantsCollectionRef();
         const snapshots = yield call(rsfProjects.firestore.getCollection, collectionRef);
-        const referrals = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        const grants = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
 
         yield put( {
-            type: referralActions.FETCH_REFERRALS_SUCCESS,
-            payload: referrals
+            type: grantsActions.FETCH_GRANTS_SUCCESS,
+            payload: grants
         });
     } catch (e) {
-        console.log("referrals initReferrals", e);
+        console.log("grants initGrants", e);
         yield put({
-            type: referralActions.FETCH_REFERRALS_FAILURE,
+            type: grantsActions.FETCH_GRANTS_FAILURE,
             payload: e
         })
     }
 }
 
-function* getSingleReferral(documentId) {
+function* getSingleGrant(documentId) {
     try {
-        let referral = null;
+        let grant = null;
 
         if(documentId) {
-            const getReferral = getReferralsRef(documentId.payload);
+            const getGrant = getGrantsRef(documentId.payload);
 
-            const fetchReferral = yield call(() => {
+            const fetchGrant = yield call(() => {
                 return new Promise((resolve, reject) => {
-                    getReferral.get()
+                    getGrant.get()
                         .then((doc) => {
                             if(doc.exists) {
                                 const app = doc.data();
 
-                                referral = {id: documentId.payload, ...app};
-                                resolve(fetchReferral);
+                                grant = {id: documentId.payload, ...app};
+                                resolve(fetchGrant);
                             }
                         })
                         .catch((error) => {
-                            console.log("getSingleReferral error:", error);
+                            console.log("getSingleGrant error:", error);
                         });
                 });
             });
         }
 
-        if(referral !== null) {
-            yield notifySingleReferralFetched(referral);
+        if(grant !== null) {
+            yield notifySingleGrantFetched(grant);
         } else {
-            console.log("fetch single referral not resolved");
+            console.log("fetch single grant not resolved");
         }
 
     } catch (e) {
-        console.log("getSingleReferral error", e);
+        console.log("getSingleGrant error", e);
         yield put({
-            type: referralActions.FETCH_SINGLE_REFERRAL_FAILURE,
+            type: grantsActions.FETCH_SINGLE_GRANT_FAILURE,
             payload: e
         })
     }
     console.groupEnd();
 }
 
-function* notifySingleReferralFetched(referral) {
+function* notifySingleGrantFetched(grant) {
     try {
         yield put({
-            type: referralActions.FETCH_SINGLE_REFERRAL_SUCCESS,
-            payload: referral
+            type: grantsActions.FETCH_SINGLE_GRANT_SUCCESS,
+            payload: grant
         });
     } catch (e) {
-        console.log("notifySingleReferralFetched error", e);
+        console.log("notifySingleGrantFetched error", e);
         yield put({
-            type: referralActions.FETCH_SINGLE_REFERRAL_SUCCESS,
+            type: grantsActions.FETCH_SINGLE_GRANT_SUCCESS,
             payload: e
         })
     }
 }
 
-function* updateReferralApproval(payload) {
+function* updateGrantApproval(payload) {
     try {
-        console.log("updateReferralApproval payload:", payload)
-        const documentId = payload.referralId;
+        console.log("updateGrantApproval payload:", payload)
+        const documentId = payload.grantId;
         const status = payload.status;
-        const getReferral = getReferralsRef(documentId);
+        const getGrant = getGrantsRef(documentId);
         console.log("")
 
         let updateDB = {};
-        updateDB["referralStatus"] = status;
+        updateDB["grantStatus"] = status;
         updateDB["decisionDate"] = firebase.firestore.Timestamp.now();
         let updated = false;
 
         const updateApp = yield call(() => {
             return new Promise((resolve, reject) => {
-                getReferral.update(updateDB)
+                getGrant.update(updateDB)
                     .then(() => {
                         updated = true;
                     })
                     .catch((error) => {
-                        console.log("error updating referral in firebase:", error);
+                        console.log("error updating grant in firebase:", error);
                     });
                 resolve(updateApp);
             })
         });
 
         if(updated === true) {
-            notifyReferralNotesUpdated();
+            notifyGrantNotesUpdated();
         }
     } catch (e) {
-        console.log("updateReferralApproval error", e);
+        console.log("updateGrantApproval error", e);
         yield put({
-            type: referralActions.UPDATE_REFERRAL_FAILURE,
+            type: grantsActions.UPDATE_GRANT_FAILURE,
             payload: e
         })
     }
@@ -167,9 +165,9 @@ function* updateReferralApproval(payload) {
 
 function* updateNotes(payload) {
     try {
-        const documentId = payload.referralId;
+        const documentId = payload.grantId;
         const notes = payload.notes;
-        const getSingleReferralRef = getReferralsRef(documentId);
+        const getSingleGrantRef = getGrantsRef(documentId);
 
         let updateDB = {};
         updateDB["notes"] = notes;
@@ -177,7 +175,7 @@ function* updateNotes(payload) {
 
         const updateNotes = yield call(() => {
             return new Promise((resolve, reject) => {
-                getSingleReferralRef.update(updateDB)
+                getSingleGrantRef.update(updateDB)
                     .then(() => {
                         updated = true;
                     })
@@ -189,43 +187,43 @@ function* updateNotes(payload) {
         });
 
         if(updated === true) {
-            notifyReferralNotesUpdated();
+            notifyGrantNotesUpdated();
         }
 
     } catch (error) {
         yield put({
-            type: referralActions.UPDATE_REFERRAL_NOTES_ERROR,
-            referralNotesError: true
+            type: grantsActions.UPDATE_GRANT_NOTES_ERROR,
+            grantNotesError: true
         });
     }
 }
 
-function* notifyReferralNotesUpdated() {
+function* notifyGrantNotesUpdated() {
     try {
         yield put({
-            type: referralActions.UPDATE_REFERRAL_NOTES_SUCCESS,
+            type: grantsActions.UPDATE_GRANT_NOTES_SUCCESS,
         });
     } catch (e) {
-        console.log("notifyReferralNotesUpdated error", e);
+        console.log("notifyGrantNotesUpdated error", e);
     }
 }
 
-function* sendReferralEmail(payload) {
+function* sendGrantEmail(payload) {
     try {
         const userId = payload.userId;
 
         const { data } = yield call(() => {
             return new Promise((resolve, reject) => {
-                const doEmail = emailReferral(payload.referrerEmail, payload.refereeEmail, payload.referrerName, payload.personYouAreReferring, payload.emailArray, payload.userId, payload.approvalStatus)
+                const doEmail = emailGrant(payload.referrerEmail, payload.refereeEmail, payload.referrerName, payload.personYouAreReferring, payload.emailArray, payload.userId, payload.approvalStatus)
                 resolve(doEmail);
             })
         });
 
         if(!data) {
-            yield put(referralActions.sendReferralEmailFailure(true, false));
+            yield put(grantsActions.sendGrantEmailFailure(true, false));
         }
 
-        const collectionRef = getReferralsRef(userId);
+        const collectionRef = getGrantsRef(userId);
         let applicationUpdated = false;
         let firebaseError = false;
 
@@ -250,25 +248,25 @@ function* sendReferralEmail(payload) {
             });
 
             if(firebaseError) {
-                yield put(referralActions.sendReferralEmailFailure(false, true));
+                yield put(grantsActions.sendGrantEmailFailure(false, true));
             }
         } else {
-            yield put(referralActions.sendReferralEmailFailure(true, false));
+            yield put(grantsActions.sendGrantEmailFailure(true, false));
         }
 
         if(applicationUpdated) {
-            yield getSingleReferral({payload: userId});
+            yield getSingleGrant({payload: userId});
         }
     } catch (e) {
-        console.log("sendReferralEmail error", e);
+        console.log("sendGrantEmail error", e);
         yield put({
-            type: referralActions.SEND_REFERRAL_EMAIL_ERROR,
+            type: grantsActions.SEND_GRANT_EMAIL_ERROR,
             payload: e
         })
     }
 }
 
-function emailReferral(referrerEmail, refereeEmail, referrerName, personYouAreReferring, emailTextArray, userId, status) {
+function emailGrant(referrerEmail, refereeEmail, referrerName, personYouAreReferring, emailTextArray, userId, status) {
     const API_PATH = REFERRALS_API_PATH();
 
     return axios({
@@ -297,7 +295,7 @@ function emailReferral(referrerEmail, refereeEmail, referrerName, personYouAreRe
 //     } catch (e) {
 //         console.log("xxxx", e);
 //         yield put({
-//             type: referralActions.xxxxxxxx,
+//             type: grantsActions.xxxxxxxx,
 //             payload: e
 //         })
 //     }
@@ -305,11 +303,11 @@ function emailReferral(referrerEmail, refereeEmail, referrerName, personYouAreRe
 
 export default function* rootSaga() {
     yield all([
-        takeEvery(referralActions.FETCH_REFERRALS_START, initReferrals),
-        takeEvery(referralActions.FETCH_SINGLE_REFERRAL_START, getSingleReferral),
-        takeEvery(referralActions.UPDATE_REFERRAL_START, updateReferralApproval),
-        takeEvery(referralActions.UPDATE_REFERRAL_NOTES_START, updateNotes),
-        takeEvery(referralActions.SEND_REFERRAL_EMAIL_START, sendReferralEmail),
+        takeEvery(grantsActions.FETCH_GRANTS_START, initGrants),
+        takeEvery(grantsActions.FETCH_SINGLE_GRANT_START, getSingleGrant),
+        takeEvery(grantsActions.UPDATE_GRANT_START, updateGrantApproval),
+        takeEvery(grantsActions.UPDATE_GRANT_NOTES_START, updateNotes),
+        takeEvery(grantsActions.SEND_GRANT_EMAIL_START, sendGrantEmail),
 
     ]);
 }

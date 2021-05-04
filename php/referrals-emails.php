@@ -33,7 +33,7 @@ foreach ($emailArray as &$value) {
 }
 
 if(strlen($emailTableRows) > 0) {
-    sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $personYouAreReferring, $emailTableRows);
+sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $personYouAreReferring, $emailTableRows, $approvalStatus);
 }
 
 function buildEmailMessage($emailTableRows) {
@@ -52,7 +52,7 @@ function buildEmailMessage($emailTableRows) {
     return $message;
 }
 
-function sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $personYouAreReferring, $emailTableRows) {
+function sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $personYouAreReferring, $emailTableRows, $approvalStatus) {
     try {
         $mail->isSMTP();
         $mail->Host = 'smtps.midrivers.com';
@@ -61,10 +61,14 @@ function sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $per
         $mail->Password = 'Hcgmgro]0u';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-        $mail->setFrom('no_reply@midrivers.com', 'Midrivers Referral Program');
-        $mail->addReplyTo('no_reply@midrivers.com', 'Midrivers Referral Program');
+        $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
+        $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
         $mail->addAddress($referrerEmail, $referrerName);
-        $mail->addBCC($refereeEmail, $personYouAreReferring);
+
+        if($approvalStatus === "approved") {
+            $mail->addBCC($refereeEmail, $personYouAreReferring);
+        }
+
         $mail->Subject = "Mid-Rivers Community Sponsorship Request";
         $mail->isHTML(true);
         $mail->Body = buildEmailMessage($emailTableRows);

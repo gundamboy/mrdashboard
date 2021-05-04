@@ -189,131 +189,115 @@ function* updateApproval(payload) {
 }
 
 // posts data to the php to send an applicant an email
-function* email(userEmail, emailArray, name, approvalStatus) {
-    const API_PATH = SCHOLARSHIP_API_PATH();
-
-    let error = false;
-
-    const send = () => axios({
+function deployEmail(userEmail, emailArray, name) {
+    return axios({
         method: 'post',
-        url: `${API_PATH}`,
+        url: SCHOLARSHIP_API_PATH(),
         headers: { 'content-type': 'application/json' },
         data: {
             userEmail: userEmail,
             emailArray: emailArray,
-            approvalStatus: approvalStatus,
             name: name
         }
     }).catch((error) => {
-        error = true;
         console.log("axios error:", error);
     });
-
-    if(error) {
-        console.log("php error");
-    } else {
-        return send;
-    }
 }
 
 function* sendEmail(payload) {
     try {
 
         console.group("%c sendEmail Main", 'background: #BFACAA; color: #222; padding: 5px;');
+
         const userId = payload.userId;
         const scholarshipType = payload.scholarshipType;
 
         const { data } = yield call(() => {
             return new Promise((resolve, reject) => {
-                const doEmail = email(payload.userEmail, payload.emailArray, payload.name, payload.approvalStatus)
+                const doEmail = deployEmail(payload.userEmail, payload.emailArray, payload.name)
                 resolve(doEmail);
             })
         });
 
         if(!data) {
             yield put(scholarshipsActions.scholarshipsEmailError(true, false));
-        }
-
-        const collectionRef = getSingleScholarship(userId);
-        let applicationUpdated = false;
-        let applicationFetched = false;
-        let firebaseError = false;
-        let updatedApp = null;
-
-        if(data.status) {
-            const update = yield call(() => {
-                return new Promise((resolve, reject) => {
-                    if(scholarshipType === "higherEdu") {
-                        collectionRef.update({
-                            "admin.applicantNotified.higherEdu": data.status,
-                            "admin.approvalDates.higherEdu": data.status ? firebase.firestore.Timestamp.fromDate(new Date()) : "",
-                        })
-                            .then(() => {
-                                applicationUpdated = true;
-                                resolve(update);
-                            })
-                            .catch((error) => {
-                                console.log("email: update scholarship error:", error);
-                                firebaseError = true;
-                                resolve(update);
-                            })
-                    } else {
-                        collectionRef.update({
-                            "admin.applicantNotified.dcc": data.status,
-                            "admin.approvalDates.dcc": data.status ? firebase.firestore.Timestamp.fromDate(new Date()) : "",
-                        })
-                            .then(() => {
-                                applicationUpdated = true;
-                                resolve(update);
-                            })
-                            .catch((error) => {
-                                console.log("email: update scholarship error:", error);
-                                firebaseError = true;
-                                resolve(update);
-                            })
-                    }
-                });
-            });
-
-            if(firebaseError) {
-                yield put(scholarshipsActions.scholarshipsEmailError(false, true));
-            }
-
         } else {
-            yield put(scholarshipsActions.scholarshipsEmailError(true, false));
-        }
-
-        if(applicationUpdated) {
-            const fetchScholarship = yield call(() => {
-                return new Promise((resolve, reject) => {
-                    collectionRef.get()
-                        .then((doc) => {
-                            if(doc.exists) {
-                                updatedApp = doc.data();
-                                updatedApp = {
-                                    id: userId,
-                                    ...updatedApp
-                                }
-
-                                applicationFetched = true;
-                                resolve(fetchScholarship);
-                            } else {
-                                console.log("DOC DOES NOT EXIST");
-                                console.log("Should be forced error");
-                                resolve(fetchScholarship);
-                            }
-                        })
-                        .catch(error => {
-                            console.log("fetchScholarship error:", error);
-                            resolve(fetchScholarship);
-                        })
+            console.log("data:", data);
+            yield put(scholarshipsActions.scholarshipsEmailError(false, false));
+            const collectionRef = getScholarshipRef(userId);
+            let applicationUpdated = false;
+            let applicationFetched = false;
+            let firebaseError = false;
+            let updatedApp = null;
+            if (data.status) {
+                const update = yield call(() => {
+                    return new Promise((resolve, reject) => {
+                        if (scholarshipType === "higherEdu") {
+                            collectionRef.update({
+                                "admin.applicantNotified.higherEdu": data.status,
+                                "admin.approvalDates.higherEdu": data.status ? firebase.firestore.Timestamp.fromDate(new Date()) : "",
+                            })
+                                .then(() => {
+                                    applicationUpdated = true;
+                                    resolve(update);
+                                })
+                                .catch((error) => {
+                                    console.log("email: update scholarship error:", error);
+                                    firebaseError = true;
+                                    resolve(update);
+                                })
+                        } else {
+                            collectionRef.update({
+                                "admin.applicantNotified.dcc": data.status,
+                                "admin.approvalDates.dcc": data.status ? firebase.firestore.Timestamp.fromDate(new Date()) : "",
+                            })
+                                .then(() => {
+                                    applicationUpdated = true;
+                                    resolve(update);
+                                })
+                                .catch((error) => {
+                                    console.log("email: update scholarship error:", error);
+                                    firebaseError = true;
+                                    resolve(update);
+                                })
+                        }
+                    });
                 });
-            });
-
-            if(updatedApp !== null) {
-                yield notifySingleScholarshipFetched(updatedApp);
+                if (firebaseError) {
+                    yield put(scholarshipsActions.scholarshipsEmailError(false, true));
+                }
             } else {
-
+                yield put(scholarshipsActions.scholarshipsEmailError(true, false));
+            }
+            if (applicationUpdated) {
+                const fetchScholarship = yield call(() => {
+                    return new Promise((resolve, reject) => {
+                        collectionRef.get()
+                            .then((doc) => {
+                                if (doc.exists) {
+                                    updatedApp = doc.data();
+                                    updatedApp = {
+                                        id: userId,
+                                        ...updatedApp
+                                    }
+                                    applicationFetched = true;
+                                    resolve(fetchScholarship);
+                                } else {
+                                    console.log("DOC DOES NOT EXIST");
+                                    console.log("Should be forced error");
+                                    resolve(fetchScholarship);
+                                }
+                            })
+                            .catch(error => {
+                                console.log("fetchScholarship error:", error);
+                                resolve(fetchScholarship);
+                            })
+                    });
+                });
+                if (updatedApp !== null) {
+                    yield notifySingleScholarshipFetched(updatedApp);
+                } else {
+                }
             }
         }
 

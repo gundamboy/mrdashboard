@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useRef, useEffect} from 'react';
 import LayoutWrapper from "@iso/components/utility/layoutWrapper";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {Affix, Col, Form, Row, Select, Typography, Input, Radio, Button, Space, Checkbox, Alert} from "antd";
+import {Col, Form, Row, Select, Typography, Input, Radio, Button, Space, Checkbox, Alert} from "antd";
 import Box from "@iso/components/utility/box";
 import {EditorControls, EditorWrapper, ScholarshipSection, ScholarshipStatusHeader} from "./Scholarships.styles";
 import NoImage from '@iso/assets/images/no-image.png';
@@ -25,19 +25,38 @@ export default function (props) {
     const admin = props.currentScholarship.admin;
     const scholarshipUrls = props.currentScholarship["urls"][props.scholarshipType];
     const sponsorshipName = (props.scholarshipType === "higherEdu") ? "The Mid-Rivers Higher Education Scholarship" : "The Mid-Rivers Dawson Community College/Miles Community College Award";
-    const [approvalStatus, setApprovalStatus] = useState(props.currentScholarship.admin.approvalStatus[props.scholarshipType]);
     const applicantNotified = admin.applicantNotified[props.scholarshipType];
+    const [approvalStatus, setApprovalStatus] = useState(props.currentScholarship.admin.approvalStatus[props.scholarshipType]);
     const [grades, setGrades] = useState(props.currentScholarship["admin"].grades);
+    const [notes, setNotes] = useState(props.notes);
+    const [member, setMember] = useState(false);
+    const [pastWinner, setPastWinner] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const { Title } = Typography;
     const { TextArea } = Input;
     let nextSchoolType = scholarshipAnswers.nextSchoolType;
     let workExperienceColumnSize = 24;
+    let profileImageUrl = scholarshipUrls.profileImageUrl;
+    let transcriptsUrl = scholarshipUrls.transcriptsUrl;
+    let letterUrl = scholarshipUrls.referenceLetterUrl;
 
     if(admin.applicantNotified[props.scholarshipType]) {
         if(emailSending === true) {
             setShowPreview(false);
             setEmailSending(false);
         }
+    }
+
+    if(!profileImageUrl) {
+        profileImageUrl = scholarshipAnswers.profileImage;
+    }
+
+    if(!transcriptsUrl) {
+        transcriptsUrl = scholarshipAnswers.transcripts;
+    }
+
+    if(!letterUrl) {
+        letterUrl = scholarshipAnswers.letter;
     }
 
     const formLayout = {
@@ -57,10 +76,10 @@ export default function (props) {
         [dispatch]
     );
 
-    const updateNotes = useCallback(
-        (id, notes) => dispatch(scholarshipActions.updateScholarshipNotes(id, notes.target.value)),
-        [dispatch]
-    );
+    // const updateNotes = useCallback(
+    //     (id, notes) => dispatch(scholarshipActions.updateScholarshipNotes(id, notes.target.value)),
+    //     [dispatch]
+    // );
 
     const saveApprovalStatus = useCallback(
         (id, appType, status) => dispatch(scholarshipActions.updateScholarshipApproval(id, appType, status)),
@@ -77,6 +96,17 @@ export default function (props) {
         [dispatch]
     );
 
+    const handleAdminSave = (e) => {
+        e.preventDefault();
+
+        setIsSaving(true);
+
+    }
+
+    const updateNotes = (e) => {
+        setNotes(e.target.value);
+    }
+
     const handleDeleteScholarship = () => {
         setIsDeleting(true);
         removeScholarship(props.userId)
@@ -84,7 +114,7 @@ export default function (props) {
 
     const onApprovalStatusChange = (status) => {
         setApprovalStatus(status);
-        saveApprovalStatus(props.userId, props.scholarshipType, status);
+        //saveApprovalStatus(props.userId, props.scholarshipType, status);
     }
 
     const savePoints = (value, key) => {
@@ -97,13 +127,13 @@ export default function (props) {
            }
         });
 
-        updateGrades(props.userId,  {
-            ...grades,
-            points: {
-                ...grades.points,
-                [key]: parseInt(value)
-            }
-        })
+        // updateGrades(props.userId,  {
+        //     ...grades,
+        //     points: {
+        //         ...grades.points,
+        //         [key]: parseInt(value)
+        //     }
+        // })
     }
 
     const saveQuestions = (value, key) => {
@@ -113,10 +143,10 @@ export default function (props) {
             [key]: parseInt(value)
         });
 
-        updateGrades(props.userId,  {
-            ...grades,
-            [key]: value
-        })
+        // updateGrades(props.userId,  {
+        //     ...grades,
+        //     [key]: value
+        // })
     }
 
     const calculatePoints = (points) => {
@@ -136,12 +166,12 @@ export default function (props) {
                 return (
                     <>
                         <p>Dear {scholarshipAnswers.name},</p>
-                        <p>Congratulations! You are the recipient of one of twenty-five (25) $1,000 Mid-Rivers Higher Education Scholarships for 2021! Applications were extremely competitive this year, so you should be commended on your high-scoring submission.</p>
-                        <p>A $1,000 check will be forwarded to the admissions office at the college or university you will be attending during the fall of 2021. This check will be applicable for academic expenses during the 2021-2021 academic school year.</p>
-                        <p>Please accept your award clicking the link below and completing the acceptance form.</p>
-                        <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/rrtdyvy0h9tm0t}"}    {"{LINK-TEXT: Application Acceptance Form}"}</p>
+                        <p>Congratulations! You are the recipient of one of twenty-five (25) $1,000 Mid-Rivers Higher Education Scholarships for 2021! Applications were extremely competitive again this year, so you should be commended on your high-scoring submission.</p>
+                        <p>A $1,000 check will be forwarded to the admissions office at the college or university you will be attending during the fall of 2021. This check will be applicable for academic expenses during the 2021-2022 academic school year.</p>
+                        <p>Please accept your award by clicking the link below and completing the acceptance form.</p>
+                        <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/r13il1bq1920pii}"}    {"{LINK-TEXT: Application Acceptance Form}"}</p>
                         <p>If you have any questions, please call <a href='tel:6873336'>(406) 687-3336</a>. Mid-Rivers is hopeful that this scholarship will contribute to your future success.</p>
-                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}mrcom@midrivers.coop</p>
+                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}nicole.senner@midrivers.coop</p>
                     </>
                 )
             } else {
@@ -149,12 +179,12 @@ export default function (props) {
                 return (
                     <>
                         <p>Dear {scholarshipAnswers.name},</p>
-                        <p>Congratulations! You are the recipient of one of six (6) $1,500 Mid-Rivers Dawson Community College/Miles Community College Scholarships for 2021! Applications were extremely competitive this year, so you should be commended on your high-scoring submission.</p>
-                        <p>A $1,500 check will be forwarded to the admissions office at the college or university you will be attending during the fall of 2021. This check will be applicable for academic expenses during the 2021-2021 academic school year.</p>
-                        <p>Please accept your award clicking the link below and completing the acceptance form.</p>
-                        <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/rrtdyvy0h9tm0t}"}    {"%%LINK-TEXT: Application Acceptance Form"}</p>
+                        <p>Congratulations! You are the recipient of one of six (6) $1,500 Mid-Rivers Dawson Community College/Miles Community College Scholarships for 2021! Applications were extremely competitive again this year, so you should be commended on your high-scoring submission.</p>
+                        <p>A $1,500 check will be forwarded to the admissions office at the college or university you will be attending during the fall of 2021. This check will be applicable for academic expenses during the 2021-2022 academic school year.</p>
+                        <p>Please accept your award by clicking the link below and completing the acceptance form.</p>
+                        <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/r13il1bq1920pii}"}    {"%%LINK-TEXT: Application Acceptance Form"}</p>
                         <p>If you have any questions, please call <a href='tel:6873336'>(406) 687-3336</a>. Mid-Rivers is hopeful that this scholarship will contribute to your future success.</p>
-                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}mrcom@midrivers.coop</p>
+                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}nicole.senner@midrivers.coop</p>
                     </>
                 )
             }
@@ -164,18 +194,17 @@ export default function (props) {
                 <>
                     <p>Dear {scholarshipAnswers.name},</p>
                     <p>Thank you for applying for one of the 2021 Mid-Rivers Competitive Scholarships. Unfortunately, you were not selected as one of this year's competitive scholarship recipients; however, we would like to encourage you to attend the Mid-Rivers Telephone Cooperative, Inc. Annual Meeting for an opportunity to try for another scholarship.</p>
-                    <p>Mid-Rivers will award fourteen (14) additional $500 scholarships to area students through a drawing at the Cooperative's Annual Meeting.The meeting date has not been set yet due to Coronavirus concerns, but notice will be sent to all members when the date and location is set.</p>
+                    <p>Mid-Rivers will award fourteen (14) $500 scholarships to area students through a drawing at the Cooperative's Annual Meeting. The meeting will be held on May 25, 2021, at the Custer County Event Center in Miles City, Montana. Registration will open at 10:00 AM and the Meeting will begin at 11:00 AM.</p>
                     <p>To qualify for the scholarship drawing, the student must:</p>
                     <p>
-                        1) Attend the Annual Meeting with a parent or guardian who is a Cooperative Member with active local telephone or Internet service from Mid-Rivers.{"<br>"}<br />
-                        2) Be enrolled to attend a higher education institution in the fall of 2021.{"<br>"}<br />
-                        3) Provide PROOF of full-time enrollment at the Annual Meeting.{"<br>"}<br />
-                        4) Sign up at the Scholarship Registration table at the Annual Meeting.{"<br>"}<br />
-                        5) Participate in simple interactive tasks that will be assigned at the Annual Meeting.{"<br>"}<br />
+                        1) Attend the Annual Meeting with a parent or guardian who is a Cooperative Member with active local telephone or Internet service from Mid-Rivers.{"<br>"}
+                        2) Sign up at the Scholarship Registration table at the Annual Meeting.{"<br>"}
+                        3) Provide PROOF of full-time enrollment for the fall of 2021 at the Annual Meeting.{"<br>"}
+                        4) Participate in simple interactive tasks that will be assigned at the Annual Meeting.{"<br>"}
                         5) Be present during the Business Meeting when the drawing takes place.
                     </p>
                     <p>The fourteen scholarship recipients will be drawn at random from the list of eligible students attending the meeting. Interested students may contact Mid-Rivers at <a href='tel:18004522288'>1-800-452-2288</a> for more information.</p>
-                    <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}mrcom@midrivers.coop</p>
+                    <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}nicole.senner@midrivers.coop</p>
                 </>
             )
         }
@@ -386,7 +415,7 @@ export default function (props) {
                         <ScholarshipSection>
                             <div className="info-wrapper">
                                 <div className="profile-image-wrapper">
-                                    <img src={scholarshipUrls.profileImageUrl ? scholarshipUrls.profileImageUrl : NoImage} alt={"profile image"}/>
+                                    <img src={profileImageUrl ? profileImageUrl : NoImage} alt={"profile image"}/>
                                 </div>
                                 <div className="userContent">
                                     <h2>{scholarshipAnswers.name}</h2>
@@ -487,23 +516,23 @@ export default function (props) {
                             <Title level={3} className={"application-section-title"}>Next Semester's School Information</Title>
                             <div className="next-school">
                                 <Row gutter={[16,16]} style={{"width": "100%"}}>
-                                    <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
+                                    <Col className="gutter-row essay-column" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
                                         <h3>Where do you plan on attending school next semester:</h3>
                                         <p>{nextSchoolType}</p>
                                     </Col>
-                                    <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
+                                    <Col className="gutter-row essay-column" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
                                         <h3>Field of Study:</h3>
                                         <p>{scholarshipAnswers.fieldOfStudy}</p>
                                     </Col>
-                                    <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
+                                    <Col className="gutter-row essay-column" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
                                         <h3>Name of School:</h3>
                                         <p>{scholarshipAnswers.nextSchoolName}</p>
                                     </Col>
-                                    <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
+                                    <Col className="gutter-row essay-column" xs={{span: 24}} sm={{span: 24}} md={{span: 12}} lg={{span: 12}}>
                                         <h3>Admissions Phone Number:</h3>
                                         <p>{scholarshipAnswers.nextSchoolPhone}</p>
                                     </Col>
-                                    <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 24}} lg={{span: 24}}>
+                                    <Col className="gutter-row essay-column" xs={{span: 24}} sm={{span: 24}} md={{span: 24}} lg={{span: 24}}>
                                         <h3>Admissions Address:</h3>
                                         <p>{scholarshipAnswers.nextSchoolAddress}</p>
                                         <p>{scholarshipAnswers.nextSchoolCity}, {scholarshipAnswers.nextSchoolState} {scholarshipAnswers.nextSchoolZip}</p>
@@ -654,8 +683,8 @@ export default function (props) {
                                 <Row gutter={[16,16]} style={{"width": "100%"}}>
                                     <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 8}} lg={{span: 8}}>
                                         <p>
-                                            {scholarshipUrls.profileImageUrl
-                                                ? <a href={scholarshipUrls.profileImageUrl} target="_blank">Profile Image</a>
+                                            {profileImageUrl
+                                                ? <a href={profileImageUrl} target="_blank">Profile Image</a>
                                                 : <span className={"no-document"}><CloseOutlined />No Profile Image</span>
                                             }
 
@@ -663,16 +692,16 @@ export default function (props) {
                                     </Col>
                                     <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 8}} lg={{span: 8}}>
                                         <p>
-                                            {scholarshipUrls.transcriptsUrl
-                                                ? <a href={scholarshipUrls.transcriptsUrl} target="_blank">Transcripts</a>
+                                            {transcriptsUrl
+                                                ? <a href={transcriptsUrl} target="_blank">Transcripts</a>
                                                 : <span className={"no-document"}><CloseOutlined />No Transcripts</span>
                                             }
 
                                         </p>
                                     </Col>
                                     <Col className="gutter-row" xs={{span: 24}} sm={{span: 24}} md={{span: 8}} lg={{span: 8}}>
-                                        {scholarshipUrls.referenceLetterUrl
-                                            ? <a href={scholarshipUrls.referenceLetterUrl} target="_blank">Reference Letter</a>
+                                        {letterUrl
+                                            ? <a href={letterUrl} target="_blank">Reference Letter</a>
                                             : <span className={"no-document"}><CloseOutlined />No Reference Letter</span>
                                         }
                                     </Col>
@@ -702,7 +731,6 @@ export default function (props) {
                             </div>
                         </ScholarshipSection>
                     </Box>
-
 
                     <Box style={{ padding: 20, height: 'auto' }}>
                         <ScholarshipSection>
@@ -939,8 +967,8 @@ export default function (props) {
                             <Form layout="vertical" name="notes-form" onFinish={onFormsFinish}>
                                 <Form.Item label="Notes">
                                     <TextArea rows={4}
-                                              onKeyUp={(e) => {updateNotes(props.userId, e)}}
-                                              defaultValue={props.currentScholarship.admin.notes ? props.currentScholarship.admin.notes : ""}
+                                              onKeyUp={(e) => {updateNotes(e)}}
+                                              defaultValue={props.notes}
                                     />
                                 </Form.Item>
                             </Form>
@@ -957,13 +985,29 @@ export default function (props) {
                                         <Select.Option value={"approved"}>Approved</Select.Option>
                                         <Select.Option value={"denied"}>Denied</Select.Option>
                                         <Select.Option value={"pending"}>Pending</Select.Option>
+                                        <Select.Option value={"ineligible"}>Ineligible</Select.Option>
                                     </Select>
                                 </Form.Item>
                             </Form>
                         </ScholarshipSection>
                     </Box>
 
-
+                    <Box style={{ padding: 20, height: 'auto' }}>
+                        <ScholarshipSection>
+                            <Title level={3} className={"application-section-title"}>Saving</Title>
+                            <Form layout="vertical" name="approvals-form" onFinish={onFormsFinish}>
+                                <Form.Item label="">
+                                    <Button
+                                        className={"btn save-application-button"}
+                                        type="primary"
+                                        size={"large"}
+                                        loading={isSaving}
+                                        onClick={handleAdminSave}
+                                    >Save Application</Button>
+                                </Form.Item>
+                            </Form>
+                        </ScholarshipSection>
+                    </Box>
                 </Col>
             </Row>
 

@@ -46,6 +46,11 @@ export default function reducer(state = initState, { type, payload, users }) {
                 scholarshipLoading: false,
                 error: true,
             }
+        case actions.FETCH_SINGLE_SCHOLARSHIP_START:
+            return {
+                ...state,
+                currentScholarship: null,
+            }
         case actions.FETCH_SINGLE_SCHOLARSHIP_SUCCESS:
             return {
                 ...state,
