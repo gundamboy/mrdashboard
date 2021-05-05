@@ -101,90 +101,76 @@ function* notifySingleScholarshipFetched(scholarship) {
    }
 }
 
-function* updateGrades(payload) {
+function* adminSave(payload) {
     try {
-        const documentId = payload.documentId;
-        const grades = payload.grades;
-        const collectionRef = getScholarshipRef(documentId);
-
-        let updateDB = {};
-        updateDB["".concat("admin", ".").concat("grades")] = grades;
-
-        const updateGrades = yield call(() => {
-           return new Promise((resolve, reject) => {
-               collectionRef.update(updateDB)
-                   .then(() => {})
-                   .catch((error) => {
-                   console.log("error updating application in firebase:", error);
-               });
-               resolve(updateGrades);
-           })
-        });
-    } catch (error) {
-        console.log("updateGrades error:", error);
-    }
-}
-
-function* updateNotes(payload) {
-    try {
-        const documentId = payload.documentId;
-        const notes = payload.notes;
-        const collectionRef = getScholarshipRef(documentId);
-
-        let updateDB = {};
-        updateDB["".concat("admin", ".").concat("notes")] = notes;
-        let updated = false;
-
-        const updateNotes = yield call(() => {
-            return new Promise((resolve, reject) => {
-                collectionRef.update(updateDB)
-                    .then(() => {
-                        updated = true;
-                    })
-                    .catch((error) => {
-                        console.log("error updating application in firebase:", error);
-                    });
-                resolve(updateNotes);
-            })
-        });
-    } catch (error) {
-        yield put({
-            type: scholarshipsActions.UPDATE_SCHOLARSHIP_NOTES_FAILURE,
-            notesError: true
-        });
-    }
-}
-
-function* updateApproval(payload) {
-    try {
-        console.log("updateApproval")
         const documentId = payload.documentId;
         const status = payload.approval;
         const appType = payload.appType;
+        const grades = payload.grades;
+        const notes = payload.notes;
         const collectionRef = getScholarshipRef(documentId);
 
+        let updated = false;
         let updateDB = {};
         updateDB["".concat("admin", ".", "approvalStatus", ".", appType)] = status;
-        let updated = false;
+        updateDB["".concat("admin", ".").concat("grades")] = grades;
+        updateDB["".concat("admin", ".").concat("notes")] = notes;
 
         const updateApp = yield call(() => {
             return new Promise((resolve, reject) => {
                 collectionRef.update(updateDB)
                     .then(() => {
                         updated = true;
+                        resolve(updateApp);
                     })
                     .catch((error) => {
                         console.log("error updating application in firebase:", error);
+                        resolve(updateApp);
                     });
-                resolve(updateApp);
             })
         });
+
+        if(updated) {
+            yield call(() => notifyAdminSavedFetchSingle(documentId, collectionRef))
+
+        }
     } catch (error) {
-        console.log("updateApproval error:", error);
-        yield put({
-            type: scholarshipsActions.UPDATE_SCHOLARSHIP_APPROVAL_FAILURE,
-            approvalError: true
+        console.log("adminSave error:", error);
+    }
+}
+
+function* notifyAdminSavedFetchSingle(documentId, collectionRef) {
+    try {
+        let scholarship = null;
+
+        const fetchScholarship = yield call(() => {
+            return new Promise((resolve, reject) => {
+                collectionRef.get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            scholarship = doc.data();
+                            resolve(fetchScholarship);
+                        } else {
+                            console.log("notifyAdminSaved DOC DOES NOT EXIST");
+                            resolve(fetchScholarship);
+                        }
+                    })
+                    .catch(error => {
+                        console.log("notifyAdminSaved error:", error);
+                        resolve(fetchScholarship);
+                    })
+            });
         });
+
+        if(scholarship) {
+            yield put({
+                type: scholarshipsActions.UPDATE_SCHOLARSHIP_SUCCESS,
+                payload: scholarship
+            });
+        }
+
+    } catch (error) {
+
     }
 }
 
@@ -416,9 +402,7 @@ export default function* rootSaga() {
     yield all([
         takeEvery(scholarshipsActions.FETCH_SCHOLARSHIPS_START, initScholarships),
         takeEvery(scholarshipsActions.FETCH_SINGLE_SCHOLARSHIP_START, getSingleScholarship),
-        takeEvery(scholarshipsActions.UPDATE_SCHOLARSHIP_GRADES, updateGrades),
-        takeEvery(scholarshipsActions.UPDATE_SCHOLARSHIP_NOTES, updateNotes),
-        takeEvery(scholarshipsActions.UPDATE_SCHOLARSHIP_APPROVAL, updateApproval),
+        takeEvery(scholarshipsActions.UPDATE_SCHOLARSHIP_START, adminSave),
         takeEvery(scholarshipsActions.SEND_SCHOLARSHIP_EMAIL, sendEmail),
         takeEvery(scholarshipsActions.DELETE_SCHOLARSHIP, scholarshipDelete),
     ]);

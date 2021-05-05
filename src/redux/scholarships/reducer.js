@@ -1,5 +1,4 @@
 import actions from "./actions";
-import sponsorshipActions from "../sponsorships/actions";
 
 const initState = {
     sponsorships: {},
@@ -15,7 +14,7 @@ const initState = {
         employment: 0,
         essays: 0,
         grammar: 0,
-        returnToArea: 0
+        returnToArea: 0,
     },
     scholarshipDeleted: false,
     scholarshipEmailError: false,
@@ -38,13 +37,15 @@ export default function reducer(state = initState, { type, payload, users }) {
                 users: users,
                 scholarshipDeleted: false,
                 scholarshipEmailError: false,
-                scholarshipEmailSuccess: false
+                scholarshipEmailSuccess: false,
+                adminIsSaving: false
             }
         case actions.FETCH_SCHOLARSHIPS_FAILURE:
             return {
                 ...state,
                 scholarshipLoading: false,
                 error: true,
+                adminIsSaving: false
             }
         case actions.FETCH_SINGLE_SCHOLARSHIP_START:
             return {
@@ -57,32 +58,31 @@ export default function reducer(state = initState, { type, payload, users }) {
                 currentScholarship: payload,
                 scholarshipLoading: false,
                 error: false,
+                adminIsSaving: false
             }
         case actions.FETCH_SINGLE_SCHOLARSHIP_FAILURE:
             return {
                 ...state,
                 scholarshipLoading: false,
                 error: true,
+                adminIsSaving: false
             }
-        case actions.UPDATE_SCHOLARSHIP_GRADES_SUCCESS:
+        case actions.UPDATE_SCHOLARSHIP_START:
             return {
                 ...state,
-                grades: payload
+                adminIsSaving: true
             }
-        case actions.UPDATE_SCHOLARSHIP_NOTES_FAILURE:
+        case actions.UPDATE_SCHOLARSHIP_SUCCESS:
             return {
                 ...state,
-                notesError: payload
-            }
-        case actions.UPDATE_SCHOLARSHIP_APPROVAL_SUCCESS:
-            return {
-                ...state,
-                approval: payload
+                currentScholarship: payload,
+                adminIsSaving: false
             }
         case actions.DELETE_SCHOLARSHIP_SUCCESS:
             return {
                 ...state,
-                scholarshipDeleted: true
+                scholarshipDeleted: true,
+                adminIsSaving: false
             }
         case actions.SET_SCHOLARSHIP_TABLE_SORTER:
             return {

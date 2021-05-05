@@ -12,6 +12,7 @@ const actions = {
     FETCH_SINGLE_SCHOLARSHIP_FAILURE: 'FETCH_SINGLE_SCHOLARSHIP_FAILURE',
 
     UPDATE_SCHOLARSHIP: "UPDATE_SCHOLARSHIP",
+    UPDATE_SCHOLARSHIP_START: "UPDATE_SCHOLARSHIP_START",
     UPDATE_SCHOLARSHIP_SUCCESS: "UPDATE_SCHOLARSHIP_SUCCESS",
 
     UPDATE_SCHOLARSHIP_GRADES: "UPDATE_SCHOLARSHIP_GRADES",
@@ -35,6 +36,8 @@ const actions = {
     DELETE_SCHOLARSHIP_FAILURE: "DELETE_SCHOLARSHIP_FAILURE",
 
     SET_SCHOLARSHIP_TABLE_SORTER: "SET_SCHOLARSHIP_TABLE_SORTER",
+
+    SEND_EMAIL_SUCCESS: "SEND_EMAIL_SUCCESS",
 
     setScholarshipTableSorter: scholarshipTableSorter => ({
         type: actions.SET_SCHOLARSHIP_TABLE_SORTER,
@@ -63,23 +66,15 @@ const actions = {
         payload: scholarship
     }),
 
-    updateScholarshipPoints: (documentId, grades) => ({
-        type: actions.UPDATE_SCHOLARSHIP_GRADES,
-        grades: grades,
-        documentId: documentId
-    }),
 
-    updateScholarshipNotes: (documentId, notes) => ({
-        type: actions.UPDATE_SCHOLARSHIP_NOTES,
-        notes: notes,
-        documentId: documentId
-    }),
-
-    updateScholarshipApproval: (documentId, appType, status) => ({
-        type: actions.UPDATE_SCHOLARSHIP_APPROVAL,
-        approval: status,
+    updateScholarshipStart: (documentId, appType, grades, notes, approval) => ({
+        type: actions.UPDATE_SCHOLARSHIP_START,
+        documentId: documentId,
+        approval: approval,
         appType: appType,
-        documentId: documentId
+        grades: grades,
+        notes: notes,
+        adminIsSaving: true
     }),
 
     sendScholarshipEmail: (userEmail, emailArray, userId, name, scholarshipType, approvalStatus) => ({

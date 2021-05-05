@@ -29,9 +29,6 @@ export default function (props) {
     const [approvalStatus, setApprovalStatus] = useState(props.currentScholarship.admin.approvalStatus[props.scholarshipType]);
     const [grades, setGrades] = useState(props.currentScholarship["admin"].grades);
     const [notes, setNotes] = useState(props.notes);
-    const [member, setMember] = useState(false);
-    const [pastWinner, setPastWinner] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const { Title } = Typography;
     const { TextArea } = Input;
     let nextSchoolType = scholarshipAnswers.nextSchoolType;
@@ -70,38 +67,20 @@ export default function (props) {
 
     const onFormsFinish = () => {}
 
-
-    const updateGrades = useCallback(
-        (id, grades) => dispatch(scholarshipActions.updateScholarshipPoints(id, grades)),
-        [dispatch]
-    );
-
-    // const updateNotes = useCallback(
-    //     (id, notes) => dispatch(scholarshipActions.updateScholarshipNotes(id, notes.target.value)),
-    //     [dispatch]
-    // );
-
-    const saveApprovalStatus = useCallback(
-        (id, appType, status) => dispatch(scholarshipActions.updateScholarshipApproval(id, appType, status)),
-        [dispatch]
-    );
-
     const sendApplicationEmail = useCallback(
         (userEmail, emailTextArray, userId, name, scholarshipType, status) => dispatch(scholarshipActions.sendScholarshipEmail(userEmail, emailTextArray, userId, name, scholarshipType, status)),
         [dispatch]
     );
 
     const removeScholarship = useCallback(
-        (documentId) => dispatch(scholarshipActions.deleteScholarship(documentId)),
+        (documentId, appType, member, pastWinner, grades, notes, approval) => dispatch(scholarshipActions.deleteScholarship(documentId, appType, member, pastWinner, grades, notes, approval)),
         [dispatch]
     );
 
-    const handleAdminSave = (e) => {
-        e.preventDefault();
-
-        setIsSaving(true);
-
-    }
+    const saveApplication = useCallback(
+        (documentId, userId, appType, grades, notes, approval) => dispatch(scholarshipActions.updateScholarshipStart(documentId, userId, appType, grades, notes, approval)),
+        [dispatch]
+    );
 
     const updateNotes = (e) => {
         setNotes(e.target.value);
@@ -114,11 +93,9 @@ export default function (props) {
 
     const onApprovalStatusChange = (status) => {
         setApprovalStatus(status);
-        //saveApprovalStatus(props.userId, props.scholarshipType, status);
     }
 
     const savePoints = (value, key) => {
-        //console.log("setGrades key: ", key);
         setGrades({
            ...grades,
            points: {
@@ -126,14 +103,6 @@ export default function (props) {
                [key]: parseInt(value)
            }
         });
-
-        // updateGrades(props.userId,  {
-        //     ...grades,
-        //     points: {
-        //         ...grades.points,
-        //         [key]: parseInt(value)
-        //     }
-        // })
     }
 
     const saveQuestions = (value, key) => {
@@ -142,11 +111,6 @@ export default function (props) {
             ...grades,
             [key]: parseInt(value)
         });
-
-        // updateGrades(props.userId,  {
-        //     ...grades,
-        //     [key]: value
-        // })
     }
 
     const calculatePoints = (points) => {
@@ -1001,8 +965,8 @@ export default function (props) {
                                         className={"btn save-application-button"}
                                         type="primary"
                                         size={"large"}
-                                        loading={isSaving}
-                                        onClick={handleAdminSave}
+                                        loading={props.adminIsSaving}
+                                        onClick={(event) => {saveApplication(props.userId, props.scholarshipType, grades, notes, approvalStatus)}}
                                     >Save Application</Button>
                                 </Form.Item>
                             </Form>

@@ -7,8 +7,6 @@ import {getCurrentYear, REFERRALS_API_PATH} from "../../helpers/shared";
 
 const currentYear = getCurrentYear().toString();
 
-console.log("testing: ", authProjects.currentUser)
-
 function getReferralsRef (documentId) {
     return dbProjects.collection("referrals").doc(currentYear).collection("applications").doc(documentId);
 }

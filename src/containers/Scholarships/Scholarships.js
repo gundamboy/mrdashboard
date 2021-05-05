@@ -415,8 +415,8 @@ export default function Scholarships() {
                     "name": eduApp.name,
                     "email": eduApp.email,
                     "city": eduApp.city,
-                    "appType": "DCC",
-                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "appType": "Higher Edu",
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
                     "currentScholarship": scholarship
                 });
             }
