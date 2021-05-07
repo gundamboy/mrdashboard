@@ -17,7 +17,7 @@ export default function referralsReducer(state = INITIAL_DATA, action) {
         case referralActions.FETCH_REFERRALS_START:
             return {
                 ...state,
-                referralsLoading: true
+                referralsLoading: true,
             };
         case referralActions.FETCH_REFERRALS_SUCCESS:
             return {
