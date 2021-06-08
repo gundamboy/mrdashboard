@@ -15,41 +15,6 @@ const getReferralsCollectionRef = () => {
     return dbProjects.collection("referrals").doc(currentYear).collection("applications");
 }
 
-function* getSingleReferralNonNotify(documentId) {
-    try {
-        let referral = null;
-
-        if(documentId) {
-            const getReferral = getReferralsRef(documentId.payload);
-
-            const fetchReferral = yield call(() => {
-                return new Promise((resolve, reject) => {
-                    getReferral.get()
-                        .then((doc) => {
-                            if(doc.exists) {
-                                const app = doc.data();
-                                referral = {id: documentId.payload, ...app};
-                                resolve(fetchReferral);
-                            }
-                        })
-                        .catch((error) => {
-                            console.log("getSingleReferralNonNotify error:", error);
-                        });
-                });
-            });
-        }
-
-        if(referral !== null) {
-            return referral;
-        } else {
-            console.log("fetch single referral non notified not resolved");
-        }
-
-    } catch (e) {
-        console.log("getSingleReferralNonNotify error", e);
-    }
-}
-
 function* initReferrals() {
     try {
         const collectionRef = getReferralsCollectionRef();
@@ -75,7 +40,6 @@ function* getSingleReferral(documentId) {
 
         if(documentId) {
             const getReferral = getReferralsRef(documentId.payload);
-
             const fetchReferral = yield call(() => {
                 return new Promise((resolve, reject) => {
                     getReferral.get()
@@ -287,19 +251,6 @@ function emailReferral(referrerEmail, refereeEmail, referrerName, personYouAreRe
     });
 }
 
-
-// dummy template function
-// function* xxxx() {
-//     try {
-//
-//     } catch (e) {
-//         console.log("xxxx", e);
-//         yield put({
-//             type: referralActions.xxxxxxxx,
-//             payload: e
-//         })
-//     }
-// }
 
 export default function* rootSaga() {
     yield all([

@@ -51,10 +51,13 @@ function* getSingleGrantNonNotify(documentId) {
 }
 
 function* initGrants() {
+    console.log("we are here")
     try {
         const collectionRef = getGrantsCollectionRef();
         const snapshots = yield call(rsfProjects.firestore.getCollection, collectionRef);
         const grants = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
+
+        console.log("grants?", grants)
 
         yield put( {
             type: grantsActions.FETCH_GRANTS_SUCCESS,

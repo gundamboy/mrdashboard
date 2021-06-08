@@ -337,7 +337,7 @@ export default function (props) {
                             <Title level={4} className={"admin-section-title"}>Approvals</Title>
                             <Form layout="vertical" name="approvals-form" onFinish={onFormsFinish}>
                                 <Form.Item label="Approval Status">
-                                    <Select disabled={applicantNotified} className="approval-select" key={"approval"} defaultValue={props.currentReferral.referralStatus}
+                                    <Select disabled={applicantNotified} className="approval-select" key={"approval"} defaultValue={currentApplicationStatus}
                                             onChange={(v) => onApprovalStatusChange(v)}>
                                         <Select.Option value={"approved"}>Approved</Select.Option>
                                         <Select.Option value={"denied"}>Denied</Select.Option>

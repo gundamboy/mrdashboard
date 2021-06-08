@@ -17,21 +17,17 @@ export default function SingleReferral() {
     const referralId  = urlArray.slice(-1).pop();
     const redirectPath = match.url.replace(referralId, '');
 
-    const getCurrentReferral = useCallback(
-        () => dispatch(referralActions.fetchSingleReferralStart(referralId)),
-        [dispatch]
-    );
 
     useEffect(() => {
-        getCurrentReferral();
-    }, [getCurrentReferral]);
+        dispatch(referralActions.fetchSingleReferralStart(referralId))
+    }, [dispatch]);
 
     // if an email was sent, just get out of here.
-    if(referralEmailStatus) {
-        //return <Redirect to={redirectPath} />;
-    }
+    // if(referralEmailStatus) {
+    //     //return <Redirect to={redirectPath} />;
+    // }
 
-    if(typeof currentReferral === 'object') {
+    if(currentReferral) {
         return (
             <ViewReferral
                 currentReferral={currentReferral}

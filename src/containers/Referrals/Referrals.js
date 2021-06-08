@@ -219,8 +219,6 @@ export default function Referrals(props) {
 
 
     if(allReferrals.length) {
-        console.log("referrals:", referrals);
-
         let applicationInfo = new applicationsData(allReferrals.length, allReferrals);
         const pendingApplicationInfo = new applicationsData(pendingReferrals.length, pendingReferrals);
         const approvedApplicationInfo = new applicationsData(approvedReferrals.length, approvedReferrals);

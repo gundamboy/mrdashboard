@@ -24,6 +24,7 @@ export default function (props) {
     const [showPreview, setShowPreview] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [materialError, setMaterialError] = useState(false);
     const [currentApplicationStatus, setCurrentApplicationStatus] = useState(props.currentSponsorship.admin.approvalStatus)
     let applicantEmailPreview = null;
     const submissionInfo = currentApp.submission;
@@ -478,12 +479,22 @@ export default function (props) {
                 // create the items string for the editor preview
                 let itemsTextArray = [];
 
-                if(existingItems.length) {
-                    for (let idx in existingItems) {
-                        if(parseInt(idx) === existingItems.length - 1) {
-                            itemsTextArray.push("and " + existingItems[idx].itemQty + " " + existingItems[idx].itemName);
-                        } else {
-                            itemsTextArray.push(existingItems[idx].itemQty + " " + existingItems[idx].itemName);
+                if(existingItems === null) {
+                    setMaterialError(true);
+                    console.log("setMaterialError:", materialError);
+                    alert("You must add and save approved items first.");
+                }
+
+                if(existingItems !== null) {
+                    if (existingItems.length) {
+                        console.log("testing")
+                        setMaterialError(false);
+                        for (let idx in existingItems) {
+                            if (parseInt(idx) === existingItems.length - 1) {
+                                itemsTextArray.push("and " + existingItems[idx].itemQty + " " + existingItems[idx].itemName);
+                            } else {
+                                itemsTextArray.push(existingItems[idx].itemQty + " " + existingItems[idx].itemName);
+                            }
                         }
                     }
                 }
@@ -517,7 +528,12 @@ export default function (props) {
             setShowPreview(true);
         } else {
             const emailBody = buildEmailPreview();
-            createEditor(emailBody);
+
+            console.log("materialError:", materialError);
+            if(!materialError) {
+                createEditor(emailBody);
+            }
+
         }
 
     };
