@@ -17,6 +17,10 @@ export default function SingleSponsorship() {
     const sponsorshipId  = urlArray.slice(-1).pop();
     const redirectPath = match.url.replace(sponsorshipId, '');
 
+    console.log("single sponsorship");
+
+    console.log( "state:", useSelector(state => state.sponsorshipsReducer) )
+
     const getCurrentSponsorship = useCallback(
         () => dispatch(sponsorshipActions.fetchSingleApplication(sponsorshipId)),
         [dispatch]

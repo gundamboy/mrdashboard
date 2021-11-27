@@ -40,12 +40,28 @@ export const REFERRALS_API_PATH = () => {
     return isLocal ? "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/referrals-emails.php" : "/php/referrals-emails.php";
 }
 
+export const GRANT_API_PATH = () => {
+    return isLocal ? "http://localhost:8888/midrivers/isomorphic-admin-dashboard/packages/isomorphic-midrivers/php/grants-emails.php" : "/php/grants-emails.php";
+}
+
 export const compareByAlpha = (a, b) => {
     if (a.toLowerCase() > b.toLowerCase()) {
         return -1;
     }
 
     if (a.toLowerCase() < b.toLowerCase()) {
+        return 1;
+    }
+
+    return 0;
+}
+
+export const compareScore = (a, b) => {
+    if (a > b) {
+        return -1;
+    }
+
+    if (a < b) {
         return 1;
     }
 

@@ -164,10 +164,12 @@ export default function Referrals(props) {
 
     // for loop to build the data set for each tab
     for (let result of referrals) {
+        console.log("result:", result);
+
         const app = {
             "id": result.id,
             "key": result.id,
-            "date": formattedDate(new Date(result.submitted.toDate())),
+            "date": result.submitted,
             "personYouAreReferring": result.personYouAreReferring,
             "referrerName": result.referrerName,
             "appLink" : `${match.path}/${result.id}`,
@@ -192,7 +194,9 @@ export default function Referrals(props) {
             columns: [
                 {
                     ...getColumnData("Submission Date", "date"),
-                    width: "12%"
+                    width: "12%",
+                    defaultSortOrder: 'descend',
+                    sorter: (a, b) => new Date(a.date) - new Date(b.date)
                 },
                 {
                     ...getColumnData("Referrer Name", "referrerName"),

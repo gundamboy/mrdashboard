@@ -4,7 +4,7 @@ const INITIAL_DATA = {
     grants: [],
     grantsLoading: false,
     grantsUpdateLoading: false,
-    grantsActiveTab: "pending"
+    grantsActiveTab: "pending",
 }
 
 export default function grantsReducer(state = INITIAL_DATA, action) {
@@ -17,7 +17,8 @@ export default function grantsReducer(state = INITIAL_DATA, action) {
         case grantsActions.FETCH_GRANTS_START:
             return {
                 ...state,
-                grantsLoading: true
+                grantsLoading: true,
+                currentGrant: null
             };
         case grantsActions.FETCH_GRANTS_SUCCESS:
             return {
@@ -31,16 +32,20 @@ export default function grantsReducer(state = INITIAL_DATA, action) {
                 fetchReferralsError: action.payload,
                 grantsLoading: false
             };
-        case grantsActions.FETCH_SINGLE_GRANT_START:
-            return {
-                ...state,
-                grantsLoading: true
-            };
         case grantsActions.FETCH_SINGLE_GRANT_SUCCESS:
             return {
                 ...state,
-                currentReferral: action.payload,
-                grantsLoading: false
+                currentGrant: action.currentGrant,
+                grantsLoading: false,
+                totalGrants: action.totalGrants,
+                totalGrantsAmount: action.totalGrantsAmount
+            };
+        case grantsActions.FETCH_SINGLE_GRANT:
+            return {
+                ...state,
+                totalGrants: null,
+                totalGrantsAmount: null,
+                grantsLoading: true,
             };
         case grantsActions.FETCH_SINGLE_GRANT_FAILURE:
             return {
@@ -48,15 +53,23 @@ export default function grantsReducer(state = INITIAL_DATA, action) {
                 fetchSingleReferralError: action.payload,
                 grantsLoading: false
             };
+        case grantsActions.UPDATE_GRANT:
+            return {
+                ...state,
+                grantsUpdateLoading: true,
+            };
         case grantsActions.UPDATE_GRANT_SUCCESS:
             return {
                 ...state,
-                grantUpdateStatus: true,
-                grantUpdateError: null
+                grantsUpdateLoading: false,
+                grantUpdateError: null,
+                currentGrant: action.currentGrant,
+                grants: []
             };
         case grantsActions.UPDATE_GRANT_FAILURE:
             return {
                 ...state,
+                grantsUpdateLoading: false,
                 grantUpdateStatus: false,
                 grantUpdateError: action.payload
             };
@@ -75,7 +88,6 @@ export default function grantsReducer(state = INITIAL_DATA, action) {
         case grantsActions.SEND_GRANT_EMAIL_START:
             return {
                 ...state,
-                grantEmailStatus: true,
                 sendingEmail: true
             };
         case grantsActions.SEND_GRANT_EMAIL_SUCCESS:
@@ -89,13 +101,20 @@ export default function grantsReducer(state = INITIAL_DATA, action) {
                 ...state,
                 grantEmailStatus: false,
                 grantEmailError: action.payload,
-                sendingEmail: true
+                sendingEmail: false
             };
         case grantsActions.SET_GRANT_TABLE_SORTER:
             return {
                 ...state,
                 grantTableSorter: action.payload
             };
+        case grantsActions.DELETE_GRANT_START:
+            return {
+                ...state,
+                grantDeleted: action.payload,
+                currentGrant: null,
+                grantsLoading: false,
+            }
         default:
             return state
     }

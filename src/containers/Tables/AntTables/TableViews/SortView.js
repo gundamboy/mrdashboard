@@ -4,10 +4,13 @@ import {useDispatch, useSelector} from "react-redux";
 import scholarshipsActions from "../../../../redux/scholarships/actions";
 import sponsorshipActions from "../../../../redux/sponsorships/actions";
 import referralActions from "../../../../redux/referrals/actions";
+import grantsActions from "../../../../redux/grants/actions";
 
 export default function({ dataList, tableInfo, bordered, size, pagination, loading, expandable, parentPage }) {
   const [state, setState] = useState(dataList.getAll());
   const dispatch = useDispatch();
+
+
 
   const setScholarshipsColumnSorter = useCallback(
       (sorter) => dispatch(scholarshipsActions.setScholarshipTableSorter(sorter)),
@@ -24,8 +27,12 @@ export default function({ dataList, tableInfo, bordered, size, pagination, loadi
       [dispatch]
   );
 
-  function onChange(pagination, filters, sorter) {
+  const setGrantColumnSorter = useCallback(
+      (sorter) => dispatch(grantsActions.setGrantTableSorter(sorter)),
+      [dispatch]
+  );
 
+  function onChange(pagination, filters, sorter) {
     if(parentPage === "scholarships") {
       setScholarshipsColumnSorter(sorter);
     }
@@ -36,6 +43,10 @@ export default function({ dataList, tableInfo, bordered, size, pagination, loadi
 
     if(parentPage === "referrals") {
       setReferralColumnSorter(sorter);
+    }
+
+    if(parentPage === "grants") {
+      setGrantColumnSorter(sorter);
     }
 
     if (sorter && sorter.columnKey && sorter.order) {

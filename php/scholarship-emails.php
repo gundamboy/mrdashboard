@@ -63,6 +63,8 @@ function sendPHPMailer($mail, $emailTableRows, $name, $email) {
         $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications Scholarships');
         $mail->addAddress($email, $name);
         $mail->addBCC('nicole.senner@midrivers.coop', 'Nicole');
+        $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');
+        $mail->addBCC('mrcom@midrivers.coop', 'Sponsorships');
         $mail->Subject = "Mid-Rivers Scholarship Application";
         $mail->isHTML(true);
         $mail->Body = buildEmailMessage($emailTableRows);

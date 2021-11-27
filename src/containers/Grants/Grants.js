@@ -12,10 +12,13 @@ import {Link, useRouteMatch} from "react-router-dom";
 import Button from "@iso/components/uielements/button";
 import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
-import {compareByAlpha, formattedDate} from "../../helpers/shared";
+import {compareByAlpha, formattedDate, production} from "../../helpers/shared";
 import { grantTabs } from "../Tables/AntTables/configs";
-import referralActions from "../../redux/referrals/actions";
 import grantsActions from "../../redux/grants/actions";
+import {AdvancedOptionsWrapper} from "./Grants.styles";
+import {AdvancedOptions} from "../Sponsorships/Sponsorships.styles";
+import {ExportSponsorships} from "../../helpers/exportSponsorships";
+import {ExportGrants} from "../../helpers/exportGrants";
 
 export default function Grants() {
     let applications = [], pendingApplications = [], approvedApplications = [], deniedApplications = [],
@@ -24,14 +27,18 @@ export default function Grants() {
     const {grants, grantsLoading, grantsActiveTab, grantTableSorter}  = useSelector(state => state.grantsReducer);
     const [searchText, setSearchText] = useState();
     const [searchedColumn, setSearchedColumn] = useState();
+    const [showOptionsClass, setShowOptionsClass] = useState();
     const dispatch = useDispatch();
     const match = useRouteMatch();
     const target = useRef(null);
     const searchInput = useRef(null);
 
+    //console.log("state:",  useSelector(state => state.grantsReducer));
+
     // fetch grants start
     const getGrantApplications = useCallback(
-        () => dispatch(grantsActions.fetchGrantsStart()), [dispatch]
+        () => dispatch(grantsActions.fetchGrantsStart()),
+        [dispatch]
     );
 
     // set the active tab
@@ -152,48 +159,176 @@ export default function Grants() {
         setSearchText("");
     };
 
-
     // set on table change here
     const onTabChange = (key) => {
         setTab(key)
     };
 
     // for loop to build the data set for each tab
-    console.log("result:", grants);
     for (let result of grants) {
         const app = {
             "id": result.id,
             "key": result.id,
             "date": formattedDate(new Date(result.submitted.toDate())),
-            "name": result.name,
-            "amount": result.amount,
+            "name": result.organizationName,
+            "amount": result.amountRequested,
             "appLink" : `${match.path}/${result.id}`,
             "currentApplication": result
         }
 
-        if(result.referralStatus === "pending") {
+        if(result.grantsStatus === "pending") {
             pendingApplications.push(app);
-        } else if(result.referralStatus === "approved") {
+        } else if(result.grantsStatus === "approved") {
             approvedApplications.push(app);
-        } else if(result.referralStatus === "denied") {
+        } else if(result.grantsStatus === "denied") {
             deniedApplications.push(app);
         }
 
         applications.push(app);
     }
 
+    const grantColumns = [
+        {
+            columns: [
+                {
+                    ...getColumnData("Submission Date", "date"),
+                    width: "12%",
+                },
+                {
+                    ...getColumnData("Organization", "name")
+                },
+                {
+                    ...getColumnData("Amount Requested", "amount")
+                },
+                {
+                    title: "",
+                    key: "appLink",
+                    dataIndex: "appLink",
+                    width: "6%",
+                    render: url => (
+                        <div className="">
+                            <Link to={url}>
+                                <Button className="applicationButton" color="primary">View</Button>
+                            </Link>
+                        </div>
+                    ),
+                }
+            ]
+        }
+    ];
 
-
-
+    const toggleAdvancedOptions = () => {
+        if (!showOptionsClass) {
+            setShowOptionsClass("show");
+        } else {
+            setShowOptionsClass("");
+        }
+    };
 
     if(applications.length) {
+        let applicationInfo = new applicationsData(applications.length, applications);
+        const pendingApplicationInfo = new applicationsData(pendingApplications.length, pendingApplications);
+        const approvedApplicationInfo = new applicationsData(approvedApplications.length, approvedApplications);
+        const deniedApplicationInfo = new applicationsData(deniedApplications.length, deniedApplications);
+
         return (
-            <LayoutContentWrapper style={{height: '100vh'}}>
+            <LayoutContentWrapper style={{height: '100%'}}>
                 <PageHeader>
-                    <IntlMessages id="sidebar.referrals" />
+                    <IntlMessages id="sidebar.grants" />
                 </PageHeader>
-                <LayoutContent className={"ant-spin-nested-loading"}>
-                    <h3>it's working</h3>
+                <LayoutContent ref={target} className={"ant-spin-nested-loading"}>
+                    <AdvancedOptionsWrapper className="advanced-options-wrapper">
+                        <AdvancedOptions className={"advanced-options " + showOptionsClass}>
+                            <div className="dummy-data-buttons" style={{textAlign: 'right'}}>
+                                <Space>
+                                    <Button type="link" onClick={(e) => {ExportGrants(grants)}}>Export Sponsorships</Button>
+                                </Space>
+                            </div>
+                        </AdvancedOptions>
+                        <div className="options" style={{textAlign: "right"}}>
+                            <Tooltip title="Advanced Options" mouseEnterDelay={0.65}>
+                                <Button style={{border: "none"}} shape="circle" icon={<SettingFilled style={{fontSize: 22}} onClick={toggleAdvancedOptions}/>}/>
+                            </Tooltip>
+                        </div>
+                    </AdvancedOptionsWrapper>
+
+                    <Tabs className="isoTableDisplayTab" onChange={onTabChange} defaultActiveKey={grantsActiveTab}>
+                        {grantTabs.map(tab => {
+                            if (tab.value === 'pending') {
+                                if (pendingApplicationInfo.applicationData.length) {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <Component
+                                                parentPage={"grants"}
+                                                tableInfo={grantColumns[0]}
+                                                dataList={pendingApplicationInfo}
+                                                bordered={true}
+                                                size={"small"}
+                                                loading={grantsLoading}
+                                                expandable={false}
+                                                pagination={{hideOnSinglePage: true}}
+                                                currentApplication={pendingApplicationInfo.currentApplication}
+                                            />
+                                        </TabPane>
+                                    )
+                                } else {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <p>No Pending Applications at this time.</p>
+                                        </TabPane>
+                                    )
+                                }
+                            } else if (tab.value === 'approved') {
+                                if (approvedApplicationInfo.applicationData.length) {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <Component
+                                                parentPage={"grants"}
+                                                tableInfo={grantColumns[0]}
+                                                dataList={approvedApplicationInfo}
+                                                bordered={true}
+                                                size={"small"}
+                                                loading={grantsLoading}
+                                                expandable={false}
+                                                pagination={{hideOnSinglePage: true}}
+                                                currentApplication={approvedApplicationInfo.currentApplication}
+                                            />
+                                        </TabPane>
+                                    )
+                                } else {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <p>No Approved Applications at this time.</p>
+                                        </TabPane>
+                                    )
+                                }
+                            } else if (tab.value === 'denied') {
+                                if (deniedApplicationInfo.applicationData.length) {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <Component
+                                                parentPage={"grants"}
+                                                tableInfo={grantColumns[0]}
+                                                dataList={deniedApplicationInfo}
+                                                bordered={true}
+                                                size={"small"}
+                                                loading={grantsLoading}
+                                                expandable={false}
+                                                pagination={{hideOnSinglePage: true}}
+                                                currentApplication={deniedApplicationInfo.currentApplication}
+                                            />
+                                        </TabPane>
+                                    )
+                                } else {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <p>No Denied Applications at this time.</p>
+                                        </TabPane>
+                                    )
+                                }
+                            }
+                        })}
+                    </Tabs>
                 </LayoutContent>
             </LayoutContentWrapper>
         );
@@ -201,7 +336,7 @@ export default function Grants() {
         return (
             <LayoutContentWrapper style={{height: '100vh'}}>
                 <PageHeader>
-                    <IntlMessages id="sidebar.referrals" />
+                    <IntlMessages id="sidebar.grants" />
                 </PageHeader>
                 <LayoutContent className={"ant-spin-nested-loading"}>
                     <TableWrapper
@@ -210,5 +345,65 @@ export default function Grants() {
             </LayoutContentWrapper>
         );
     }
+}
 
+
+const sortOption = {};
+class applicationsData {
+    constructor(size, applicationData) {
+        this.size = size || 2000;
+        this.datas = [];
+        this.sortKey = null;
+        this.sortDir = null;
+        this.applicationData = applicationData;
+    }
+    dataModel(index) {
+        return this.applicationData[index];
+    }
+    getObjectAt(index) {
+        if (index < 0 || index > this.size) {
+            return undefined;
+        }
+        if (this.datas[index] === undefined) {
+            this.datas[index] = this.dataModel(index);
+        }
+        return this.datas[index];
+    }
+    getAll() {
+        if (this.datas.length < this.size) {
+            for (let i = 0; i < this.size; i++) {
+                this.getObjectAt(i);
+            }
+        }
+        return this.datas.slice();
+    }
+
+    getSize() {
+        return this.size;
+    }
+    getSortAsc(sortKey) {
+        sortOption.sortKey = sortKey;
+        sortOption.sortDir = 'ASC';
+        return this.datas.sort(this.sort);
+    }
+    getSortDesc(sortKey) {
+        sortOption.sortKey = sortKey;
+        sortOption.sortDir = 'DESC';
+        return this.datas.sort(this.sort);
+    }
+    sort(optionA, optionB) {
+        const valueA = optionA[sortOption.sortKey].toUpperCase();
+        const valueB = optionB[sortOption.sortKey].toUpperCase();
+        let sortVal = 0;
+        if (valueA > valueB) {
+            sortVal = 1;
+        }
+        if (valueA < valueB) {
+            sortVal = -1;
+        }
+        if (sortVal !== 0 && sortOption.sortDir === 'DESC') {
+            return sortVal * -1;
+        }
+        return sortVal;
+    }
 }

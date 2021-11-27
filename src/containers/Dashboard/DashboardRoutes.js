@@ -40,6 +40,11 @@ const routes = [
     path: 'grants',
     component: lazy(() => import('../Grants/Grants')),
   },
+  {
+    path: '*',
+    component: lazy(() => import('../DashboardHomePage')),
+    exact: true,
+  },
 ];
 
 export default function AppRouter() {

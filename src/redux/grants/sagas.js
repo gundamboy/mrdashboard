@@ -3,7 +3,7 @@ import grantsActions from "./actions";
 import {rsfProjects, dbProjects, authProjects, db} from '@iso/lib/firebase/firebase';
 import axios from 'axios';
 import * as firebase from "firebase";
-import {getCurrentYear, REFERRALS_API_PATH} from "../../helpers/shared";
+import {getCurrentYear, GRANT_API_PATH, REFERRALS_API_PATH} from "../../helpers/shared";
 
 const currentYear = getCurrentYear().toString();
 
@@ -51,20 +51,16 @@ function* getSingleGrantNonNotify(documentId) {
 }
 
 function* initGrants() {
-    console.log("we are here")
     try {
         const collectionRef = getGrantsCollectionRef();
         const snapshots = yield call(rsfProjects.firestore.getCollection, collectionRef);
         const grants = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
-
-        console.log("grants?", grants)
-
         yield put( {
             type: grantsActions.FETCH_GRANTS_SUCCESS,
             payload: grants
         });
     } catch (e) {
-        console.log("grants initGrants", e);
+        console.log("grants initGrants error:", e);
         yield put({
             type: grantsActions.FETCH_GRANTS_FAILURE,
             payload: e
@@ -72,9 +68,20 @@ function* initGrants() {
     }
 }
 
+function formatNumbers(amount) {
+    return amount.replace(/[^0-9]/g, '');
+}
+
 function* getSingleGrant(documentId) {
     try {
         let grant = null;
+        let totalGrants = 0;
+        let totalAmount = 0;
+
+        const options = {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        };
 
         if(documentId) {
             const getGrant = getGrantsRef(documentId.payload);
@@ -95,10 +102,24 @@ function* getSingleGrant(documentId) {
                         });
                 });
             });
+
+            const collectionRef = getGrantsCollectionRef();
+            const snapshots = yield call(rsfProjects.firestore.getCollection, collectionRef);
+            const grants = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            totalGrants = grants.length;
+
+            for (let grant of grants) {
+                totalAmount += parseInt(formatNumbers(grant.amountRequested));
+            }
         }
 
         if(grant !== null) {
-            yield notifySingleGrantFetched(grant);
+            yield put({
+                type: grantsActions.FETCH_SINGLE_GRANT_SUCCESS,
+                currentGrant: grant,
+                totalGrants: totalGrants,
+                totalGrantsAmount: Number(totalAmount).toLocaleString('en', options)
+            });
         } else {
             console.log("fetch single grant not resolved");
         }
@@ -113,52 +134,48 @@ function* getSingleGrant(documentId) {
     console.groupEnd();
 }
 
-function* notifySingleGrantFetched(grant) {
+function* notifyGrantUpdated(updatedApp) {
     try {
         yield put({
-            type: grantsActions.FETCH_SINGLE_GRANT_SUCCESS,
-            payload: grant
+            type: grantsActions.UPDATE_GRANT_SUCCESS,
+            currentGrant: updatedApp,
         });
     } catch (e) {
-        console.log("notifySingleGrantFetched error", e);
-        yield put({
-            type: grantsActions.FETCH_SINGLE_GRANT_SUCCESS,
-            payload: e
-        })
+        console.log("notifyGrantNotesUpdated error", e);
     }
 }
 
-function* updateGrantApproval(payload) {
+function* updateGrantApplication(appObject) {
     try {
-        console.log("updateGrantApproval payload:", payload)
-        const documentId = payload.grantId;
-        const status = payload.status;
-        const getGrant = getGrantsRef(documentId);
-        console.log("")
+        const collectionRef = getGrantsRef(appObject.payload.id);
+        const updateObj = appObject.payload.toUpdate
+        let updatedApp = {};
+        let applicationUpdated = false;
 
-        let updateDB = {};
-        updateDB["grantStatus"] = status;
-        updateDB["decisionDate"] = firebase.firestore.Timestamp.now();
-        let updated = false;
-
-        const updateApp = yield call(() => {
+        const update = yield call(() => {
             return new Promise((resolve, reject) => {
-                getGrant.update(updateDB)
+                collectionRef.update(updateObj)
                     .then(() => {
-                        updated = true;
+                        const collectionRef = getGrantsRef(appObject.payload.id);
+                        //const collectionRef = dbProjects.collection("grants").doc(currentYear).collection("applications").doc(appObject.payload.id);
+                        collectionRef.get().then((doc) => {
+                            updatedApp = doc.data();
+                            applicationUpdated = true;
+
+                            resolve(update);
+                        });
                     })
                     .catch((error) => {
                         console.log("error updating grant in firebase:", error);
                     });
-                resolve(updateApp);
             })
         });
 
-        if(updated === true) {
-            notifyGrantNotesUpdated();
+        if(applicationUpdated) {
+            yield notifyGrantUpdated(updatedApp);
         }
     } catch (e) {
-        console.log("updateGrantApproval error", e);
+        console.log("updateGrantApplication error", e);
         yield put({
             type: grantsActions.UPDATE_GRANT_FAILURE,
             payload: e
@@ -166,61 +183,21 @@ function* updateGrantApproval(payload) {
     }
 }
 
-function* updateNotes(payload) {
-    try {
-        const documentId = payload.grantId;
-        const notes = payload.notes;
-        const getSingleGrantRef = getGrantsRef(documentId);
-
-        let updateDB = {};
-        updateDB["notes"] = notes;
-        let updated = false;
-
-        const updateNotes = yield call(() => {
-            return new Promise((resolve, reject) => {
-                getSingleGrantRef.update(updateDB)
-                    .then(() => {
-                        updated = true;
-                    })
-                    .catch((error) => {
-                        console.log("error updating notes in firebase:", error);
-                    });
-                resolve(updateNotes);
-            })
-        });
-
-        if(updated === true) {
-            notifyGrantNotesUpdated();
-        }
-
-    } catch (error) {
-        yield put({
-            type: grantsActions.UPDATE_GRANT_NOTES_ERROR,
-            grantNotesError: true
-        });
-    }
-}
-
-function* notifyGrantNotesUpdated() {
-    try {
-        yield put({
-            type: grantsActions.UPDATE_GRANT_NOTES_SUCCESS,
-        });
-    } catch (e) {
-        console.log("notifyGrantNotesUpdated error", e);
-    }
-}
-
 function* sendGrantEmail(payload) {
     try {
-        const userId = payload.userId;
+        console.log("sendGrantEmail payload:", payload);
+        const userId = payload.payload.id;
+        const email = payload.payload.email;
+        const name = payload.payload.name;
 
         const { data } = yield call(() => {
             return new Promise((resolve, reject) => {
-                const doEmail = emailGrant(payload.referrerEmail, payload.refereeEmail, payload.referrerName, payload.personYouAreReferring, payload.emailArray, payload.userId, payload.approvalStatus)
+                const doEmail = emailGrant(email, name, payload.emailTextArray)
                 resolve(doEmail);
             })
         });
+
+        console.log("data:", data);
 
         if(!data) {
             yield put(grantsActions.sendGrantEmailFailure(true, false));
@@ -269,21 +246,21 @@ function* sendGrantEmail(payload) {
     }
 }
 
-function emailGrant(referrerEmail, refereeEmail, referrerName, personYouAreReferring, emailTextArray, userId, status) {
-    const API_PATH = REFERRALS_API_PATH();
+function emailGrant(email, name, emailTextArray) {
+    const API_PATH = GRANT_API_PATH();
+
+    console.log("email:", email);
+    console.log("name:", name);
+    console.log("emailTextArray:", emailTextArray);
 
     return axios({
         method: 'post',
         url: `${API_PATH}`,
         headers: { 'content-type': 'application/json' },
         data: {
-            referrerEmail: referrerEmail,
-            refereeEmail: refereeEmail,
-            referrerName: referrerName,
-            personYouAreReferring: personYouAreReferring,
-            emailTextArray: emailTextArray,
-            userId: userId,
-            approvalStatus: status,
+            email: email,
+            name: name,
+            emailArray: emailTextArray
         }
     }).catch((error) => {
         console.log("axios error:", error);
@@ -307,9 +284,8 @@ function emailGrant(referrerEmail, refereeEmail, referrerName, personYouAreRefer
 export default function* rootSaga() {
     yield all([
         takeEvery(grantsActions.FETCH_GRANTS_START, initGrants),
-        takeEvery(grantsActions.FETCH_SINGLE_GRANT_START, getSingleGrant),
-        takeEvery(grantsActions.UPDATE_GRANT_START, updateGrantApproval),
-        takeEvery(grantsActions.UPDATE_GRANT_NOTES_START, updateNotes),
+        takeEvery(grantsActions.FETCH_SINGLE_GRANT, getSingleGrant),
+        takeEvery(grantsActions.UPDATE_GRANT, updateGrantApplication),
         takeEvery(grantsActions.SEND_GRANT_EMAIL_START, sendGrantEmail),
 
     ]);

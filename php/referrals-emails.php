@@ -64,7 +64,7 @@ function sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $per
         $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
         $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
         $mail->addAddress($referrerEmail, $referrerName);
-
+        $mail->addBCC('mrcom@midrivers.coop', 'Sponsorships');
         if($approvalStatus === "approved") {
             $mail->addBCC($refereeEmail, $personYouAreReferring);
         }

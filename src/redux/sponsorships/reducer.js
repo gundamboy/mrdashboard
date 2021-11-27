@@ -46,7 +46,6 @@ export default function sponsorshipsReducer(state = INITIAL_DATA, action) {
                 loading: false,
                 error: action.payload
             };
-
         case sponsorshipActions.FETCH_SINGLE_APPLICATION:
             return {
                 ...state,

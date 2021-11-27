@@ -949,6 +949,7 @@ export default function (props) {
                                         <Select.Option value={"approved"}>Approved</Select.Option>
                                         <Select.Option value={"denied"}>Denied</Select.Option>
                                         <Select.Option value={"pending"}>Pending</Select.Option>
+                                        <Select.Option value={"eligible"}>Eligible</Select.Option>
                                         <Select.Option value={"ineligible"}>Ineligible</Select.Option>
                                     </Select>
                                 </Form.Item>

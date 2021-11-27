@@ -1,5 +1,19 @@
 import styled from 'styled-components';
 
+export const AdvancedOptionsWrapper = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;   
+`;
+
+export const AdvancedOptions = styled.div`
+    display: none;
+    
+    &.show {
+        display: block;
+    }
+`;
+
 export const ApplicationSection = styled.div`
     .ant-table-wrapper {
         margin-bottom: 3rem;
@@ -15,6 +29,12 @@ export const ApplicationSection = styled.div`
                     white-space: normal;
                 }
             }
+        }
+    }
+    
+    .playerWrapper {
+        .videoUrl {
+            margin-top: 1rem;
         }
     }
     
@@ -189,6 +209,10 @@ export const ApplicationSection = styled.div`
                 
             }
         }
+    }
+    
+    .orgCard {
+        margin-bottom: 1rem;
     }
     
     .pending {}

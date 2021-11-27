@@ -97,9 +97,9 @@ export const ExportSponsorships = (applicationsObj) => {
 
     // show feedback instead of an empty sheet if no applications match
     if(pending.length <= 1) {pending.push(noApps)}
-    if(denied.length <= 1) {pending.push(noApps)}
-    if(approvedMonetary.length <= 1) {pending.push(noApps)}
-    if(approvedMaterial.length <= 1) {pending.push(noApps)}
+    if(denied.length <= 1) {denied.push(noApps)}
+    if(approvedMonetary.length <= 1) {approvedMonetary.push(noApps)}
+    if(approvedMaterial.length <= 1) {approvedMaterial.push(noApps)}
 
     // start the excel crap
     const wb = XLSX.utils.book_new();
@@ -113,6 +113,6 @@ export const ExportSponsorships = (applicationsObj) => {
     XLSX.utils.book_append_sheet(wb, approvedMonetarySheet, "Approved Monetary Applications");
     XLSX.utils.book_append_sheet(wb, approvedMaterialSheet, "Approved Material Applications");
 
-    //XLSX.writeFile(wb, "sponsorships-data.xlsx");
+    XLSX.writeFile(wb, "sponsorships-data.xlsx");
 
 }

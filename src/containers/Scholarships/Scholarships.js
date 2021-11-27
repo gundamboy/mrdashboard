@@ -15,7 +15,7 @@ import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
 import {AdvancedOptions, AdvancedOptionsWrapper} from "./Scholarships.styles";
 import scholarshipsActions from "../../redux/scholarships/actions";
-import {compareByAlpha, formattedDate} from "../../helpers/shared";
+import {compareByAlpha, compareScore, formattedDate} from "../../helpers/shared";
 import {ExportScholarships} from "../../helpers/exportScholarships";
 
 const {
@@ -127,18 +127,31 @@ export default function Scholarships() {
 
         if(scholarshipTableSorter !== undefined && scholarshipTableSorter.column !== undefined) {
             if(scholarshipTableSorter.columnKey === key) {
+
                 const col = scholarshipTableSorter.column;
                 const field = col.key;
 
-                columnObj = {
-                    title: title,
-                    key: key,
-                    dataIndex: key,
-                    sortOrder: scholarshipTableSorter.order,
-                    sorter: (a, b) => compareByAlpha(a[field], b[field]),
-                    render: text => <p>{text}</p>,
-                    ...getColumnSearchProps(key),
-                };
+                if(key === "score") {
+                    columnObj = {
+                        title: title,
+                        key: key,
+                        dataIndex: key,
+                        sortOrder: scholarshipTableSorter.order,
+                        sorter: (a, b) => compareScore(a[field], b[field]),
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps(key),
+                    };
+                } else {
+                    columnObj = {
+                        title: title,
+                        key: key,
+                        dataIndex: key,
+                        sortOrder: scholarshipTableSorter.order,
+                        sorter: (a, b) => compareByAlpha(a[field], b[field]),
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps(key),
+                    };
+                }
             } else {
                 columnObj = {
                     title: title,
@@ -182,6 +195,7 @@ export default function Scholarships() {
         let completedEduScholarships = [];
         let approvedScholarships = [];
         let deniedScholarships = [];
+        let eligibleScholarships = [];
         let ineligibleScholarships = [];
         let pendingDccScholarshipsInfo = null;
         let pendingEduScholarshipsInfo = null;
@@ -199,6 +213,7 @@ export default function Scholarships() {
         let deniedDccScholarshipsInfo = [];
         let approvedEduScholarshipsInfo = [];
         let deniedEduScholarshipsInfo = [];
+        let eligibleScholarshipsInfo = [];
         let ineligibleScholarshipsInfo = [];
 
         // array of columns for table
@@ -296,6 +311,38 @@ export default function Scholarships() {
             }
         ]
 
+        const scholarshipColumnsEligible = [
+            {
+                columns: [
+                    {
+                        ...getColumnData("Name", "name")
+                    },
+                    {
+                        ...getColumnData("Email", "email")
+                    },
+                    {
+                        ...getColumnData("City", "city")
+                    },
+                    {
+                        ...getColumnData("App Type", "appType")
+                    },
+                    {
+                        title: "",
+                        key: "appLink",
+                        dataIndex: "appLink",
+                        width: "6%",
+                        render: url => (
+                            <div className="">
+                                <Link to={url}>
+                                    <Button className="applicationButton" color="primary">View</Button>
+                                </Link>
+                            </div>
+                        )
+                    }
+                ]
+            }
+        ]
+
         const scholarshipColumnsIneligible = [
             {
                 columns: [
@@ -349,7 +396,7 @@ export default function Scholarships() {
                     "city": dccApp.city,
                     "started": dccStartDate,
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
             // completed dcc
@@ -363,7 +410,7 @@ export default function Scholarships() {
                     "started": dccFinishedDate,
                     "finished": dccFinishedDate,
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
             // pending edu
@@ -376,7 +423,7 @@ export default function Scholarships() {
                     "city": eduApp.city,
                     "started": eduStartDate,
                     "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
             // completed edu
@@ -390,13 +437,26 @@ export default function Scholarships() {
                     "started": eduFinishedDate,
                     "finished": eduFinishedDate,
                     "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
 
-                //ineligible
-            if(approvalStatus.dcc === "ineligible") {
-                ineligibleScholarships.push({
+                //Eligibility
+            if(firebaseDates.higherEdu.finished && approvalStatus.higherEdu === "eligible") {
+                eligibleScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": eduApp.name,
+                    "email": eduApp.email,
+                    "city": eduApp.city,
+                    "appType": "Higher Edu",
+                    "appLink": `${match.path}/${scholarship.id}/higherEdu`,
+                    "currentScholarship": scholarship,
+                });
+            }
+
+            if(firebaseDates.dcc.finished && approvalStatus.dcc === "eligible") {
+                eligibleScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
                     "name": dccApp.name,
@@ -404,11 +464,11 @@ export default function Scholarships() {
                     "city": dccApp.city,
                     "appType": "DCC",
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
 
-            if(approvalStatus.higherEdu === "ineligible") {
+            if(firebaseDates.higherEdu.finished && approvalStatus.higherEdu === "ineligible") {
                 ineligibleScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
@@ -417,7 +477,20 @@ export default function Scholarships() {
                     "city": eduApp.city,
                     "appType": "Higher Edu",
                     "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
+                });
+            }
+
+            if(firebaseDates.dcc.finished && approvalStatus.dcc === "ineligible") {
+                ineligibleScholarships.push({
+                    "id": scholarship.id,
+                    "key": scholarship.id,
+                    "name": dccApp.name,
+                    "email": dccApp.email,
+                    "city": dccApp.city,
+                    "appType": "DCC",
+                    "appLink": `${match.path}/${scholarship.id}/dcc`,
+                    "currentScholarship": scholarship,
                 });
             }
 
@@ -432,7 +505,7 @@ export default function Scholarships() {
                     "appType": "DCC",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
 
                 approvedDccScholarships.push({
@@ -444,7 +517,7 @@ export default function Scholarships() {
                     "appType": "DCC",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
 
@@ -458,7 +531,7 @@ export default function Scholarships() {
                     "appType": "Higher Edu",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
 
                 approvedEduScholarships.push({
@@ -470,7 +543,7 @@ export default function Scholarships() {
                     "appType": "Higher Edu",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
 
@@ -485,7 +558,7 @@ export default function Scholarships() {
                     "appType": "DCC",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
 
                 deniedDccScholarships.push({
@@ -497,7 +570,7 @@ export default function Scholarships() {
                     "appType": "DCC",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
 
@@ -511,7 +584,7 @@ export default function Scholarships() {
                     "appType": "Higher Edu",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
 
                 deniedEduScholarships.push({
@@ -523,7 +596,7 @@ export default function Scholarships() {
                     "appType": "Higher Edu",
                     "score": getTotalScore(scholarship.admin.grades.points),
                     "appLink": `${match.path}/${scholarship.id}/higherEdu`,
-                    "currentScholarship": scholarship
+                    "currentScholarship": scholarship,
                 });
             }
         }
@@ -545,6 +618,7 @@ export default function Scholarships() {
         approvedEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         deniedEduScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
 
+        eligibleScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
         ineligibleScholarships.sort((a, b) => (a.name > b.name) ? 1 : -1);
 
         pendingDccScholarshipsInfo = new applicationsData(pendingDccScholarships.length, pendingDccScholarships);
@@ -554,7 +628,6 @@ export default function Scholarships() {
         completedEduScholarshipsInfo = new applicationsData(completedEduScholarships.length, completedEduScholarships);
 
         approvedScholarshipsInfo = new applicationsData(approvedScholarships.length, approvedScholarships);
-        deniedScholarshipsInfo = new applicationsData(deniedScholarships.length, deniedScholarships);
 
         approvedDccScholarshipsInfo = new applicationsData(approvedDccScholarships.length, approvedDccScholarships);
         deniedDccScholarshipsInfo = new applicationsData(deniedDccScholarships.length, deniedDccScholarships);
@@ -563,6 +636,7 @@ export default function Scholarships() {
         deniedEduScholarshipsInfo = new applicationsData(deniedEduScholarships.length, deniedEduScholarships);
 
         ineligibleScholarshipsInfo = new applicationsData(ineligibleScholarships.length, ineligibleScholarships);
+        eligibleScholarshipsInfo = new applicationsData(eligibleScholarships.length, eligibleScholarships);
 
         return (
             <LayoutContentWrapper style={{height: '100%'}}>
@@ -804,6 +878,32 @@ export default function Scholarships() {
                                 }
                             }
 
+                            if(tab.value === 'eligible') {
+                                if(eligibleScholarships.length) {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <Component
+                                                parentPage={"scholarships"}
+                                                tableInfo={scholarshipColumnsEligible[0]}
+                                                dataList={eligibleScholarshipsInfo}
+                                                bordered={true}
+                                                size={"small"}
+                                                loading={loading}
+                                                expandable={false}
+                                                pagination={{hideOnSinglePage: true}}
+                                                currentScholarship={eligibleScholarshipsInfo.currentScholarship}
+                                            />
+                                        </TabPane>
+                                    )
+                                }  else {
+                                    return (
+                                        <TabPane tab={tab.title} key={tab.value}>
+                                            <p>No ineligible applications at this time.</p>
+                                        </TabPane>
+                                    )
+                                }
+                            }
+
                             if(tab.value === 'ineligible') {
                                 if(ineligibleScholarships.length) {
                                     return (
@@ -894,8 +994,15 @@ class applicationsData {
         return this.datas.sort(this.sort);
     }
     sort(optionA, optionB) {
-        const valueA = optionA[sortOption.sortKey].toUpperCase();
-        const valueB = optionB[sortOption.sortKey].toUpperCase();
+        let valueA = optionA[sortOption.sortKey];
+        let valueB = optionB[sortOption.sortKey];
+
+        if(typeof optionA[sortOption.sortKey] === "string") {
+            valueA = optionA[sortOption.sortKey].toUpperCase();
+            valueB = optionB[sortOption.sortKey].toUpperCase();
+        }
+
+
         let sortVal = 0;
         if (valueA > valueB) {
             sortVal = 1;

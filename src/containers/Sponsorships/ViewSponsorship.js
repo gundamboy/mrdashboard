@@ -149,6 +149,7 @@ export default function (props) {
             files: getAppFiles(),
             dataIndex: 'files'
         }];
+
     let eventInfo = [
         {
             key: 'sponsorshipSelect',
@@ -178,13 +179,13 @@ export default function (props) {
         {
             key: submissionInfo.sponsorshipSelect === "Monetary" ? 'eventMoneyDate' : "eventItemsDate",
             question: submissionInfo.sponsorshipSelect === "Monetary" ? 'Money Needed By Date' : "Items Needed By Date",
-            answer: submissionInfo.sponsorshipSelect === "Monetary" ? submissionInfo.eventMoneyDate ? fixSponsorshipDate(submissionInfo.eventMoneyDate) : "" : submissionInfo.eventItemsDate ? fixSponsorshipDate(submissionInfo.eventItemsDate) : "",
+            answer: submissionInfo.sponsorshipSelect === "Monetary" ? submissionInfo.eventMoneyDate ? submissionInfo.eventMoneyDate : "" : submissionInfo.eventItemsDate ? submissionInfo.eventItemsDate : "",
             dataIndex: submissionInfo.sponsorshipSelect === "Monetary" ? 'eventMoneyDate' : "eventItemsDate"
         },
         {
             key: 'eventDate',
             question: 'Event Dates',
-            answer: (submissionInfo.eventStartDate && submissionInfo.eventEndDate) ? fixSponsorshipDate(submissionInfo.eventStartDate) + " - " + fixSponsorshipDate(submissionInfo.eventEndDate) : "",
+            answer: (submissionInfo.eventStartDate && submissionInfo.eventEndDate) ? submissionInfo.eventStartDate + " - " + submissionInfo.eventEndDate : "",
             dataIndex: 'eventDate'
         },
         {
@@ -202,7 +203,7 @@ export default function (props) {
         {
             key: 'advertisingEnd',
             question: 'Advertising Dates',
-            answer: (submissionInfo.advertisingStart && submissionInfo.advertisingEnd) ? fixSponsorshipDate(submissionInfo.advertisingStart) + " - " + fixSponsorshipDate(submissionInfo.advertisingEnd) : "",
+            answer: (submissionInfo.advertisingStart && submissionInfo.advertisingEnd) ? submissionInfo.advertisingStart + " - " + submissionInfo.advertisingEnd : "",
             dataIndex: 'advertisingEnd'
         },
         {
@@ -462,7 +463,8 @@ export default function (props) {
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your
                             sponsorship request has been approved for ${currentApp.admin.amountApproved}.</p>
-                        <p>The funds will be send to the organization’s address provided in the form. Please allow up to 2 weeks for the check to arrive. If you have any questions or need additional information, please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7322.</p>
+                        <p>Please use only the approved versions of our current logo, following the Brand Guide for logo and name use, at: https://midrivers.com/brand-guide-logos/</p>
+                        <p>The funds will be sent to the organization's address provided in the form. Please allow up to 2 weeks for the check to arrive. If you have any questions or need additional information, please contact mrcom@midrivers.coop.</p>
                     </>
                 );
             } else if(currentApp.admin.approvalStatus === "denied") {
@@ -470,7 +472,7 @@ export default function (props) {
                     <>
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We regret to inform you that we are unable to fulfill your request at this time.</p>
-                        <p>If you have any questions, please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7322.</p>
+                        <p>If you have any questions or need additional information, please contact mrcom@midrivers.coop.</p>
                     </>
                 );
             }
@@ -505,7 +507,7 @@ export default function (props) {
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We are pleased to inform you that your sponsorship request has been approved for the following items:</p>
                         <p>{itemsTextArray.join(', ')}.</p>
-                        <p>Please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7387 to coordinate the delivery of the items or if you have any questions.</p>
+                        <p>Please contact mrcom@midrivers.coop to coordinate the delivery of the items or if you have any questions.</p>
                     </>
                 );
             } else if(currentApp.admin.approvalStatus === "denied") {
@@ -513,7 +515,7 @@ export default function (props) {
                     <>
                         <p>Dear {submissionInfo.primaryName},</p>
                         <p>Thank you for submitting the Community Sponsorship Request form. We regret to inform you that we are unable to fulfill your request at this time.</p>
-                        <p>If you have any questions, please contact Nicole Senner at nicole.senner@midrivers.coop or 406-687-7322.</p>
+                        <p>If you have any questions or need additional information, please contact mrcom@midrivers.coop.</p>
                     </>
                 );
             }
@@ -811,8 +813,8 @@ export default function (props) {
 function formatWebsite(site) {
     let address = site;
 
-    if(!address.includes('http://')) {
-        address = 'http://' + site;
+    if(!address.includes('http://') && !address.includes('https://')) {
+        address = 'https://' + site;
     }
 
     return address;

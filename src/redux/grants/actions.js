@@ -6,9 +6,11 @@ const grantsActions = {
     FETCH_GRANTS_FAILURE: 'FETCH_GRANTS_FAILURE',
 
     FETCH_SINGLE_GRANT_START: 'FETCH_SINGLE_GRANT_START',
+    FETCH_SINGLE_GRANT: 'FETCH_SINGLE_GRANT',
     FETCH_SINGLE_GRANT_SUCCESS: 'FETCH_SINGLE_GRANT_SUCCESS',
     FETCH_SINGLE_GRANT_FAILURE: 'FETCH_SINGLE_GRANT_FAILURE',
 
+    UPDATE_GRANT: "UPDATE_GRANT",
     UPDATE_GRANT_START: 'UPDATE_GRANT_START',
     UPDATE_GRANT_SUCCESS: 'UPDATE_GRANT_SUCCESS',
     UPDATE_GRANT_FAILURE: 'UPDATE_GRANT_FAILURE',
@@ -20,6 +22,10 @@ const grantsActions = {
     UPDATE_GRANT_NOTES_START: "UPDATE_GRANT_NOTES_START",
     UPDATE_GRANT_NOTES_SUCCESS: "UPDATE_GRANT_NOTES_SUCCESS",
     UPDATE_GRANT_NOTES_ERROR: "UPDATE_GRANT_NOTES_ERROR",
+
+    DELETE_GRANT_START: "DELETE_GRANT_START",
+    DELETE_GRANT_SUCCESS: "DELETE_GRANT_SUCCESS",
+    DELETE_GRANT_ERROR: "DELETE_GRANT_ERROR",
 
     SET_GRANT_TABLE_SORTER: 'SET_GRANT_TABLE_SORTER',
 
@@ -52,16 +58,22 @@ const grantsActions = {
         payload: grantId
     }),
 
-    fetchSingleGrantSuccess: grant => ({
-        type: grantsActions.FETCH_SINGLE_GRANT_SUCCESS,
-        payload: grant
+    fetchSingleGrant: grantId => ({
+        type: grantsActions.FETCH_SINGLE_GRANT,
+        payload: grantId
     }),
+
 
     updateGrantStart: (grantId, status) => ({
         type: grantsActions.UPDATE_GRANT_START,
         grantId: grantId,
         status: status
 
+    }),
+
+    updateGrant: application => ({
+        type: grantsActions.UPDATE_GRANT,
+        payload: application,
     }),
 
     updateGrantSuccess: updatedStatus => ({
@@ -75,13 +87,10 @@ const grantsActions = {
         grantId: grantId
     }),
 
-    sendGrantEmailStart: (email, name, emailTextArray, userId, status) => ({
+    sendGrantEmailStart: (application, emailTextArray) => ({
         type: grantsActions.SEND_GRANT_EMAIL_START,
-        email: email,
-        name: name,
+        payload: application,
         emailTextArray: emailTextArray,
-        userId: userId,
-        status: status
 
     }),
 
@@ -94,6 +103,11 @@ const grantsActions = {
         type: grantsActions.SEND_GRANT_EMAIL_ERROR,
         error: error,
         grantsFirebaseEmailError: fbError
+    }),
+
+    deleteGrantStart: (id) => ({
+        type: grantsActions.DELETE_GRANT_START,
+        id: id
     }),
 };
 

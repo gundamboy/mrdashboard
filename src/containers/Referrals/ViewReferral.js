@@ -27,7 +27,7 @@ export default function (props) {
     const refereeEmail = props.currentReferral.refereeEmail;
     const referrerEmail = props.currentReferral.referrerEmail;
     const referrerName = props.currentReferral.referrerName;
-    const submitted = formattedDate(new Date(props.currentReferral.submitted.toDate()));
+    const submitted = props.currentReferral.submitted;
     const applicantNotified = props.currentReferral.notificationEmailed;
     const { Title } = Typography;
     const { TextArea } = Input;

@@ -4,6 +4,7 @@ import ecommerceSaga from '@iso/redux/ecommerce/saga';
 import initSponsorshipApplications from './sponsorships/sagas';
 import initScholarships from './scholarships/sagas';
 import initReferrals from './referrals/sagas';
+import initGrants from './grants/sagas';
 
 export default function* rootSaga(getState) {
   yield all([
@@ -11,6 +12,7 @@ export default function* rootSaga(getState) {
     ecommerceSaga(),
     initSponsorshipApplications(),
     initScholarships(),
-    initReferrals()
+    initReferrals(),
+    initGrants(),
   ]);
 }

@@ -34,6 +34,10 @@ const scholarshipTabs = [
         value: 'deniedEdu',
     },
     {
+        title: 'Eligible',
+        value: 'eligible',
+    },
+    {
         title: 'Ineligible',
         value: 'ineligible',
     },

@@ -185,7 +185,7 @@ export default function Sponsorships() {
             "primaryName": result.submission["primaryName"],
             "appType": result.submission["sponsorshipSelect"],
             "appLink" : `${match.path}/${result.id}`,
-            "currentSponsorship": result
+            "currentSponsorship": result,
         };
 
         if(result.admin.approvalStatus === "pending") {
@@ -207,6 +207,8 @@ export default function Sponsorships() {
                 {
                     ...getColumnData("Submission Date", "date"),
                     width: "12%",
+                    defaultSortOrder: 'descend',
+                    sorter: (a, b) => new Date(a.date) - new Date(b.date)
                 },
                 {
                     ...getColumnData("Org Name", "orgName")
@@ -253,6 +255,7 @@ export default function Sponsorships() {
         const pendingApplicationInfo = new applicationsData(pendingApplications.length, pendingApplications);
         const approvedApplicationInfo = new applicationsData(approvedApplications.length, approvedApplications);
         const deniedApplicationInfo = new applicationsData(deniedApplications.length, deniedApplications);
+
 
         return (
             <LayoutContentWrapper style={{height: '100%'}}>

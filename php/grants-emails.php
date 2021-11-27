@@ -17,24 +17,20 @@ if (!isset($_POST)) {
     die("Move along, nothing to see here.");
 }
 
-$application = $_POST['application'];
-$emailArray = $_POST["emailArray"];
-$applicationAdmin = $application['admin'];
-$applicationStatus = $applicationAdmin['approvalStatus'];
-$applicationSubmissionInfo = $application['submission'];
-$applicationType = $applicationSubmissionInfo['sponsorshipSelect'];
-$applicantEmail = $applicationSubmissionInfo['primaryEmail'];
-$emailTableRows = '';
+$email = $_POST['email'];
+$name = $_POST['name'];
+$emailArray = $_POST['emailArray'];
 $emailSent = false;
-
 $mail = new PHPMailer(true);
+$emailTableRows = '';
+
 
 foreach ($emailArray as &$value) {
     $emailTableRows .= '<tr><td style="border: none;">' . $value . '</td></tr>';
 }
 
 if(strlen($emailTableRows) > 0) {
-    sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $applicationSubmissionInfo['primaryName']);
+    sendPHPMailer($mail, $email, $name, $emailTableRows, $emailArray);
 }
 
 function buildEmailMessage($emailTableRows) {
@@ -42,7 +38,7 @@ function buildEmailMessage($emailTableRows) {
     $message .= '<table rules="all" border="0" cellpadding="5" width="600" style="border-color: white;"><tbody>';
     $message .= '<tr>';
     $message .= '<td style="border: none;" width="200"><img width="200" height="51" src="https://www.midrivers.com/wp-content/uploads/2020/04/MR-FullColor.png" alt="Mid-Rivers" /></td>';
-    $message .= '<td style="border: none;" valign="middle"><h2>Mid-Rivers Sponsorship Request</h2></td>';
+    $message .= '<td style="border: none;" valign="middle"><h2>Mid-Rivers Communications Grant Application</h2></td>';
     $message .= '</tr>';
     $message .= '</tbody></table>';
     $message .= '<table rules="all" border="0" cellpadding="5" width="600"><tbody>';
@@ -53,9 +49,8 @@ function buildEmailMessage($emailTableRows) {
     return $message;
 }
 
-function sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $name) {
+function sendPHPMailer($mail, $email, $name, $emailTableRows, $emailArray) {
     try {
-        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
         $mail->isSMTP();
         $mail->Host = 'smtps.midrivers.com';
         $mail->SMTPAuth = true;
@@ -63,24 +58,24 @@ function sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $na
         $mail->Password = 'Hcgmgro]0u';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-        $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications Sponsorships');
-        $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications Sponsorships');
-        $mail->addAddress($applicantEmail, $name);
+        $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications');
+        $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications');
+        $mail->addAddress($email, $name);
         $mail->addBCC('nicole.senner@midrivers.coop', 'Nicole');
         $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');
+        $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');
         $mail->addBCC('mrcom@midrivers.coop', 'Sponsorships');
-        $mail->Subject = "Mid-Rivers Community Sponsorship Request";
+        $mail->Subject = "Mid-Rivers Communications Grant Application";
         $mail->isHTML(true);
         $mail->Body = buildEmailMessage($emailTableRows);
 
         if ($mail->send()) {
             returnData(["status" => true, "emailArray" => $emailArray]);
-
         } else {
             returnData(["status" => false, "phpmail-FAILED" => $mail->ErrorInfo]);
         }
     } catch (Exception $e) {
-        returnData(["status" => false, "phpmail FAILED EXCEPTION" => $mail->ErrorInfo, "exception"=>$e]);
+        returnData(["status" => false, "FAILED" => $mail->ErrorInfo, "exception"=>$e]);
     }
 }
 
