@@ -55,16 +55,18 @@ function buildEmailMessage($emailTableRows) {
 function sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $personYouAreReferring, $emailTableRows, $approvalStatus) {
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtps.midrivers.com';
+        $mail->Host = 'smtp.office365.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'no_reply@midrivers.com';
-        $mail->Password = 'Hcgmgro]0u';
+//         $mail->Username = 'no_reply@midrivers.com';
+//         $mail->Password = 'Hcgmgro]0u';
+        $mail->Username = 'mrcom@midrivers.coop';
+        $mail->Password = 'LightsKnowanti1201';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
         $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
         $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
         $mail->addAddress($referrerEmail, $referrerName);
-        $mail->addBCC('mrcom@midrivers.coop', 'Sponsorships');
+        $mail->addBCC('mrcom@midrivers.coop', 'Referrals');
         if($approvalStatus === "approved") {
             $mail->addBCC($refereeEmail, $personYouAreReferring);
         }

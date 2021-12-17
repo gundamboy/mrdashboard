@@ -52,19 +52,21 @@ function buildEmailMessage($emailTableRows) {
 function sendPHPMailer($mail, $email, $name, $emailTableRows, $emailArray) {
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtps.midrivers.com';
+        $mail->Host = 'smtp.office365.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'no_reply@midrivers.com';
-        $mail->Password = 'Hcgmgro]0u';
+//         $mail->Username = 'no_reply@midrivers.com';
+//         $mail->Password = 'Hcgmgro]0u';
+        $mail->Username = 'mrcom@midrivers.coop';
+        $mail->Password = 'LightsKnowanti1201';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-        $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications');
-        $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications');
+        $mail->setFrom('mrcom@midrivers.coop', 'Mid-Rivers Communications');
+        $mail->addReplyTo('mrcom@midrivers.coop', 'Mid-Rivers Communications');
         $mail->addAddress($email, $name);
         $mail->addBCC('nicole.senner@midrivers.coop', 'Nicole');
         $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');
         $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');
-        $mail->addBCC('mrcom@midrivers.coop', 'Sponsorships');
+        $mail->addBCC('mrcom@midrivers.coop', 'Grants');
         $mail->Subject = "Mid-Rivers Communications Grant Application";
         $mail->isHTML(true);
         $mail->Body = buildEmailMessage($emailTableRows);

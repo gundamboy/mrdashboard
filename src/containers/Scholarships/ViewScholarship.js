@@ -135,7 +135,7 @@ export default function (props) {
                         <p>Please accept your award by clicking the link below and completing the acceptance form.</p>
                         <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/r13il1bq1920pii}"}    {"{LINK-TEXT: Application Acceptance Form}"}</p>
                         <p>If you have any questions, please call <a href='tel:6873336'>(406) 687-3336</a>. Mid-Rivers is hopeful that this scholarship will contribute to your future success.</p>
-                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}nicole.senner@midrivers.coop</p>
+                        <p>{"<br>"}Sincerely,{"<br>"}Erin Lutts{"<br>"}Chief Communications Officer{"<br>"}erin.lutts@midrivers.coop</p>
                     </>
                 )
             } else {
@@ -148,7 +148,7 @@ export default function (props) {
                         <p>Please accept your award by clicking the link below and completing the acceptance form.</p>
                         <p>{"{WOOFOO-LINK: https://midrivers.wufoo.com/forms/r13il1bq1920pii}"}    {"%%LINK-TEXT: Application Acceptance Form"}</p>
                         <p>If you have any questions, please call <a href='tel:6873336'>(406) 687-3336</a>. Mid-Rivers is hopeful that this scholarship will contribute to your future success.</p>
-                        <p>Sincerely,{"<br>"}Nicole Senner{"<br>"}Marketing & Branding Specialist{"<br>"}nicole.senner@midrivers.coop</p>
+                        <p>{"<br>"}Sincerely,{"<br>"}Erin Lutts{"<br>"}Chief Communications Officer{"<br>"}erin.lutts@midrivers.coop</p>
                     </>
                 )
             }

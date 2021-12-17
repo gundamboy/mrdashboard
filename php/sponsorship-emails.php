@@ -57,10 +57,12 @@ function sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $na
     try {
         //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
         $mail->isSMTP();
-        $mail->Host = 'smtps.midrivers.com';
+        $mail->Host = 'smtp.office365.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'no_reply@midrivers.com';
-        $mail->Password = 'Hcgmgro]0u';
+//         $mail->Username = 'no_reply@midrivers.com';
+//         $mail->Password = 'Hcgmgro]0u';
+        $mail->Username = 'mrcom@midrivers.coop';
+        $mail->Password = 'LightsKnowanti1201';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
         $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications Sponsorships');
