@@ -108,6 +108,7 @@ function* adminSave(payload) {
         const appType = payload.appType;
         const grades = payload.grades;
         const notes = payload.notes;
+        const purchaseOrderNumber = payload.purchaseOrderNumber;
         const collectionRef = getScholarshipRef(documentId);
 
         let updated = false;
@@ -115,6 +116,7 @@ function* adminSave(payload) {
         updateDB["".concat("admin", ".", "approvalStatus", ".", appType)] = status;
         updateDB["".concat("admin", ".").concat("grades")] = grades;
         updateDB["".concat("admin", ".").concat("notes")] = notes;
+        updateDB["".concat("admin", ".").concat("purchaseOrderNumber")] = purchaseOrderNumber;
 
         const updateApp = yield call(() => {
             return new Promise((resolve, reject) => {

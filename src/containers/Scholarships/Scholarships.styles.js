@@ -131,6 +131,10 @@ export const ScholarshipSection = styled.div`
         align-items: center;
     }
     
+    .po-num-wrapper {
+        margin-top: 10px;
+    }
+    
     
     form {
         .sub-title {

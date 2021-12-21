@@ -29,6 +29,7 @@ export default function (props) {
     const [approvalStatus, setApprovalStatus] = useState(props.currentScholarship.admin.approvalStatus[props.scholarshipType]);
     const [grades, setGrades] = useState(props.currentScholarship["admin"].grades);
     const [notes, setNotes] = useState(props.notes);
+    const [purchaseOrderNumber, setPurchaseOrderNumber] = useState(props.purchaseOrderNumber);
     const { Title } = Typography;
     const { TextArea } = Input;
     let nextSchoolType = scholarshipAnswers.nextSchoolType;
@@ -78,12 +79,16 @@ export default function (props) {
     );
 
     const saveApplication = useCallback(
-        (documentId, userId, appType, grades, notes, approval) => dispatch(scholarshipActions.updateScholarshipStart(documentId, userId, appType, grades, notes, approval)),
+        (documentId, userId, appType, grades, notes, approval, purchaseOrderNumber) => dispatch(scholarshipActions.updateScholarshipStart(documentId, userId, appType, grades, notes, approval, purchaseOrderNumber)),
         [dispatch]
     );
 
     const updateNotes = (e) => {
         setNotes(e.target.value);
+    }
+
+    const updatePurchaseOrderNumber = (e) => {
+        setPurchaseOrderNumber(e.target.value);
     }
 
     const handleDeleteScholarship = () => {
@@ -959,6 +964,26 @@ export default function (props) {
 
                     <Box style={{ padding: 20, height: 'auto' }}>
                         <ScholarshipSection>
+                            <Title level={3} className={"application-section-title"}>Purchase Orders</Title>
+                            <div className="po-app-wrapper">
+                                <div className="po-num-wrapper">
+                                    <Form layout="horizontal" name="purchaseOrder-form" onFinish={onFormsFinish}>
+                                        <Form.Item label="P.O. Number">
+                                            <Input
+                                                className="purchaseOrderNumber"
+                                                name="purchaseOrderNumber"
+                                                placeholder="" value={admin.purchaseOrderNumber}
+                                                onKeyUp={(e) => {updatePurchaseOrderNumber(e)}}
+                                            />
+                                        </Form.Item>
+                                    </Form>
+                                </div>
+                            </div>
+                        </ScholarshipSection>
+                    </Box>
+
+                    <Box style={{ padding: 20, height: 'auto' }}>
+                        <ScholarshipSection>
                             <Title level={3} className={"application-section-title"}>Saving</Title>
                             <Form layout="vertical" name="approvals-form" onFinish={onFormsFinish}>
                                 <Form.Item label="">
@@ -967,7 +992,7 @@ export default function (props) {
                                         type="primary"
                                         size={"large"}
                                         loading={props.adminIsSaving}
-                                        onClick={(event) => {saveApplication(props.userId, props.scholarshipType, grades, notes, approvalStatus)}}
+                                        onClick={(event) => {saveApplication(props.userId, props.userId, props.scholarshipType, grades, notes, approvalStatus, purchaseOrderNumber)}}
                                     >Save Application</Button>
                                 </Form.Item>
                             </Form>

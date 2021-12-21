@@ -67,14 +67,15 @@ const actions = {
     }),
 
 
-    updateScholarshipStart: (documentId, appType, grades, notes, approval) => ({
+    updateScholarshipStart: (documentId, appType, grades, notes, approval, purchaseOrderNumber) => ({
         type: actions.UPDATE_SCHOLARSHIP_START,
         documentId: documentId,
         approval: approval,
         appType: appType,
         grades: grades,
         notes: notes,
-        adminIsSaving: true
+        adminIsSaving: true,
+        purchaseOrderNumber: purchaseOrderNumber
     }),
 
     sendScholarshipEmail: (userEmail, emailArray, userId, name, scholarshipType, approvalStatus) => ({
