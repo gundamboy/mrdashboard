@@ -63,8 +63,8 @@ function sendPHPMailer($mail, $referrerEmail, $refereeEmail, $referrerName, $per
         $mail->Password = 'LightsKnowanti1201';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-        $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
-        $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications Referral Program');
+        $mail->setFrom('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
+        $mail->addReplyTo('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
         $mail->addAddress($referrerEmail, $referrerName);
         $mail->addBCC('mrcom@midrivers.coop', 'Referrals');
         if($approvalStatus === "approved") {

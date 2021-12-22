@@ -60,8 +60,8 @@ function sendPHPMailer($mail, $email, $name, $emailTableRows, $emailArray) {
         $mail->Password = 'LightsKnowanti1201';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-        $mail->setFrom('mrcom@midrivers.coop', 'Mid-Rivers Communications');
-        $mail->addReplyTo('mrcom@midrivers.coop', 'Mid-Rivers Communications');
+        $mail->setFrom('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
+        $mail->addReplyTo('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
         $mail->addAddress($email, $name);
         $mail->addBCC('nicole.senner@midrivers.coop', 'Nicole');
         $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');

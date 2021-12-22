@@ -65,8 +65,8 @@ function sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $na
         $mail->Password = 'LightsKnowanti1201';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-        $mail->setFrom('no_reply@midrivers.com', 'Mid-Rivers Communications Sponsorships');
-        $mail->addReplyTo('no_reply@midrivers.com', 'Mid-Rivers Communications Sponsorships');
+        $mail->setFrom('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
+        $mail->addReplyTo('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
         $mail->addAddress($applicantEmail, $name);
         $mail->addBCC('nicole.senner@midrivers.coop', 'Nicole');
         $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');
