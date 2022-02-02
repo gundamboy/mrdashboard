@@ -298,8 +298,10 @@ function* sendEmail(payload) {
 
 function* scholarshipDelete(payload) {
     try {
+        console.log("SAGA: scholarshipDelete");
+
         let scholarshipAppDeleted = false;
-        const ref = getSingleScholarship(payload.documentId);
+        const ref = getScholarshipRef(payload.documentId);
         const scholarshipFiles = storageRef.ref(payload.documentId);
         const scholarshipDccFiles = storageRef.ref(payload.documentId).child("dcc");
         const scholarshipEduFiles = storageRef.ref(payload.documentId).child("higherEdu");
@@ -372,7 +374,7 @@ function* scholarshipDelete(payload) {
         }
 
         if(scholarshipAppDeleted) {
-            yield notifyScholarshipDeleted();
+            yield notifyScholarshipDeleted(payload.documentId);
         }
 
     } catch (error) {
@@ -380,11 +382,13 @@ function* scholarshipDelete(payload) {
     }
 }
 
-function* notifyScholarshipDeleted() {
+function* notifyScholarshipDeleted(sponsorshipId) {
     try {
         yield put({
             type: scholarshipsActions.DELETE_SCHOLARSHIP_SUCCESS,
         });
+
+
     } catch (error) {
         console.log("notifyScholarshipDeleted error:", error);
     }
