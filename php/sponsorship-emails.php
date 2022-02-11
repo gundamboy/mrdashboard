@@ -59,8 +59,6 @@ function sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $na
         $mail->isSMTP();
         $mail->Host = 'smtp.office365.com';
         $mail->SMTPAuth = true;
-//         $mail->Username = 'no_reply@midrivers.com';
-//         $mail->Password = 'Hcgmgro]0u';
         $mail->Username = 'mrcom@midrivers.coop';
         $mail->Password = 'LightsKnowanti1201';
         $mail->SMTPSecure = 'tls';
@@ -68,6 +66,7 @@ function sendPHPMailer($emailTableRows, $emailArray, $applicantEmail, $mail, $na
         $mail->setFrom('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
         $mail->addReplyTo('mrcom@midrivers.coop', 'Mid-Rivers Communications Scholarships');
         $mail->addAddress($applicantEmail, $name);
+        //$mail->addBCC('charles.rowland@midrivers.coop', 'Charles');
         $mail->addBCC('nicole.senner@midrivers.coop', 'Nicole');
         $mail->addBCC('erin.lutts@midrivers.coop', 'Erin');
         $mail->addBCC('mrcom@midrivers.coop', 'Sponsorships');

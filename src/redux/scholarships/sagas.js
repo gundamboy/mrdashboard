@@ -3,26 +3,25 @@ import scholarshipsActions from './actions';
 import {db, rsf, storageRef} from '@iso/lib/firebase/firebase';
 import axios from 'axios';
 import * as firebase from "firebase";
-import {getCurrentYear, SCHOLARSHIP_API_PATH} from "../../helpers/shared";
+import {SCHOLARSHIP_API_PATH} from "../../helpers/shared";
 
-const currentYear = getCurrentYear().toString();
-
-function getScholarshipTestRef(documentId) {
+function getScholarshipTestRef(documentId, currentYear) {
     return db.collection("scholarshipsTestCollection").doc(currentYear).collection("applications").doc(documentId);
 }
 
-function getScholarshipRef (documentId) {
-    return db.collection("scholarships").doc(currentYear).collection("applications").doc(documentId);
+function getScholarshipRef (documentId, currentYear) {
+    return db.collection("scholarships").doc(currentYear.scholarshipYear).collection("applications").doc(documentId);
 }
 
-function getApplicationsRef () {
-    return db.collection("scholarships").doc(currentYear).collection("applications");
+function getApplicationsRef (scholarshipYear) {
+    console.log("scholarshipYear:", scholarshipYear)
+    return db.collection("scholarships").doc(scholarshipYear.scholarshipYear).collection("applications");
 }
 
-function* initScholarships() {
+function* initScholarships(scholarshipYear) {
     try {
 
-        const collectionRef = getApplicationsRef();
+        const collectionRef = getApplicationsRef(scholarshipYear);
         const usersRef = db.collection("users");
         const snapshots = yield call(rsf.firestore.getCollection, collectionRef);
         const userSnapshots = yield call(rsf.firestore.getCollection, usersRef);
@@ -194,7 +193,6 @@ function deployEmail(userEmail, emailArray, name) {
 
 function* sendEmail(payload) {
     try {
-
         console.group("%c sendEmail Main", 'background: #BFACAA; color: #222; padding: 5px;');
 
         const userId = payload.userId;
@@ -203,6 +201,7 @@ function* sendEmail(payload) {
         const { data } = yield call(() => {
             return new Promise((resolve, reject) => {
                 const doEmail = deployEmail(payload.userEmail, payload.emailArray, payload.name)
+                console.log("doEmail:", doEmail);
                 resolve(doEmail);
             })
         });
@@ -210,7 +209,6 @@ function* sendEmail(payload) {
         if(!data) {
             yield put(scholarshipsActions.scholarshipsEmailError(true, false));
         } else {
-            console.log("data:", data);
             yield put(scholarshipsActions.scholarshipsEmailError(false, false));
             const collectionRef = getScholarshipRef(userId);
             let applicationUpdated = false;

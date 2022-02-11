@@ -23,7 +23,7 @@ const {
 } = scholarshipsActions;
 
 export default function Scholarships() {
-    const {scholarships, loading, activeScholarshipsTab, scholarshipTableSorter} = useSelector(
+    const {scholarships, loading, activeScholarshipsTab, scholarshipTableSorter, scholarshipYear} = useSelector(
         state => state.Scholarships);
     const [showOptionsClass, setShowOptionsClass] = useState();
     const [searchText, setSearchText] = useState();
@@ -36,7 +36,7 @@ export default function Scholarships() {
 
     // this is like componentDidMount but its for a function component and not a class
     useEffect(() => {
-        dispatch(fetchScholarshipsStart());
+        dispatch(fetchScholarshipsStart(scholarshipYear));
     }, [dispatch]);
 
     const toggleAdvancedOptions = () => {
@@ -53,10 +53,19 @@ export default function Scholarships() {
         [dispatch]
     );
 
+    const setYear = useCallback(
+        (scholarshipYear) => dispatch(scholarshipsActions.setScholarshipYear(scholarshipYear)),
+        [dispatch]
+    );
+
     // calls SetTab
     const onTabChange = (key) => {
         setTab(key)
     };
+
+    const onYearChange = (year) => {
+        setYear(year);
+    }
 
     // table search fields
     const getColumnSearchProps = dataIndex => ({
@@ -141,6 +150,15 @@ export default function Scholarships() {
                         render: text => <p>{text}</p>,
                         ...getColumnSearchProps(key),
                     };
+                } else if(key === "date") {
+                    columnObj = {
+                        title: title,
+                        key: key,
+                        dataIndex: key,
+                        sorter: true,
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps(key),
+                    };
                 } else {
                     columnObj = {
                         title: title,
@@ -220,6 +238,9 @@ export default function Scholarships() {
         const scholarshipColumnsPending = [
             {
                 columns: [
+                    {
+                        ...getColumnData("Date", "date")
+                    },
                     {
                         ...getColumnData("Name", "name")
                     },

@@ -38,6 +38,7 @@ const actions = {
     SET_SCHOLARSHIP_TABLE_SORTER: "SET_SCHOLARSHIP_TABLE_SORTER",
 
     SEND_EMAIL_SUCCESS: "SEND_EMAIL_SUCCESS",
+    SET_SCHOLARSHIP_YEAR: "SET_SCHOLARSHIP_YEAR",
 
     setScholarshipTableSorter: scholarshipTableSorter => ({
         type: actions.SET_SCHOLARSHIP_TABLE_SORTER,
@@ -49,8 +50,12 @@ const actions = {
         payload: currentTab
     }),
 
-    fetchScholarshipsStart: () => {
-        return { type: actions.FETCH_SCHOLARSHIPS_START }
+    fetchScholarshipsStart: (scholarshipYear) => {
+        return {
+            type: actions.FETCH_SCHOLARSHIPS_START,
+            scholarshipYear: scholarshipYear
+
+        }
     },
     fetchScholarshipsSuccess: scholarships => ({
         type: actions.FETCH_SCHOLARSHIPS_SUCCESS,
@@ -76,6 +81,11 @@ const actions = {
         notes: notes,
         adminIsSaving: true,
         purchaseOrderNumber: purchaseOrderNumber
+    }),
+
+    setScholarshipYear: (scholarshipYear) => ({
+        type: actions.SET_SCHOLARSHIP_YEAR,
+        scholarshipYear: scholarshipYear
     }),
 
     sendScholarshipEmail: (userEmail, emailArray, userId, name, scholarshipType, approvalStatus) => ({

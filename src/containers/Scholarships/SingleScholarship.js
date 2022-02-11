@@ -45,7 +45,7 @@ export default function SingleScholarship() {
                     emailError={scholarshipEmailError}
                     scholarshipFirebaseError={scholarshipFirebaseError}
                     notes={currentScholarship.admin.notes}
-                    purchaseOrderNumber{currentScholarship.admin.purchaseOrderNumber}
+                    purchaseOrderNumber={currentScholarship.admin.purchaseOrderNumber}
                     adminIsSaving={adminIsSaving}
                 />
             </>
