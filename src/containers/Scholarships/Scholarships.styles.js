@@ -2,8 +2,14 @@ import styled from 'styled-components';
 
 export const AdvancedOptionsWrapper = styled.div`
     display: flex;
-    justify-content: flex-end;
-    align-items: center;   
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    
+    .year-swap-label {
+        display: inline-block;
+        margin-right: 10px;
+    }
 `;
 
 export const AdvancedOptions = styled.div`

@@ -1,4 +1,5 @@
 import actions from "./actions";
+import {getCurrentYear} from "../../helpers/shared";
 
 const initState = {
     sponsorships: {},
@@ -18,10 +19,11 @@ const initState = {
     },
     scholarshipDeleted: false,
     scholarshipEmailError: false,
-    scholarshipEmailSuccess: false
+    scholarshipEmailSuccess: false,
+    scholarshipYear: getCurrentYear().toString()
 };
 
-export default function reducer(state = initState, { type, payload, users }) {
+export default function reducer(state = initState, { type, payload, users, scholarshipYear }) {
     switch (type) {
         case actions.ACTIVE_SCHOLARSHIPS_TAB:
             return {
@@ -41,6 +43,7 @@ export default function reducer(state = initState, { type, payload, users }) {
                 adminIsSaving: false
             }
         case actions.FETCH_SCHOLARSHIPS_FAILURE:
+            console.log("reducer state:", state);
             return {
                 ...state,
                 scholarshipLoading: false,
@@ -109,6 +112,13 @@ export default function reducer(state = initState, { type, payload, users }) {
                 ...state,
                 scholarshipEmailError: false,
                 scholarshipEmailSuccess: true
+            }
+        case actions.SET_SCHOLARSHIP_YEAR:
+
+            return {
+                ...state,
+                scholarships: payload,
+                scholarshipYear: scholarshipYear,
             }
         default:
             return state

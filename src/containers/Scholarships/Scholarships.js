@@ -5,7 +5,7 @@ import {useDispatch, useSelector} from "react-redux";
 import * as TableViews from '../Tables/AntTables/TableViews/TableViews';
 import Tabs, {TabPane} from "@iso/components/uielements/tabs";
 import {scholarshipTabs} from "./tableConfig";
-import {Space, Input, Tooltip} from "antd";
+import {Space, Input, Tooltip, Select, Form} from "antd";
 import {SearchOutlined, SettingFilled, FileExcelOutlined} from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import TableWrapper from "../Tables/AntTables/AntTables.styles";
@@ -15,7 +15,7 @@ import IntlMessages from "@iso/components/utility/intlMessages";
 import PageHeader from "@iso/components/utility/pageHeader";
 import {AdvancedOptions, AdvancedOptionsWrapper} from "./Scholarships.styles";
 import scholarshipsActions from "../../redux/scholarships/actions";
-import {compareByAlpha, compareScore, formattedDate} from "../../helpers/shared";
+import {compareByAlpha, compareScore, formattedDate, getCurrentYear} from "../../helpers/shared";
 import {ExportScholarships} from "../../helpers/exportScholarships";
 
 const {
@@ -23,7 +23,7 @@ const {
 } = scholarshipsActions;
 
 export default function Scholarships() {
-    const {scholarships, loading, activeScholarshipsTab, scholarshipTableSorter} = useSelector(
+    const {scholarships, loading, activeScholarshipsTab, scholarshipTableSorter, scholarshipYear, users} = useSelector(
         state => state.Scholarships);
     const [showOptionsClass, setShowOptionsClass] = useState();
     const [searchText, setSearchText] = useState();
@@ -33,10 +33,12 @@ export default function Scholarships() {
     const target = useRef(null);
     const searchInput = useRef(null);
     let Component = TableViews.SortView;
+    const { Option } = Select;
 
     // this is like componentDidMount but its for a function component and not a class
     useEffect(() => {
-        dispatch(fetchScholarshipsStart());
+        console.log("userEffect scholarshipYear:", scholarshipYear);
+        dispatch(fetchScholarshipsStart(scholarshipYear));
     }, [dispatch]);
 
     const toggleAdvancedOptions = () => {
@@ -47,9 +49,22 @@ export default function Scholarships() {
         }
     };
 
+    const getUserName = uid => {
+        for(const user of users) {
+            if(user.id === uid) {
+                return user.name;
+            }
+        }
+    };
+
     // dispatches the setActiveTab action in the actions.js file
     const setTab = useCallback(
         (currentTab) => dispatch(scholarshipsActions.setActiveTab(currentTab)),
+        [dispatch]
+    );
+
+    const setYear = useCallback(
+        (scholarshipYear) => dispatch(scholarshipsActions.setScholarshipYear(scholarshipYear)),
         [dispatch]
     );
 
@@ -57,6 +72,15 @@ export default function Scholarships() {
     const onTabChange = (key) => {
         setTab(key)
     };
+
+    const handleYearChange = (year) => {
+        setYear(year);
+    }
+
+    const onYearFormFinish = () => {}
+
+    console.log("state:", useSelector(
+        state => state.Scholarships))
 
     // table search fields
     const getColumnSearchProps = dataIndex => ({
@@ -131,6 +155,7 @@ export default function Scholarships() {
                 const col = scholarshipTableSorter.column;
                 const field = col.key;
 
+
                 if(key === "score") {
                     columnObj = {
                         title: title,
@@ -138,6 +163,25 @@ export default function Scholarships() {
                         dataIndex: key,
                         sortOrder: scholarshipTableSorter.order,
                         sorter: (a, b) => compareScore(a[field], b[field]),
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps(key),
+                    };
+                } else if(key === "started") {
+                    columnObj = {
+                        title: title,
+                        key: key,
+                        dataIndex: key,
+                        sorter: (a, b) => new Date(a.started) - new Date(b.started),
+                        defaultSortOrder: 'descend',
+                        render: text => <p>{text}</p>,
+                        ...getColumnSearchProps(key),
+                    };
+                } else if(key === "finished") {
+                    columnObj = {
+                        title: title,
+                        key: key,
+                        dataIndex: key,
+                        sorter: (a, b) => new Date(a.started) - new Date(b.started),
                         render: text => <p>{text}</p>,
                         ...getColumnSearchProps(key),
                     };
@@ -188,6 +232,24 @@ export default function Scholarships() {
 
     }
 
+    const buildYearSelectOptions = () => {
+        let years = [];
+
+        for(let i = 2019; i <= getCurrentYear(); i++) {
+            years.push(i.toString());
+        }
+
+        years.reverse();
+
+        return (
+            <>
+            {years.map((value, index) => {
+                    return <Option key={index} value={value}>{value}</Option>
+                })}
+            </>
+        )
+    };
+
     if(scholarships) {
         let pendingDccScholarships = [];
         let pendingEduScholarships = [];
@@ -215,11 +277,14 @@ export default function Scholarships() {
         let deniedEduScholarshipsInfo = [];
         let eligibleScholarshipsInfo = [];
         let ineligibleScholarshipsInfo = [];
-
         // array of columns for table
         const scholarshipColumnsPending = [
             {
                 columns: [
+                    {
+                        ...getColumnData("Stared Date", "started"),
+                        width: "12%",
+                    },
                     {
                         ...getColumnData("Name", "name")
                     },
@@ -251,6 +316,14 @@ export default function Scholarships() {
             {
                 columns: [
                     {
+                        ...getColumnData("Stared Date", "started"),
+                        width: "12%",
+                    },
+                    {
+                        ...getColumnData("Finished Date", "finished"),
+                        width: "12%",
+                    },
+                    {
                         ...getColumnData("Name", "name")
                     },
                     {
@@ -279,6 +352,14 @@ export default function Scholarships() {
         const scholarshipColumnsApproveDeny = [
             {
                 columns: [
+                    {
+                        ...getColumnData("Stared Date", "started"),
+                        width: "12%",
+                    },
+                    {
+                        ...getColumnData("Finished Date", "finished"),
+                        width: "12%",
+                    },
                     {
                         ...getColumnData("Name", "name")
                     },
@@ -315,6 +396,14 @@ export default function Scholarships() {
             {
                 columns: [
                     {
+                        ...getColumnData("Stared Date", "started"),
+                        width: "12%",
+                    },
+                    {
+                        ...getColumnData("Finished Date", "finished"),
+                        width: "12%",
+                    },
+                    {
                         ...getColumnData("Name", "name")
                     },
                     {
@@ -346,6 +435,14 @@ export default function Scholarships() {
         const scholarshipColumnsIneligible = [
             {
                 columns: [
+                    {
+                        ...getColumnData("Stared Date", "started"),
+                        width: "12%",
+                    },
+                    {
+                        ...getColumnData("Finished Date", "finished"),
+                        width: "12%",
+                    },
                     {
                         ...getColumnData("Name", "name")
                     },
@@ -391,10 +488,10 @@ export default function Scholarships() {
                 pendingDccScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "started": dccStartDate,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
-                    "started": dccStartDate,
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
                     "currentScholarship": scholarship,
                 });
@@ -404,10 +501,10 @@ export default function Scholarships() {
                 completedDccScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "started": dccFinishedDate,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
-                    "started": dccFinishedDate,
                     "finished": dccFinishedDate,
                     "appLink": `${match.path}/${scholarship.id}/dcc`,
                     "currentScholarship": scholarship,
@@ -418,7 +515,7 @@ export default function Scholarships() {
                 pendingEduScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "started": eduStartDate,
@@ -431,7 +528,7 @@ export default function Scholarships() {
                 completedEduScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "started": eduFinishedDate,
@@ -446,7 +543,9 @@ export default function Scholarships() {
                 eligibleScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "started": eduFinishedDate,
+                    "finished": eduFinishedDate,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "appType": "Higher Edu",
@@ -459,7 +558,7 @@ export default function Scholarships() {
                 eligibleScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
                     "appType": "DCC",
@@ -472,7 +571,7 @@ export default function Scholarships() {
                 ineligibleScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "appType": "Higher Edu",
@@ -485,7 +584,7 @@ export default function Scholarships() {
                 ineligibleScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
                     "appType": "DCC",
@@ -499,7 +598,7 @@ export default function Scholarships() {
                 approvedScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
                     "appType": "DCC",
@@ -511,7 +610,7 @@ export default function Scholarships() {
                 approvedDccScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
                     "appType": "DCC",
@@ -525,7 +624,7 @@ export default function Scholarships() {
                 approvedScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "appType": "Higher Edu",
@@ -537,7 +636,7 @@ export default function Scholarships() {
                 approvedEduScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "appType": "Higher Edu",
@@ -552,7 +651,7 @@ export default function Scholarships() {
                 deniedScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
                     "appType": "DCC",
@@ -564,7 +663,7 @@ export default function Scholarships() {
                 deniedDccScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": dccApp.name,
+                    "name": dccApp.name ? dccApp.name : getUserName(scholarship.id)+"*",
                     "email": dccApp.email,
                     "city": dccApp.city,
                     "appType": "DCC",
@@ -578,7 +677,7 @@ export default function Scholarships() {
                 deniedScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "appType": "Higher Edu",
@@ -590,7 +689,7 @@ export default function Scholarships() {
                 deniedEduScholarships.push({
                     "id": scholarship.id,
                     "key": scholarship.id,
-                    "name": eduApp.name,
+                    "name": eduApp.name ? eduApp.name : getUserName(scholarship.id)+"*",
                     "email": eduApp.email,
                     "city": eduApp.city,
                     "appType": "Higher Edu",
@@ -646,6 +745,12 @@ export default function Scholarships() {
 
                 <LayoutContent ref={target}>
                     <AdvancedOptionsWrapper className="advanced-options-wrapper">
+                        <div className="year-swap">
+                            <span className={"year-swap-label"}>Scholarship Year</span>
+                            <Select defaultValue={scholarshipYear} style={{ width: 120 }} onChange={handleYearChange}>
+                                {buildYearSelectOptions()}
+                            </Select>
+                        </div>
                         <AdvancedOptions className={"advanced-options " + showOptionsClass}>
                             <div className="export-buttons" style={{textAlign: 'right'}}>
                                 <Button type="link" onClick={(e) => {ExportScholarships(pendingDccScholarshipsInfo, pendingEduScholarshipsInfo,

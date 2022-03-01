@@ -62,7 +62,7 @@ export default function Sponsorships() {
 
             getSponsorshipApplications();
         }
-    }, 3)
+    }, 3);
 
     // table search fields
     const getColumnSearchProps = dataIndex => ({
