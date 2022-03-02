@@ -235,7 +235,7 @@ export default function Scholarships() {
     const buildYearSelectOptions = () => {
         let years = [];
 
-        for(let i = 2019; i <= getCurrentYear(); i++) {
+        for(let i = 2020; i <= getCurrentYear(); i++) {
             years.push(i.toString());
         }
 
