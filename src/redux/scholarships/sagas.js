@@ -40,15 +40,6 @@ function* initScholarships(scholarshipYear) {
             users: users
         });
 
-
-        const OldcollectionRef = get2020ApplicationsRef();
-        const Oldsnapshots = yield call(rsf.firestore.getCollection, collectionRef);
-        const Oldscholarships = snapshots.docs.map(doc => ({id: doc.id, ...doc.data()}));
-
-        console.group("2020 SCHOLARSHIPS");
-        console.log(Oldscholarships);
-        console.groupEnd();
-
     } catch (error) {
         console.log("initScholarships error: ", error);
         yield put( {

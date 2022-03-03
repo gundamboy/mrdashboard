@@ -473,15 +473,36 @@ export default function Scholarships() {
         ]
 
         // makes the actual data the table displays
-        for (let scholarship of scholarships) {
+        for (const [i, scholarship] of scholarships.entries()) {
             const dccApp = scholarship.dcc;
             const eduApp = scholarship.higherEdu;
-            const approvalStatus = scholarship.admin.approvalStatus;
+            let approvalStatus = "pending";
             const firebaseDates = scholarship.dates;
             const dccStartDate = firebaseDates.dcc.started !== "" ? formattedDate(firebaseDates.dcc.started.toDate()) : "";
             const eduStartDate = firebaseDates.higherEdu.started !== "" ? formattedDate(firebaseDates.higherEdu.started.toDate()) : "";
             const dccFinishedDate = firebaseDates.dcc.finished !== "" ? formattedDate(firebaseDates.dcc.finished.toDate()) : "";
             const eduFinishedDate = firebaseDates.higherEdu.finished !== "" ? formattedDate(firebaseDates.higherEdu.finished.toDate()) : "";
+
+            if (scholarshipYear === "2020") {
+                if (i === 0) {
+                    console.log(
+                        "firebaseDates:", firebaseDates, " || \n\r",
+                        "dccStartDate:", dccStartDate, " || \n\r",
+                        "eduStartDate:", eduStartDate, " || \n\r",
+                        "dccFinishedDate:", dccFinishedDate, " || \n\r",
+                        "eduFinishedDate:", eduFinishedDate, " || \n\r",
+                    )
+                }
+                if(scholarship.hasOwnProperty("approvals")) {
+                    if(scholarship.approvals.hasOwnProperty("higherEduEmailSent") || scholarship.approvals.hasOwnProperty("dccEmailSent")) {
+                        approvalStatus = "approved";
+                    } else {
+                        approvalStatus = "denied";
+                    }
+                }
+            } else {
+                approvalStatus = scholarship.admin.approvalStatus;
+            }
 
             // pending dcc
             if (!firebaseDates.dcc.finished && firebaseDates.dcc.started && approvalStatus.dcc === "pending") {
